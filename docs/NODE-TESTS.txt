@@ -1,0 +1,308 @@
+
+> flappy-bird-1-3-pwa@0.2.1-beta.1 test
+> node --test tests/core.test.mjs tests/cache.test.mjs
+
+TAP version 13
+# Subtest: All 28 runtime resources are cached together, including sounds and icons
+ok 1 - All 28 runtime resources are cached together, including sounds and icons
+  ---
+  duration_ms: 33.147585
+  type: 'test'
+  ...
+# Subtest: After install, navigation/modules/atlas/audio return from cache with network unavailable
+ok 2 - After install, navigation/modules/atlas/audio return from cache with network unavailable
+  ---
+  duration_ms: 13.90612
+  type: 'test'
+  ...
+# Subtest: A missing precache asset rejects installation rather than claiming offline readiness
+ok 3 - A missing precache asset rejects installation rather than claiming offline readiness
+  ---
+  duration_ms: 5.398482
+  type: 'test'
+  ...
+# Subtest: Activation removes only obsolete caches of the same app scope
+ok 4 - Activation removes only obsolete caches of the same app scope
+  ---
+  duration_ms: 6.862823
+  type: 'test'
+  ...
+# Subtest: Unsupported routes and external origins are not intercepted
+ok 5 - Unsupported routes and external origins are not intercepted
+  ---
+  duration_ms: 5.155452
+  type: 'test'
+  ...
+# Subtest: Activation of a waiting update requires an explicit message
+ok 6 - Activation of a waiting update requires an explicit message
+  ---
+  duration_ms: 8.606745
+  type: 'test'
+  ...
+# Subtest: A cache completeness request reports an evicted asset
+ok 7 - A cache completeness request reports an evicted asset
+  ---
+  duration_ms: 13.686655
+  type: 'test'
+  ...
+# Subtest: Java PRNG: seed 0, 500 outputs
+ok 8 - Java PRNG: seed 0, 500 outputs
+  ---
+  duration_ms: 1.721764
+  type: 'test'
+  ...
+# Subtest: Java PRNG: seed 1, 500 outputs
+ok 9 - Java PRNG: seed 1, 500 outputs
+  ---
+  duration_ms: 0.293202
+  type: 'test'
+  ...
+# Subtest: Java PRNG: seed -1, 500 outputs
+ok 10 - Java PRNG: seed -1, 500 outputs
+  ---
+  duration_ms: 0.247301
+  type: 'test'
+  ...
+# Subtest: Java PRNG: seed 123456789, 500 outputs
+ok 11 - Java PRNG: seed 123456789, 500 outputs
+  ---
+  duration_ms: 0.183986
+  type: 'test'
+  ...
+# Subtest: Java PRNG: seed -2147483648, 500 outputs
+ok 12 - Java PRNG: seed -2147483648, 500 outputs
+  ---
+  duration_ms: 0.213055
+  type: 'test'
+  ...
+# Subtest: Java PRNG: seed 2147483647, 500 outputs
+ok 13 - Java PRNG: seed 2147483647, 500 outputs
+  ---
+  duration_ms: 0.17538
+  type: 'test'
+  ...
+# Subtest: Bird arithmetic agrees bit-for-bit with JVM reference across 2000 updates
+ok 14 - Bird arithmetic agrees bit-for-bit with JVM reference across 2000 updates
+  ---
+  duration_ms: 11.690485
+  type: 'test'
+  ...
+# Subtest: 360-entry sine table agrees with JVM reference
+ok 15 - 360-entry sine table agrees with JVM reference
+  ---
+  duration_ms: 0.258175
+  type: 'test'
+  ...
+# Subtest: Idle bob uses 8 degrees/update and wraps after 45
+ok 16 - Idle bob uses 8 degrees/update and wraps after 45
+  ---
+  duration_ms: 0.564112
+  type: 'test'
+  ...
+# Subtest: Hitbox is inclusive on touching edges
+ok 17 - Hitbox is inclusive on touching edges
+  ---
+  duration_ms: 0.336024
+  type: 'test'
+  ...
+# Subtest: Flaps above the top are ignored
+ok 18 - Flaps above the top are ignored
+  ---
+  duration_ms: 0.202726
+  type: 'test'
+  ...
+# Subtest: Ground clamps to y=380 and kills vertical speed
+ok 19 - Ground clamps to y=380 and kills vertical speed
+  ---
+  duration_ms: 0.195454
+  type: 'test'
+  ...
+# Subtest: Animation clock uses integer thresholds 33 and 100, with +15
+ok 20 - Animation clock uses integer thresholds 33 and 100, with +15
+  ---
+  duration_ms: 0.08655
+  type: 'test'
+  ...
+# Subtest: Tween IDs 5 and 11 are cubic-out and quintic-out, 30 frames per half second
+ok 21 - Tween IDs 5 and 11 are cubic-out and quintic-out, 30 frames per half second
+  ---
+  duration_ms: 0.229085
+  type: 'test'
+  ...
+# Subtest: 1000-delay events fire after 34 updates; 500-delay after 17
+ok 22 - 1000-delay events fire after 34 updates; 500-delay after 17
+  ---
+  duration_ms: 1.977421
+  type: 'test'
+  ...
+# Subtest: Score increments at pipe x=bird x, not when its trailing edge passes
+ok 23 - Score increments at pipe x=bird x, not when its trailing edge passes
+  ---
+  duration_ms: 0.299842
+  type: 'test'
+  ...
+# Subtest: Pipe positions survive reset; spacing is 157 after recycling
+ok 24 - Pipe positions survive reset; spacing is 157 after recycling
+  ---
+  duration_ms: 0.282303
+  type: 'test'
+  ...
+# Subtest: Menu -> play release -> ready -> flying -> death -> panel -> replay
+ok 25 - Menu -> play release -> ready -> flying -> death -> panel -> replay
+  ---
+  duration_ms: 4.074247
+  type: 'test'
+  ...
+# Subtest: Two runs with the same input stream and seed are deterministic
+ok 26 - Two runs with the same input stream and seed are deterministic
+  ---
+  duration_ms: 53.14138
+  type: 'test'
+  ...
+# Subtest: All display-list sprite names resolve in supplied atlas
+ok 27 - All display-list sprite names resolve in supplied atlas
+  ---
+  duration_ms: 3.726133
+  type: 'test'
+  ...
+# Subtest: 60 simulation updates/sec at 30 Hz presentation
+ok 28 - 60 simulation updates/sec at 30 Hz presentation
+  ---
+  duration_ms: 0.643092
+  type: 'test'
+  ...
+# Subtest: 60 simulation updates/sec at 60 Hz presentation
+ok 29 - 60 simulation updates/sec at 60 Hz presentation
+  ---
+  duration_ms: 0.199545
+  type: 'test'
+  ...
+# Subtest: 60 simulation updates/sec at 90 Hz presentation
+ok 30 - 60 simulation updates/sec at 90 Hz presentation
+  ---
+  duration_ms: 0.165076
+  type: 'test'
+  ...
+# Subtest: 60 simulation updates/sec at 120 Hz presentation
+ok 31 - 60 simulation updates/sec at 120 Hz presentation
+  ---
+  duration_ms: 0.244402
+  type: 'test'
+  ...
+# Subtest: 60 simulation updates/sec at 144 Hz presentation
+ok 32 - 60 simulation updates/sec at 144 Hz presentation
+  ---
+  duration_ms: 0.290356
+  type: 'test'
+  ...
+# Subtest: 60 simulation updates/sec at 240 Hz presentation
+ok 33 - 60 simulation updates/sec at 240 Hz presentation
+  ---
+  duration_ms: 0.347809
+  type: 'test'
+  ...
+# Subtest: Slow displays catch up to 60 Hz while large background gaps stay bounded
+ok 34 - Slow displays catch up to 60 Hz while large background gaps stay bounded
+  ---
+  duration_ms: 0.190716
+  type: 'test'
+  ...
+# Subtest: Score panel medals and record thresholds match all four native tiers
+ok 35 - Score panel medals and record thresholds match all four native tiers
+  ---
+  duration_ms: 0.67588
+  type: 'test'
+  ...
+# Subtest: Sparse replay survives JSON export and reproduces the exact final snapshot
+ok 36 - Sparse replay survives JSON export and reproduces the exact final snapshot
+  ---
+  duration_ms: 35.349205
+  type: 'test'
+  ...
+# Subtest: Performance profiler reports cadence and drop buckets
+ok 37 - Performance profiler reports cadence and drop buckets
+  ---
+  duration_ms: 1.935434
+  type: 'test'
+  ...
+# Subtest: Land interpolation crosses the 24 px wrap forward without visual rollback
+ok 38 - Land interpolation crosses the 24 px wrap forward without visual rollback
+  ---
+  duration_ms: 0.173522
+  type: 'test'
+  ...
+# Subtest: Render identities follow a pipe across slot recycling
+ok 39 - Render identities follow a pipe across slot recycling
+  ---
+  duration_ms: 0.1521
+  type: 'test'
+  ...
+# Subtest: All visible pipe commands carry stable render identities
+ok 40 - All visible pipe commands carry stable render identities
+  ---
+  duration_ms: 0.30873
+  type: 'test'
+  ...
+# Subtest: Adapted aspect centers the 288:512 game and fills the full portrait height
+ok 41 - Adapted aspect centers the 288:512 game and fills the full portrait height
+  ---
+  duration_ms: 0.523744
+  type: 'test'
+  ...
+# Subtest: Adapted aspect never stretches the logical game non-uniformly
+ok 42 - Adapted aspect never stretches the logical game non-uniformly
+  ---
+  duration_ms: 0.208573
+  type: 'test'
+  ...
+# Subtest: Original aspect preserves 288:512 with no scene padding
+ok 43 - Original aspect preserves 288:512 with no scene padding
+  ---
+  duration_ms: 0.13923
+  type: 'test'
+  ...
+# Subtest: Performance mode affects backing supersampling, not CSS game size
+ok 44 - Performance mode affects backing supersampling, not CSS game size
+  ---
+  duration_ms: 0.157656
+  type: 'test'
+  ...
+# Subtest: Aspect default is Original on desktop and Adapted on touch/mobile-class input
+ok 45 - Aspect default is Original on desktop and Adapted on touch/mobile-class input
+  ---
+  duration_ms: 0.086106
+  type: 'test'
+  ...
+# Subtest: Scene extension colors match original day/night sky and land
+ok 46 - Scene extension colors match original day/night sky and land
+  ---
+  duration_ms: 0.205365
+  type: 'test'
+  ...
+# Subtest: Renderer supersamples rotated sprites at x2 desktop and x3 high-DPR mobile
+ok 47 - Renderer supersamples rotated sprites at x2 desktop and x3 high-DPR mobile
+  ---
+  duration_ms: 0.091587
+  type: 'test'
+  ...
+# Subtest: PWA requests portrait-primary and avoids translucent iOS status-bar blur
+ok 48 - PWA requests portrait-primary and avoids translucent iOS status-bar blur
+  ---
+  duration_ms: 0.578452
+  type: 'test'
+  ...
+# Subtest: Adapted scene extension is rendered by the Canvas, not a CSS pseudo-element
+ok 49 - Adapted scene extension is rendered by the Canvas, not a CSS pseudo-element
+  ---
+  duration_ms: 0.167887
+  type: 'test'
+  ...
+1..49
+# tests 49
+# suites 0
+# pass 49
+# fail 0
+# cancelled 0
+# skipped 0
+# todo 0
+# duration_ms 218.478054

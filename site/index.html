@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#000000">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="description" content="Flappy Bird 1.3 en PWA, jouable hors ligne après mise en cache.">
+  <title>Flappy Bird 1.3</title>
+  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="icon" href="./icons/icon-32.png" type="image/png">
+  <link rel="apple-touch-icon" href="./icons/icon-180.png">
+  <link rel="stylesheet" href="./style.css">
+  <script type="module" src="./src/main.js"></script>
+</head>
+<body>
+  <main id="stage" aria-label="Flappy Bird">
+    <canvas id="game" width="288" height="512" tabindex="0" aria-label="Flappy Bird. Cliquer sur Play, puis cliquer, toucher ou appuyer sur Espace pour voler."></canvas>
+    <div id="loading" role="status">Chargement du jeu...</div>
+  </main>
+  <div id="orientation-lock" hidden><div><strong>Mode portrait requis</strong>Tournez votre appareil en portrait pour continuer.</div></div>
+  <button id="open-options" class="utility" title="Options (Echap)" aria-label="Ouvrir les options">&#9881;</button>
+  <p id="toast" role="status" hidden></p>
+  <dialog id="options">
+    <header><div><small>BETA PWA</small><h1>Flappy Bird <span>1.3</span></h1></div><button id="close-options" aria-label="Fermer">&#215;</button></header>
+    <p class="version">Beta 0.2.1b &middot; sans service externe</p>
+    <p id="offline-status">Préparation du mode hors ligne...</p>
+    <button id="install" hidden>Installer l'application</button>
+    <button id="refresh-cache" disabled>Vider le cache et mettre à jour</button>
+    <p id="server-status" class="hint">Recherche du serveur de mise à jour…</p>
+    <div class="settings">
+      <label><span>Son</span><input id="sound" type="checkbox" checked></label>
+      <label><span>Ratio d'aspect</span><select id="aspect"><option value="adapted">Adapté (écran complété)</option><option value="original">Original (288:512)</option></select></label>
+      <label><span>Mode Performance <small>upscale max ×2</small></span><input id="performance-mode" type="checkbox"></label>
+      <label><span>Hitboxes et diagnostic</span><input id="debug" type="checkbox"></label>
+    </div>
+    <p>Record local : <strong id="best-score">0</strong></p>
+    <p id="scores-message" hidden>Le classement Google est remplacé par le record local. Aucun compte ni accès Internet requis pour jouer.</p>
+    <p class="hint">Clic, toucher ou Espace : voler. Les boutons du jeu réagissent au relâchement. Echap : options. Aucun rattrapage après une mise en arrière-plan.</p>
+    <footer>
+      <p><strong>Installer la PWA :</strong> Windows : Edge/Chrome &rarr; menu de l'application &rarr; Installer. iPhone/iPad : Safari &rarr; Partager &rarr; Ajouter à l'écran d'accueil, puis lancer le jeu depuis son icône. Android : Chrome &rarr; menu &vellip; &rarr; Installer l'application / Ajouter à l'écran d'accueil.</p>
+      <p>Projet non officiel basé sur le code et les ressources de la version 1.3 publiée de Flappy Bird. Tous les crédits du jeu original reviennent à .GEARS Studios.</p>
+    </footer>
+  </dialog>
+  <section id="diagnostic" hidden aria-label="Outils de verification">
+    <pre id="stats"></pre>
+    <div><button id="pause">Pause</button><button id="step">+1 tick</button><button id="export">Exporter le replay</button></div>
+    <div class="perf-actions"><button id="profile">Profiler 10 s</button><button id="export-perf" disabled>Exporter perf</button></div>
+    <pre id="perf-output">Aucun profil disponible.</pre>
+    <p>H : hitboxes &middot; P : pause &middot; N : tick suivant</p>
+  </section>
+  <noscript>Ce jeu nécessite JavaScript. Le code et toutes ses ressources fonctionnent ensuite sans connexion.</noscript>
+</body>
+</html>

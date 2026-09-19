@@ -1,0 +1,16 @@
+{
+  "environment": "Isolated Chromium DOM, original assets embedded; no network navigation",
+  "errors": [],
+  "audio": {
+    "state": "running",
+    "buffers": 5,
+    "error": null
+  },
+  "keyboardRestart": "READY",
+  "keyboardFlap": "PLAYING",
+  "landscapeGuard": "VISIBLE",
+  "offlineBrowser": "NOT_TESTED",
+  "httpModuleLoading": "NOT_TESTED",
+  "localStoragePersistence": "NOT_TESTED",
+  "nativeAPKComparison": "NOT_TESTED"
+}

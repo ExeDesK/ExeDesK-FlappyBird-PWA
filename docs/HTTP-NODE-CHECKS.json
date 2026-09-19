@@ -1,0 +1,10 @@
+{
+  "version": "0.2.1b",
+  "port": 18083,
+  "health": {"ok": true, "service": "flappy13", "version": "0.2.1b"},
+  "checks": {
+    "/": 200,
+    "/src/main.js": 200,
+    "/manifest.webmanifest": 200
+  }
+}

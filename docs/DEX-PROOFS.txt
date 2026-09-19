@@ -1,0 +1,1158 @@
+Disassembly of the user-provided classes.dex. Inspection aid, not a complete decompiler.
+
+
+CLASS Lorg/andengine/b/e; extends Lorg/andengine/b/a;
+FIELDS [('Lorg/andengine/b/e;.e:J', 18)]
+
+METHOD 9208 Lorg/andengine/b/e;.<init>(Lorg/andengine/b/c/b;I)V flags 0x10001
+registers 7 args registers 3 code units 11
+0000 2070 2382 0054 invoke-direct Lorg/andengine/b/a;.<init>(Lorg/andengine/b/c/b;)V {v4,v5}
+0003 0017 ca00 3b9a const-wide/32 v0, 1000000000 [float 0.00472379]
+0006 6281 int-to-long v2, v6
+0007 20be div-long/2addr v0, v2
+0008 405a 0b8a iput-wide Lorg/andengine/b/e;.e:J v0, v4
+000a 000e return-void 
+
+METHOD 9209 Lorg/andengine/b/e;.a(J)V flags 0x1
+registers 7 args registers 3 code units 28
+0000 4053 0b8a iget-wide Lorg/andengine/b/e;.e:J v0, v4
+0002 50bc sub-long/2addr v0, v5
+0003 0216 0000 const-wide/16 v2, 0
+0005 0231 0200 cmp-long 
+0007 023c 0006 if-gtz v2 -> 000d
+0009 306f 2386 0654 invoke-super Lorg/andengine/b/a;.a(J)V {v4,v5,v6}
+000c 000e return-void 
+000d 0217 4240 000f const-wide/32 v2, 1000000 [float 1.4013e-39]
+0010 029e 0200 div-long v2, v0, v2
+0012 2284 long-to-int v2, v2
+0013 2281 int-to-long v2, v2
+0014 2071 2235 0032 invoke-static Ljava/lang/Thread;.sleep(J)V {v2,v3}
+0017 50bb add-long/2addr v0, v5
+0018 306f 2386 0104 invoke-super Lorg/andengine/b/a;.a(J)V {v4,v0,v1}
+001b f128 goto 
+
+CLASS Lcom/dotgears/flappy/a; extends Lcom/dotgears/q;
+FIELDS [('Lcom/dotgears/flappy/a;.A:Lcom/dotgears/e;', 2), ('Lcom/dotgears/flappy/a;.B:I', 2), ('Lcom/dotgears/flappy/a;.q:F', 0), ('Lcom/dotgears/flappy/a;.r:F', 0), ('Lcom/dotgears/flappy/a;.s:F', 0), ('Lcom/dotgears/flappy/a;.t:F', 0), ('Lcom/dotgears/flappy/a;.u:F', 0), ('Lcom/dotgears/flappy/a;.v:Z', 0), ('Lcom/dotgears/flappy/a;.w:Z', 0), ('Lcom/dotgears/flappy/a;.x:I', 0), ('Lcom/dotgears/flappy/a;.y:F', 0), ('Lcom/dotgears/flappy/a;.z:I', 0)]
+
+METHOD 2727 Lcom/dotgears/flappy/a;.<init>()V flags 0x10001
+registers 12 args registers 1 code units 95
+0000 0a13 000a const/16 v10, 10
+0002 0912 const/4 v9, 0
+0003 0813 000c const/16 v8, 12
+0005 2612 const/4 v6, 2
+0006 1712 const/4 v7, 1
+0007 1070 0b33 000b invoke-direct Lcom/dotgears/q;.<init>()V {v11}
+000a 0013 001e const/16 v0, 30
+000c b059 0272 iput Lcom/dotgears/flappy/a;.B:I v0, v11
+000e 011a 0e77 const-string 'bird'
+0010 0213 0014 const/16 v2, 20
+0012 0313 0014 const/16 v3, 20
+0014 0413 000e const/16 v4, 14
+0016 0513 000e const/16 v5, 14
+0018 b007 move-object v0, v11
+0019 0674 0aad 0000 invoke-virtual/range Lcom/dotgears/flappy/a;.a(Ljava/lang/String;IIII)V {v0 ..} count=6
+001c 8323 05f5 new-array [I
+001e 074b 0703 aput 
+0020 064b 0603 aput 
+0022 3012 const/4 v0, 3
+0023 074b 0003 aput 
+0025 5012 const/4 v0, 5
+0026 074b 0003 aput 
+0028 6012 const/4 v0, 6
+0029 064b 0003 aput 
+002b 7012 const/4 v0, 7
+002c 074b 0003 aput 
+002e 0013 0009 const/16 v0, 9
+0030 074b 0003 aput 
+0032 064b 0a03 aput 
+0034 0013 000b const/16 v0, 11
+0036 074b 0003 aput 
+0038 021a 1015 const-string 'flap'
+003a 0513 001e const/16 v5, 30
+003c b007 move-object v0, v11
+003d 9101 move v1, v9
+003e 8401 move v4, v8
+003f 9601 move v6, v9
+0040 0774 0aaa 0000 invoke-virtual/range Lcom/dotgears/flappy/a;.a(ILjava/lang/String;[IIIZ)V {v0 ..} count=7
+0043 021a 0e30 const-string 'auto'
+0045 b007 move-object v0, v11
+0046 7101 move v1, v7
+0047 8401 move v4, v8
+0048 a501 move v5, v10
+0049 7601 move v6, v7
+004a 0774 0aaa 0000 invoke-virtual/range Lcom/dotgears/flappy/a;.a(ILjava/lang/String;[IIIZ)V {v0 ..} count=7
+004d b75c 0282 iput-boolean Lcom/dotgears/flappy/a;.w:Z v7, v11
+004f 0071 0aec 0000 invoke-static Lcom/dotgears/j;.a()I {}
+0052 000a move-result 
+0053 00dc 0300 rem-int/lit8 
+0055 b059 0285 iput Lcom/dotgears/flappy/a;.z:I v0, v11
+0057 0022 01bc new-instance Lcom/dotgears/e;
+0059 1070 0a95 0000 invoke-direct Lcom/dotgears/e;.<init>()V {v0}
+005c b05b 0271 iput-object Lcom/dotgears/flappy/a;.A:Lcom/dotgears/e; v0, v11
+005e 000e return-void 
+
+METHOD 2728 Lcom/dotgears/flappy/a;.a()V flags 0x1
+registers 6 args registers 1 code units 41
+0000 0412 const/4 v4, 0
+0001 0312 const/4 v3, 0
+0002 1212 const/4 v2, 1
+0003 0013 0050 const/16 v0, 80
+0005 0113 00f6 const/16 v1, 246
+0007 306f 0b35 0105 invoke-super Lcom/dotgears/q;.a(II)V {v5,v0,v1}
+000a 5359 027c iput Lcom/dotgears/flappy/a;.q:F v3, v5
+000c 5359 027f iput Lcom/dotgears/flappy/a;.t:F v3, v5
+000e 0015 3f80 const/high16 v0, 1065353216 [float 1]
+0010 5059 0280 iput Lcom/dotgears/flappy/a;.u:F v0, v5
+0012 0014 cccd 3ecc const v0, 1053609165 [float 0.4]
+0015 5059 027e iput Lcom/dotgears/flappy/a;.s:F v0, v5
+0017 545c 0281 iput-boolean Lcom/dotgears/flappy/a;.v:Z v4, v5
+0019 525c 0282 iput-boolean Lcom/dotgears/flappy/a;.w:Z v2, v5
+001b 5459 0283 iput Lcom/dotgears/flappy/a;.x:I v4, v5
+001d 306e 0aab 0225 invoke-virtual Lcom/dotgears/flappy/a;.a(IZ)V {v5,v2,v2}
+0020 0071 0aec 0000 invoke-static Lcom/dotgears/j;.a()I {}
+0023 000a move-result 
+0024 00dc 0300 rem-int/lit8 
+0026 5059 0285 iput Lcom/dotgears/flappy/a;.z:I v0, v5
+0028 000e return-void 
+
+METHOD 2729 Lcom/dotgears/flappy/a;.a(F)V flags 0x1
+registers 8 args registers 2 code units 142
+0000 0515 42b4 const/high16 v5, 1119092736 [float 90]
+0002 0415 4100 const/high16 v4, 1090519040 [float 8]
+0004 0315 c1a0 const/high16 v3, 3248488448 [float -20]
+0006 0212 const/4 v2, 0
+0007 206f 0b34 0076 invoke-super Lcom/dotgears/q;.a(F)V {v6,v7}
+000a 6055 0282 iget-boolean Lcom/dotgears/flappy/a;.w:Z v0, v6
+000c 0039 0066 if-nez v0 -> 0072
+000e 6259 0284 iput Lcom/dotgears/flappy/a;.y:F v2, v6
+0010 6052 027f iget Lcom/dotgears/flappy/a;.t:F v0, v6
+0012 6152 0280 iget Lcom/dotgears/flappy/a;.u:F v1, v6
+0014 10c6 add-float/2addr v0, v1
+0015 6059 027f iput Lcom/dotgears/flappy/a;.t:F v0, v6
+0017 6052 027f iget Lcom/dotgears/flappy/a;.t:F v0, v6
+0019 002d 0400 cmpl-float 
+001b 003d 0004 if-lez v0 -> 001f
+001d 6459 027f iput Lcom/dotgears/flappy/a;.t:F v4, v6
+001f 6052 0274 iget Lcom/dotgears/flappy/a;.c:I v0, v6
+0021 0082 int-to-float v0, v0
+0022 6152 027f iget Lcom/dotgears/flappy/a;.t:F v1, v6
+0024 10c6 add-float/2addr v0, v1
+0025 0087 float-to-int v0, v0
+0026 6059 0274 iput Lcom/dotgears/flappy/a;.c:I v0, v6
+0028 6052 0274 iget Lcom/dotgears/flappy/a;.c:I v0, v6
+002a 6152 0276 iget Lcom/dotgears/flappy/a;.f:I v1, v6
+002c 11d1 0190 rsub-int/lit16 
+002e 1037 000c if-le v0, v1 -> 003a
+0030 6052 0276 iget Lcom/dotgears/flappy/a;.f:I v0, v6
+0032 00d1 0190 rsub-int/lit16 
+0034 6059 0274 iput Lcom/dotgears/flappy/a;.c:I v0, v6
+0036 6259 0280 iput Lcom/dotgears/flappy/a;.u:F v2, v6
+0038 6259 027f iput Lcom/dotgears/flappy/a;.t:F v2, v6
+003a 6052 027c iget Lcom/dotgears/flappy/a;.q:F v0, v6
+003c 6152 027d iget Lcom/dotgears/flappy/a;.r:F v1, v6
+003e 10c6 add-float/2addr v0, v1
+003f 6059 027c iput Lcom/dotgears/flappy/a;.q:F v0, v6
+0041 6052 027d iget Lcom/dotgears/flappy/a;.r:F v0, v6
+0043 6152 027e iget Lcom/dotgears/flappy/a;.s:F v1, v6
+0045 10c6 add-float/2addr v0, v1
+0046 6059 027d iput Lcom/dotgears/flappy/a;.r:F v0, v6
+0048 6052 027c iget Lcom/dotgears/flappy/a;.q:F v0, v6
+004a 002e 0300 cmpg-float 
+004c 003b 0004 if-gez v0 -> 0050
+004e 6359 027c iput Lcom/dotgears/flappy/a;.q:F v3, v6
+0050 6052 027c iget Lcom/dotgears/flappy/a;.q:F v0, v6
+0052 002d 0500 cmpl-float 
+0054 003d 0004 if-lez v0 -> 0058
+0056 6559 027c iput Lcom/dotgears/flappy/a;.q:F v5, v6
+0058 6052 0272 iget Lcom/dotgears/flappy/a;.B:I v0, v6
+005a 00d8 ff00 add-int/lit8 
+005c 6059 0272 iput Lcom/dotgears/flappy/a;.B:I v0, v6
+005e 6052 0272 iget Lcom/dotgears/flappy/a;.B:I v0, v6
+0060 0039 0006 if-nez v0 -> 0066
+0062 0013 001e const/16 v0, 30
+0064 6059 0272 iput Lcom/dotgears/flappy/a;.B:I v0, v6
+0066 6054 0271 iget-object Lcom/dotgears/flappy/a;.A:Lcom/dotgears/e; v0, v6
+0068 0055 0263 iget-boolean Lcom/dotgears/e;.m:Z v0, v0
+006a 0038 0007 if-eqz v0 -> 0071
+006c 6054 0271 iget-object Lcom/dotgears/flappy/a;.A:Lcom/dotgears/e; v0, v6
+006e 206e 0a96 0070 invoke-virtual Lcom/dotgears/e;.a(F)V {v0,v7}
+0071 000e return-void 
+0072 6052 0283 iget Lcom/dotgears/flappy/a;.x:I v0, v6
+0074 00d8 0800 add-int/lit8 
+0076 6059 0283 iput Lcom/dotgears/flappy/a;.x:I v0, v6
+0078 6052 0283 iget Lcom/dotgears/flappy/a;.x:I v0, v6
+007a 0113 0168 const/16 v1, 360
+007c 1033 0005 if-ne v0, v1 -> 0081
+007e 0012 const/4 v0, 0
+007f 6059 0283 iput Lcom/dotgears/flappy/a;.x:I v0, v6
+0081 6052 0283 iget Lcom/dotgears/flappy/a;.x:I v0, v6
+0083 0082 int-to-float v0, v0
+0084 1071 0af1 0000 invoke-static Lcom/dotgears/j;.b(F)F {v0}
+0087 000a move-result 
+0088 0115 4080 const/high16 v1, 1082130432 [float 4]
+008a 10c8 mul-float/2addr v0, v1
+008b 6059 0284 iput Lcom/dotgears/flappy/a;.y:F v0, v6
+008d e428 goto 
+
+METHOD 2732 Lcom/dotgears/flappy/a;.a(Lcom/dotgears/g;)V flags 0x1
+registers 8 args registers 2 code units 63
+0000 6055 027a iget-boolean Lcom/dotgears/flappy/a;.n:Z v0, v6
+0002 0039 0003 if-nez v0 -> 0005
+0004 000e return-void 
+0005 6054 027b iget-object Lcom/dotgears/flappy/a;.p:[Lcom/dotgears/i; v0, v6
+0007 6152 0285 iget Lcom/dotgears/flappy/a;.z:I v1, v6
+0009 01da 0301 mul-int/lit8 
+000b 01d8 0101 add-int/lit8 
+000d 0146 0100 aget-object 
+000f 6054 0279 iget-object Lcom/dotgears/flappy/a;.j:Lcom/dotgears/d; v0, v6
+0011 0038 0015 if-eqz v0 -> 0026
+0013 6054 0279 iget-object Lcom/dotgears/flappy/a;.j:Lcom/dotgears/d; v0, v6
+0015 0055 0258 iget-boolean Lcom/dotgears/d;.a:Z v0, v0
+0017 0039 000f if-nez v0 -> 0026
+0019 6054 027b iget-object Lcom/dotgears/flappy/a;.p:[Lcom/dotgears/i; v0, v6
+001b 6154 0279 iget-object Lcom/dotgears/flappy/a;.j:Lcom/dotgears/d; v1, v6
+001d 1152 0261 iget Lcom/dotgears/d;.j:I v1, v1
+001f 6252 0285 iget Lcom/dotgears/flappy/a;.z:I v2, v6
+0021 02da 0302 mul-int/lit8 
+0023 21b0 add-int/2addr v1, v2
+0024 0146 0100 aget-object 
+0026 6052 0273 iget Lcom/dotgears/flappy/a;.b:I v0, v6
+0028 6252 0277 iget Lcom/dotgears/flappy/a;.g:I v2, v6
+002a 0291 0200 sub-int v2, v0, v2
+002c 6052 0274 iget Lcom/dotgears/flappy/a;.c:I v0, v6
+002e 6352 0278 iget Lcom/dotgears/flappy/a;.h:I v3, v6
+0030 30b1 sub-int/2addr v0, v3
+0031 6352 0284 iget Lcom/dotgears/flappy/a;.y:F v3, v6
+0033 3387 float-to-int v3, v3
+0034 03b0 add-int/2addr v3, v0
+0035 0415 3f80 const/high16 v4, 1065353216 [float 1]
+0037 6052 027c iget Lcom/dotgears/flappy/a;.q:F v0, v6
+0039 0587 float-to-int v5, v0
+003a 7007 move-object v0, v7
+003b 0674 0ad6 0000 invoke-virtual/range Lcom/dotgears/g;.a(Lcom/dotgears/i;IIFI)V {v0 ..} count=6
+003e c628 goto 
+
+METHOD 2734 Lcom/dotgears/flappy/a;.b()V flags 0x1
+registers 5 args registers 1 code units 47
+0000 0112 const/4 v1, 0
+0001 4055 0282 iget-boolean Lcom/dotgears/flappy/a;.w:Z v0, v4
+0003 0038 0004 if-eqz v0 -> 0007
+0005 415c 0282 iput-boolean Lcom/dotgears/flappy/a;.w:Z v1, v4
+0007 4052 0274 iget Lcom/dotgears/flappy/a;.c:I v0, v4
+0009 003b 0003 if-gez v0 -> 000c
+000b 000e return-void 
+000c 4055 0281 iget-boolean Lcom/dotgears/flappy/a;.v:Z v0, v4
+000e 0039 fffd if-nez v0 -> 000b
+0010 1012 const/4 v0, 1
+0011 306e 0aab 0014 invoke-virtual Lcom/dotgears/flappy/a;.a(IZ)V {v4,v1,v0}
+0014 0015 c0a0 const/high16 v0, 3231711232 [float -5]
+0016 4059 027f iput Lcom/dotgears/flappy/a;.t:F v0, v4
+0018 0014 999a 3e99 const v0, 1050253722 [float 0.3]
+001b 4059 0280 iput Lcom/dotgears/flappy/a;.u:F v0, v4
+001d 0015 c120 const/high16 v0, 3240099840 [float -10]
+001f 4059 027d iput Lcom/dotgears/flappy/a;.r:F v0, v4
+0021 0014 cccd 3ecc const v0, 1053609165 [float 0.4]
+0024 4059 027e iput Lcom/dotgears/flappy/a;.s:F v0, v4
+0026 0062 0289 sget-object Lcom/dotgears/flappy/c;.D:Lcom/dotgears/g; v0
+0028 4112 const/4 v1, 4
+0029 0212 const/4 v2, 0
+002a 5312 const/4 v3, 5
+002b 406e 0ad4 3210 invoke-virtual Lcom/dotgears/g;.a(ILcom/dotgears/m;I)V {v0,v1,v2,v3}
+002e dd28 goto 
+
+
+
+CLASS Lorg/andengine/b/a; extends Ljava/lang/Object;
+FIELDS [('Lorg/andengine/b/a;.e:Lorg/andengine/input/sensor/b;', 26), ('Lorg/andengine/b/a;.A:Lorg/andengine/b/b/d;', 18), ('Lorg/andengine/b/a;.B:Lorg/andengine/b/b/a;', 18), ('Lorg/andengine/b/a;.a:Lorg/andengine/b/a/a;', 20), ('Lorg/andengine/b/a;.b:Lorg/andengine/c/b/e;', 4), ('Lorg/andengine/b/a;.c:I', 4), ('Lorg/andengine/b/a;.d:I', 4), ('Lorg/andengine/b/a;.f:Z', 2), ('Lorg/andengine/b/a;.g:Z', 2), ('Lorg/andengine/b/a;.h:J', 2), ('Lorg/andengine/b/a;.i:F', 2), ('Lorg/andengine/b/a;.j:Lorg/andengine/b/c;', 18), ('Lorg/andengine/b/a;.k:Lorg/andengine/b/d;', 18), ('Lorg/andengine/b/a;.l:Lorg/andengine/b/b/a/a;', 18), ('Lorg/andengine/b/a;.m:Lorg/andengine/b/c/b;', 18), ('Lorg/andengine/b/a;.n:Lorg/andengine/input/a/a/d;', 2), ('Lorg/andengine/b/a;.o:Lorg/andengine/opengl/d/e;', 18), ('Lorg/andengine/b/a;.p:Lorg/andengine/opengl/c/e;', 18), ('Lorg/andengine/b/a;.q:Lorg/andengine/opengl/a/c;', 18), ('Lorg/andengine/b/a;.r:Lorg/andengine/opengl/b/h;', 18), ('Lorg/andengine/b/a;.s:Lorg/andengine/a/c/c;', 18), ('Lorg/andengine/b/a;.t:Lorg/andengine/a/b/b;', 18), ('Lorg/andengine/b/a;.u:Lorg/andengine/input/sensor/location/a;', 2), ('Lorg/andengine/b/a;.v:Landroid/location/Location;', 2), ('Lorg/andengine/b/a;.w:Lorg/andengine/input/sensor/a/g;', 2), ('Lorg/andengine/b/a;.x:Lorg/andengine/input/sensor/a/a;', 2), ('Lorg/andengine/b/a;.y:Lorg/andengine/input/sensor/b/a;', 2), ('Lorg/andengine/b/a;.z:Lorg/andengine/input/sensor/b/b;', 2)]
+
+METHOD 9089 Lorg/andengine/b/a;.<clinit>()V flags 0x10008
+registers 1 args registers 0 code units 5
+0000 0062 0c4c sget-object Lorg/andengine/input/sensor/b;.c:Lorg/andengine/input/sensor/b; v0
+0002 0069 0b47 sput-object Lorg/andengine/b/a;.e:Lorg/andengine/input/sensor/b; v0
+0004 000e return-void 
+
+METHOD 9090 Lorg/andengine/b/a;.<init>(Lorg/andengine/b/c/b;)V flags 0x10001
+registers 6 args registers 2 code units 241
+0000 0312 const/4 v3, 0
+0001 1212 const/4 v2, 1
+0002 1070 21e2 0004 invoke-direct Ljava/lang/Object;.<init>()V {v4}
+0005 0022 0539 new-instance Lorg/andengine/b/b/a/a;
+0007 1070 23a8 0000 invoke-direct Lorg/andengine/b/b/a/a;.<init>()V {v0}
+000a 405b 0b4e iput-object Lorg/andengine/b/a;.l:Lorg/andengine/b/b/a/a; v0, v4
+000c 0022 05ca new-instance Lorg/andengine/opengl/d/e;
+000e 1070 2694 0000 invoke-direct Lorg/andengine/opengl/d/e;.<init>()V {v0}
+0011 405b 0b51 iput-object Lorg/andengine/b/a;.o:Lorg/andengine/opengl/d/e; v0, v4
+0013 0022 05bf new-instance Lorg/andengine/opengl/c/e;
+0015 1070 2659 0000 invoke-direct Lorg/andengine/opengl/c/e;.<init>()V {v0}
+0018 405b 0b52 iput-object Lorg/andengine/b/a;.p:Lorg/andengine/opengl/c/e; v0, v4
+001a 0022 059e new-instance Lorg/andengine/opengl/a/c;
+001c 1070 259e 0000 invoke-direct Lorg/andengine/opengl/a/c;.<init>()V {v0}
+001f 405b 0b53 iput-object Lorg/andengine/b/a;.q:Lorg/andengine/opengl/a/c; v0, v4
+0021 0022 05ac new-instance Lorg/andengine/opengl/b/h;
+0023 1070 25e5 0000 invoke-direct Lorg/andengine/opengl/b/h;.<init>()V {v0}
+0026 405b 0b54 iput-object Lorg/andengine/b/a;.r:Lorg/andengine/opengl/b/h; v0, v4
+0028 0022 053d new-instance Lorg/andengine/b/b/d;
+002a 0113 0008 const/16 v1, 8
+002c 2070 23b2 0010 invoke-direct Lorg/andengine/b/b/d;.<init>(I)V {v0,v1}
+002f 405b 0b41 iput-object Lorg/andengine/b/a;.A:Lorg/andengine/b/b/d; v0, v4
+0031 0022 053a new-instance Lorg/andengine/b/b/a;
+0033 4112 const/4 v1, 4
+0034 2070 23ab 0010 invoke-direct Lorg/andengine/b/b/a;.<init>(I)V {v0,v1}
+0037 405b 0b42 iput-object Lorg/andengine/b/a;.B:Lorg/andengine/b/b/a; v0, v4
+0039 4259 0b45 iput Lorg/andengine/b/a;.c:I v2, v4
+003b 4259 0b46 iput Lorg/andengine/b/a;.d:I v2, v4
+003d 0071 25fb 0000 invoke-static Lorg/andengine/opengl/c/a/a/b;.a()V {}
+0040 0071 234d 0000 invoke-static Lorg/andengine/a/c/b;.a()V {}
+0043 0071 2333 0000 invoke-static Lorg/andengine/a/b/a;.a()V {}
+0046 0071 259c 0000 invoke-static Lorg/andengine/opengl/a/b;.a()V {}
+0049 4054 0b51 iget-object Lorg/andengine/b/a;.o:Lorg/andengine/opengl/d/e; v0, v4
+004b 106e 2695 0000 invoke-virtual Lorg/andengine/opengl/d/e;.a()V {v0}
+004e 4054 0b52 iget-object Lorg/andengine/b/a;.p:Lorg/andengine/opengl/c/e; v0, v4
+0050 106e 265a 0000 invoke-virtual Lorg/andengine/opengl/c/e;.a()V {v0}
+0053 4054 0b53 iget-object Lorg/andengine/b/a;.q:Lorg/andengine/opengl/a/c; v0, v4
+0055 106e 259f 0000 invoke-virtual Lorg/andengine/opengl/a/c;.a()V {v0}
+0058 4054 0b54 iget-object Lorg/andengine/b/a;.r:Lorg/andengine/opengl/b/h; v0, v4
+005a 106e 25e6 0000 invoke-virtual Lorg/andengine/opengl/b/h;.a()V {v0}
+005d 455b 0b4f iput-object Lorg/andengine/b/a;.m:Lorg/andengine/b/c/b; v5, v4
+005f 4054 0b4f iget-object Lorg/andengine/b/a;.m:Lorg/andengine/b/c/b; v0, v4
+0061 106e 23c4 0000 invoke-virtual Lorg/andengine/b/c/b;.a()Z {v0}
+0064 000a move-result 
+0065 0038 006c if-eqz v0 -> 00d1
+0067 106e 23c5 0005 invoke-virtual Lorg/andengine/b/c/b;.b()Lorg/andengine/b/c; {v5}
+006a 000c move-result-object 
+006b 405b 0b4c iput-object Lorg/andengine/b/a;.j:Lorg/andengine/b/c; v0, v4
+006d 106e 23cc 0005 invoke-virtual Lorg/andengine/b/c/b;.i()Lorg/andengine/b/a/a; {v5}
+0070 000c move-result-object 
+0071 405b 0b43 iput-object Lorg/andengine/b/a;.a:Lorg/andengine/b/a/a; v0, v4
+0073 4054 0b4f iget-object Lorg/andengine/b/a;.m:Lorg/andengine/b/c/b; v0, v4
+0075 106e 23c6 0000 invoke-virtual Lorg/andengine/b/c/b;.c()Lorg/andengine/b/c/g; {v0}
+0078 000c move-result-object 
+0079 106e 23e3 0000 invoke-virtual Lorg/andengine/b/c/g;.a()Z {v0}
+007c 000a move-result 
+007d 0038 005d if-eqz v0 -> 00da
+007f 0022 0588 new-instance Lorg/andengine/input/a/a/f;
+0081 1070 254a 0000 invoke-direct Lorg/andengine/input/a/a/f;.<init>()V {v0}
+0084 206e 2388 0004 invoke-virtual Lorg/andengine/b/a;.a(Lorg/andengine/input/a/a/d;)V {v4,v0}
+0087 4054 0b4f iget-object Lorg/andengine/b/a;.m:Lorg/andengine/b/c/b; v0, v4
+0089 106e 23c7 0000 invoke-virtual Lorg/andengine/b/c/b;.d()Lorg/andengine/b/c/a; {v0}
+008c 000c move-result-object 
+008d 106e 23c0 0000 invoke-virtual Lorg/andengine/b/c/a;.b()Z {v0}
+0090 000a move-result 
+0091 0038 0052 if-eqz v0 -> 00e3
+0093 0022 0533 new-instance Lorg/andengine/a/c/c;
+0095 4154 0b4f iget-object Lorg/andengine/b/a;.m:Lorg/andengine/b/c/b; v1, v4
+0097 106e 23c7 0001 invoke-virtual Lorg/andengine/b/c/b;.d()Lorg/andengine/b/c/a; {v1}
+009a 010c move-result-object 
+009b 106e 23be 0001 invoke-virtual Lorg/andengine/b/c/a;.a()Lorg/andengine/b/c/f; {v1}
+009e 010c move-result-object 
+009f 106e 23e0 0001 invoke-virtual Lorg/andengine/b/c/f;.b()I {v1}
+00a2 010a move-result 
+00a3 2070 2350 0010 invoke-direct Lorg/andengine/a/c/c;.<init>(I)V {v0,v1}
+00a6 405b 0b55 iput-object Lorg/andengine/b/a;.s:Lorg/andengine/a/c/c; v0, v4
+00a8 4054 0b4f iget-object Lorg/andengine/b/a;.m:Lorg/andengine/b/c/b; v0, v4
+00aa 106e 23c7 0000 invoke-virtual Lorg/andengine/b/c/b;.d()Lorg/andengine/b/c/a; {v0}
+00ad 000c move-result-object 
+00ae 106e 23c1 0000 invoke-virtual Lorg/andengine/b/c/a;.c()Z {v0}
+00b1 000a move-result 
+00b2 0038 0034 if-eqz v0 -> 00e6
+00b4 0022 052d new-instance Lorg/andengine/a/b/b;
+00b6 1070 2335 0000 invoke-direct Lorg/andengine/a/b/b;.<init>()V {v0}
+00b9 405b 0b56 iput-object Lorg/andengine/b/a;.t:Lorg/andengine/a/b/b; v0, v4
+00bb 4054 0b4f iget-object Lorg/andengine/b/a;.m:Lorg/andengine/b/c/b; v0, v4
+00bd 106e 23cd 0000 invoke-virtual Lorg/andengine/b/c/b;.j()Z {v0}
+00c0 000a move-result 
+00c1 0038 0028 if-eqz v0 -> 00e9
+00c3 4054 0b4f iget-object Lorg/andengine/b/a;.m:Lorg/andengine/b/c/b; v0, v4
+00c5 106e 23ce 0000 invoke-virtual Lorg/andengine/b/c/b;.k()Lorg/andengine/b/d; {v0}
+00c8 000c move-result-object 
+00c9 405b 0b4d iput-object Lorg/andengine/b/a;.k:Lorg/andengine/b/d; v0, v4
+00cb 4054 0b4d iget-object Lorg/andengine/b/a;.k:Lorg/andengine/b/d; v0, v4
+00cd 206e 23f3 0040 invoke-virtual Lorg/andengine/b/d;.a(Lorg/andengine/b/a;)V {v0,v4}
+00d0 000e return-void 
+00d1 0022 054a new-instance Lorg/andengine/b/c;
+00d3 0112 const/4 v1, 0
+00d4 2070 23ea 0010 invoke-direct Lorg/andengine/b/c;.<init>(Z)V {v0,v1}
+00d7 405b 0b4c iput-object Lorg/andengine/b/a;.j:Lorg/andengine/b/c; v0, v4
+00d9 9428 goto 
+00da 0022 0589 new-instance Lorg/andengine/input/a/a/g;
+00dc 1070 2550 0000 invoke-direct Lorg/andengine/input/a/a/g;.<init>()V {v0}
+00df 206e 2388 0004 invoke-virtual Lorg/andengine/b/a;.a(Lorg/andengine/input/a/a/d;)V {v4,v0}
+00e2 a528 goto 
+00e3 435b 0b55 iput-object Lorg/andengine/b/a;.s:Lorg/andengine/a/c/c; v3, v4
+00e5 c328 goto 
+00e6 435b 0b56 iput-object Lorg/andengine/b/a;.t:Lorg/andengine/a/b/b; v3, v4
+00e8 d328 goto 
+00e9 0022 054b new-instance Lorg/andengine/b/d;
+00eb 1070 23f2 0000 invoke-direct Lorg/andengine/b/d;.<init>()V {v0}
+00ee 405b 0b4d iput-object Lorg/andengine/b/a;.k:Lorg/andengine/b/d; v0, v4
+00f0 db28 goto 
+
+METHOD 9119 Lorg/andengine/b/a;.n()V flags 0x2
+registers 2 args registers 1 code units 11
+0000 1055 0b49 iget-boolean Lorg/andengine/b/a;.g:Z v0, v1
+0002 0038 0008 if-eqz v0 -> 000a
+0004 0022 053e new-instance Lorg/andengine/b/b;
+0006 2070 23b6 0010 invoke-direct Lorg/andengine/b/b;.<init>(Lorg/andengine/b/a;)V {v0,v1}
+0009 0027 op_0x27 
+000a 000e return-void 
+
+METHOD 9120 Lorg/andengine/b/a;.o()J flags 0x2
+registers 5 args registers 1 code units 8
+0000 0071 2230 0000 invoke-static Ljava/lang/System;.nanoTime()J {}
+0003 000b move-result-wide 
+0004 4253 0b4a iget-wide Lorg/andengine/b/a;.h:J v2, v4
+0006 20bc sub-long/2addr v0, v2
+0007 0010 return-wide 
+
+METHOD 9091 Lorg/andengine/b/a;.a()V flags 0x1
+registers 2 args registers 1 code units 6
+0000 1054 0b4d iget-object Lorg/andengine/b/a;.k:Lorg/andengine/b/d; v0, v1
+0002 106e 23f7 0000 invoke-virtual Lorg/andengine/b/d;.start()V {v0}
+0005 000e return-void 
+
+METHOD 9092 Lorg/andengine/b/a;.a(F)V flags 0x4
+registers 3 args registers 2 code units 10
+0000 1054 0b44 iget-object Lorg/andengine/b/a;.b:Lorg/andengine/c/b/e; v0, v1
+0002 0038 0007 if-eqz v0 -> 0009
+0004 1054 0b44 iget-object Lorg/andengine/b/a;.b:Lorg/andengine/c/b/e; v0, v1
+0006 206e 243c 0020 invoke-virtual Lorg/andengine/c/b/e;.a_(F)V {v0,v2}
+0009 000e return-void 
+
+METHOD 9093 Lorg/andengine/b/a;.a(II)V flags 0x1
+registers 3 args registers 3 code units 8
+0000 0159 0b45 iput Lorg/andengine/b/a;.c:I v1, v0
+0002 0259 0b46 iput Lorg/andengine/b/a;.d:I v2, v0
+0004 106e 2397 0000 invoke-virtual Lorg/andengine/b/a;.f()V {v0}
+0007 000e return-void 
+
+METHOD 9094 Lorg/andengine/b/a;.a(J)V flags 0x1
+registers 6 args registers 3 code units 27
+0000 4085 long-to-float v0, v4
+0001 0114 705f 3089 const v1, 814313567 [float 1e-09]
+0004 10c8 mul-float/2addr v0, v1
+0005 3152 0b4b iget Lorg/andengine/b/a;.i:F v1, v3
+0007 01c6 add-float/2addr v1, v0
+0008 3159 0b4b iput Lorg/andengine/b/a;.i:F v1, v3
+000a 3153 0b4a iget-wide Lorg/andengine/b/a;.h:J v1, v3
+000c 41bb add-long/2addr v1, v4
+000d 315a 0b4a iput-wide Lorg/andengine/b/a;.h:J v1, v3
+000f 3154 0b50 iget-object Lorg/andengine/b/a;.n:Lorg/andengine/input/a/a/d; v1, v3
+0011 2072 2548 0001 invoke-interface Lorg/andengine/input/a/a/d;.a_(F)V {v1,v0}
+0014 206e 2390 0003 invoke-virtual Lorg/andengine/b/a;.b(F)V {v3,v0}
+0017 206e 2384 0003 invoke-virtual Lorg/andengine/b/a;.a(F)V {v3,v0}
+001a 000e return-void 
+
+METHOD 9095 Lorg/andengine/b/a;.a(Lorg/andengine/c/b/e;)V flags 0x1
+registers 2 args registers 2 code units 3
+0000 015b 0b44 iput-object Lorg/andengine/b/a;.b:Lorg/andengine/c/b/e; v1, v0
+0002 000e return-void 
+
+METHOD 9096 Lorg/andengine/b/a;.a(Lorg/andengine/input/a/a/d;)V flags 0x1
+registers 3 args registers 2 code units 8
+0000 125b 0b50 iput-object Lorg/andengine/b/a;.n:Lorg/andengine/input/a/a/d; v2, v1
+0002 1054 0b50 iget-object Lorg/andengine/b/a;.n:Lorg/andengine/input/a/a/d; v0, v1
+0004 2072 2547 0010 invoke-interface Lorg/andengine/input/a/a/d;.a(Lorg/andengine/input/a/a/e;)V {v0,v1}
+0007 000e return-void 
+
+METHOD 9097 Lorg/andengine/b/a;.a(Lorg/andengine/opengl/util/e;)V flags 0x1
+registers 4 args registers 2 code units 45
+0000 2154 0b4c iget-object Lorg/andengine/b/a;.j:Lorg/andengine/b/c; v1, v2
+0002 106e 23ef 0001 invoke-virtual Lorg/andengine/b/c;.lock()V {v1}
+0005 106e 23ed 0001 invoke-virtual Lorg/andengine/b/c;.c()V {v1}
+0008 2054 0b51 iget-object Lorg/andengine/b/a;.o:Lorg/andengine/opengl/d/e; v0, v2
+000a 206e 2697 0030 invoke-virtual Lorg/andengine/opengl/d/e;.a(Lorg/andengine/opengl/util/e;)V {v0,v3}
+000d 2054 0b52 iget-object Lorg/andengine/b/a;.p:Lorg/andengine/opengl/c/e; v0, v2
+000f 206e 265b 0030 invoke-virtual Lorg/andengine/opengl/c/e;.a(Lorg/andengine/opengl/util/e;)V {v0,v3}
+0012 2054 0b53 iget-object Lorg/andengine/b/a;.q:Lorg/andengine/opengl/a/c; v0, v2
+0014 206e 25a0 0030 invoke-virtual Lorg/andengine/opengl/a/c;.a(Lorg/andengine/opengl/util/e;)V {v0,v3}
+0017 2054 0b43 iget-object Lorg/andengine/b/a;.a:Lorg/andengine/b/a/a; v0, v2
+0019 306e 238a 0032 invoke-virtual Lorg/andengine/b/a;.a(Lorg/andengine/opengl/util/e;Lorg/andengine/b/a/a;)V {v2,v3,v0}
+001c 2054 0b43 iget-object Lorg/andengine/b/a;.a:Lorg/andengine/b/a/a; v0, v2
+001e 306e 2392 0032 invoke-virtual Lorg/andengine/b/a;.b(Lorg/andengine/opengl/util/e;Lorg/andengine/b/a/a;)V {v2,v3,v0}
+0021 106e 23ec 0001 invoke-virtual Lorg/andengine/b/c;.b()V {v1}
+0024 106e 23f1 0001 invoke-virtual Lorg/andengine/b/c;.unlock()V {v1}
+0027 000e return-void 
+0028 000d op_0xd 
+0029 106e 23f1 0001 invoke-virtual Lorg/andengine/b/c;.unlock()V {v1}
+002c 0027 op_0x27 
+
+METHOD 9098 Lorg/andengine/b/a;.a(Lorg/andengine/opengl/util/e;Lorg/andengine/b/a/a;)V flags 0x4
+registers 4 args registers 3 code units 6
+0000 1054 0b42 iget-object Lorg/andengine/b/a;.B:Lorg/andengine/b/b/a; v0, v1
+0002 306e 23ac 0320 invoke-virtual Lorg/andengine/b/b/a;.a(Lorg/andengine/opengl/util/e;Lorg/andengine/b/a/a;)V {v0,v2,v3}
+0005 000e return-void 
+
+METHOD 9099 Lorg/andengine/b/a;.a(Lorg/andengine/b/a/a;Lorg/andengine/input/a/a;)Z flags 0x4
+registers 4 args registers 3 code units 17
+0000 106e 237e 0002 invoke-virtual Lorg/andengine/b/a/a;.j()Z {v2}
+0003 000a move-result 
+0004 0038 000b if-eqz v0 -> 000f
+0006 106e 237d 0002 invoke-virtual Lorg/andengine/b/a/a;.i()Lorg/andengine/b/a/a/a; {v2}
+0009 000c move-result-object 
+000a 206e 235c 0030 invoke-virtual Lorg/andengine/b/a/a/a;.a(Lorg/andengine/input/a/a;)Z {v0,v3}
+000d 000a move-result 
+000e 000f return 
+000f 0012 const/4 v0, 0
+0010 fe28 goto 
+
+METHOD 9100 Lorg/andengine/b/a;.a(Lorg/andengine/c/b/e;Lorg/andengine/input/a/a;)Z flags 0x4
+registers 4 args registers 3 code units 9
+0000 0238 0007 if-eqz v2 -> 0007
+0002 206e 243b 0032 invoke-virtual Lorg/andengine/c/b/e;.a(Lorg/andengine/input/a/a;)Z {v2,v3}
+0005 000a move-result 
+0006 000f return 
+0007 0012 const/4 v0, 0
+0008 fe28 goto 
+
+METHOD 9101 Lorg/andengine/b/a;.a(Lorg/andengine/input/a/a;)Z flags 0x1
+registers 4 args registers 2 code units 24
+0000 206e 2393 0032 invoke-virtual Lorg/andengine/b/a;.c(Lorg/andengine/input/a/a;)Lorg/andengine/c/b/e; {v2,v3}
+0003 000c move-result-object 
+0004 206e 238e 0032 invoke-virtual Lorg/andengine/b/a;.b(Lorg/andengine/input/a/a;)Lorg/andengine/b/a/a; {v2,v3}
+0007 010c move-result-object 
+0008 306e 2391 0312 invoke-virtual Lorg/andengine/b/a;.b(Lorg/andengine/b/a/a;Lorg/andengine/input/a/a;)V {v2,v1,v3}
+000b 306e 238b 0312 invoke-virtual Lorg/andengine/b/a;.a(Lorg/andengine/b/a/a;Lorg/andengine/input/a/a;)Z {v2,v1,v3}
+000e 010a move-result 
+000f 0138 0004 if-eqz v1 -> 0013
+0011 1012 const/4 v0, 1
+0012 000f return 
+0013 306e 238c 0302 invoke-virtual Lorg/andengine/b/a;.a(Lorg/andengine/c/b/e;Lorg/andengine/input/a/a;)Z {v2,v0,v3}
+0016 000a move-result 
+0017 fb28 goto 
+
+METHOD 9102 Lorg/andengine/b/a;.b(Lorg/andengine/input/a/a;)Lorg/andengine/b/a/a; flags 0x4
+registers 3 args registers 2 code units 5
+0000 106e 2396 0001 invoke-virtual Lorg/andengine/b/a;.e()Lorg/andengine/b/a/a; {v1}
+0003 000c move-result-object 
+0004 0011 return-object 
+
+METHOD 9103 Lorg/andengine/b/a;.b()V flags 0x20001
+registers 3 args registers 1 code units 19
+0000 021d op_0x1d 
+0001 2055 0b48 iget-boolean Lorg/andengine/b/a;.f:Z v0, v2
+0003 0039 000b if-nez v0 -> 000e
+0005 0071 2230 0000 invoke-static Ljava/lang/System;.nanoTime()J {}
+0008 000b move-result-wide 
+0009 205a 0b4a iput-wide Lorg/andengine/b/a;.h:J v0, v2
+000b 1012 const/4 v0, 1
+000c 205c 0b48 iput-boolean Lorg/andengine/b/a;.f:Z v0, v2
+000e 021e op_0x1e 
+000f 000e return-void 
+0010 000d op_0xd 
+0011 021e op_0x1e 
+0012 0027 op_0x27 
+
+METHOD 9104 Lorg/andengine/b/a;.b(F)V flags 0x4
+registers 3 args registers 2 code units 18
+0000 1054 0b4e iget-object Lorg/andengine/b/a;.l:Lorg/andengine/b/b/a/a; v0, v1
+0002 206e 23a9 0020 invoke-virtual Lorg/andengine/b/b/a/a;.a_(F)V {v0,v2}
+0005 1054 0b41 iget-object Lorg/andengine/b/a;.A:Lorg/andengine/b/b/d; v0, v1
+0007 206e 23b3 0020 invoke-virtual Lorg/andengine/b/b/d;.a_(F)V {v0,v2}
+000a 106e 2396 0001 invoke-virtual Lorg/andengine/b/a;.e()Lorg/andengine/b/a/a; {v1}
+000d 000c move-result-object 
+000e 206e 236a 0020 invoke-virtual Lorg/andengine/b/a/a;.a_(F)V {v0,v2}
+0011 000e return-void 
+
+METHOD 9105 Lorg/andengine/b/a;.b(Lorg/andengine/b/a/a;Lorg/andengine/input/a/a;)V flags 0x4
+registers 5 args registers 3 code units 8
+0000 2052 0b45 iget Lorg/andengine/b/a;.c:I v0, v2
+0002 2152 0b46 iget Lorg/andengine/b/a;.d:I v1, v2
+0004 406e 2367 1043 invoke-virtual Lorg/andengine/b/a/a;.a(Lorg/andengine/input/a/a;II)V {v3,v4,v0,v1}
+0007 000e return-void 
+
+METHOD 9106 Lorg/andengine/b/a;.b(Lorg/andengine/opengl/util/e;Lorg/andengine/b/a/a;)V flags 0x4
+registers 4 args registers 3 code units 13
+0000 1054 0b44 iget-object Lorg/andengine/b/a;.b:Lorg/andengine/c/b/e; v0, v1
+0002 0038 0007 if-eqz v0 -> 0009
+0004 1054 0b44 iget-object Lorg/andengine/b/a;.b:Lorg/andengine/c/b/e; v0, v1
+0006 306e 243a 0320 invoke-virtual Lorg/andengine/c/b/e;.a(Lorg/andengine/opengl/util/e;Lorg/andengine/b/a/a;)V {v0,v2,v3}
+0009 206e 2368 0023 invoke-virtual Lorg/andengine/b/a/a;.a(Lorg/andengine/opengl/util/e;)V {v3,v2}
+000c 000e return-void 
+
+METHOD 9107 Lorg/andengine/b/a;.c(Lorg/andengine/input/a/a;)Lorg/andengine/c/b/e; flags 0x4
+registers 3 args registers 2 code units 3
+0000 1054 0b44 iget-object Lorg/andengine/b/a;.b:Lorg/andengine/c/b/e; v0, v1
+0002 0011 return-object 
+
+METHOD 9108 Lorg/andengine/b/a;.c()V flags 0x20001
+registers 2 args registers 1 code units 13
+0000 011d op_0x1d 
+0001 1055 0b48 iget-boolean Lorg/andengine/b/a;.f:Z v0, v1
+0003 0038 0005 if-eqz v0 -> 0008
+0005 0012 const/4 v0, 0
+0006 105c 0b48 iput-boolean Lorg/andengine/b/a;.f:Z v0, v1
+0008 011e op_0x1e 
+0009 000e return-void 
+000a 000d op_0xd 
+000b 011e op_0x1e 
+000c 0027 op_0x27 
+
+METHOD 9109 Lorg/andengine/b/a;.d()Lorg/andengine/b/c/b; flags 0x1
+registers 2 args registers 1 code units 3
+0000 1054 0b4f iget-object Lorg/andengine/b/a;.m:Lorg/andengine/b/c/b; v0, v1
+0002 0011 return-object 
+
+METHOD 9110 Lorg/andengine/b/a;.e()Lorg/andengine/b/a/a; flags 0x1
+registers 2 args registers 1 code units 3
+0000 1054 0b43 iget-object Lorg/andengine/b/a;.a:Lorg/andengine/b/a/a; v0, v1
+0002 0011 return-object 
+
+METHOD 9111 Lorg/andengine/b/a;.f()V flags 0x4
+registers 5 args registers 1 code units 11
+0000 0312 const/4 v3, 0
+0001 4054 0b43 iget-object Lorg/andengine/b/a;.a:Lorg/andengine/b/a/a; v0, v4
+0003 4152 0b45 iget Lorg/andengine/b/a;.c:I v1, v4
+0005 4252 0b46 iget Lorg/andengine/b/a;.d:I v2, v4
+0007 526e 2363 1330 invoke-virtual Lorg/andengine/b/a/a;.a(IIII)V {v0,v3,v3,v1,v2}
+000a 000e return-void 
+
+METHOD 9112 Lorg/andengine/b/a;.g()Lorg/andengine/opengl/d/e; flags 0x1
+registers 2 args registers 1 code units 3
+0000 1054 0b51 iget-object Lorg/andengine/b/a;.o:Lorg/andengine/opengl/d/e; v0, v1
+0002 0011 return-object 
+
+METHOD 9113 Lorg/andengine/b/a;.h()Lorg/andengine/opengl/c/e; flags 0x1
+registers 2 args registers 1 code units 3
+0000 1054 0b52 iget-object Lorg/andengine/b/a;.p:Lorg/andengine/opengl/c/e; v0, v1
+0002 0011 return-object 
+
+METHOD 9114 Lorg/andengine/b/a;.i()Lorg/andengine/a/c/c; flags 0x1
+registers 3 args registers 1 code units 15
+0000 2054 0b55 iget-object Lorg/andengine/b/a;.s:Lorg/andengine/a/c/c; v0, v2
+0002 0038 0005 if-eqz v0 -> 0007
+0004 2054 0b55 iget-object Lorg/andengine/b/a;.s:Lorg/andengine/a/c/c; v0, v2
+0006 0011 return-object 
+0007 0022 04b4 new-instance Ljava/lang/IllegalStateException;
+0009 011a 0b6c const-string 'To enable the SoundManager, check the EngineOptions!'
+000b 2070 21ba 0010 invoke-direct Ljava/lang/IllegalStateException;.<init>(Ljava/lang/String;)V {v0,v1}
+000e 0027 op_0x27 
+
+METHOD 9115 Lorg/andengine/b/a;.j()Lorg/andengine/a/b/b; flags 0x1
+registers 3 args registers 1 code units 15
+0000 2054 0b56 iget-object Lorg/andengine/b/a;.t:Lorg/andengine/a/b/b; v0, v2
+0002 0038 0005 if-eqz v0 -> 0007
+0004 2054 0b56 iget-object Lorg/andengine/b/a;.t:Lorg/andengine/a/b/b; v0, v2
+0006 0011 return-object 
+0007 0022 04b4 new-instance Ljava/lang/IllegalStateException;
+0009 011a 0b6b const-string 'To enable the MusicManager, check the EngineOptions!'
+000b 2070 21ba 0010 invoke-direct Ljava/lang/IllegalStateException;.<init>(Ljava/lang/String;)V {v0,v1}
+000e 0027 op_0x27 
+
+METHOD 9116 Lorg/andengine/b/a;.k()V flags 0x1
+registers 3 args registers 1 code units 68
+0000 2054 0b4c iget-object Lorg/andengine/b/a;.j:Lorg/andengine/b/c; v0, v2
+0002 106e 23ef 0000 invoke-virtual Lorg/andengine/b/c;.lock()V {v0}
+0005 1012 const/4 v0, 1
+0006 205c 0b49 iput-boolean Lorg/andengine/b/a;.g:Z v0, v2
+0008 2054 0b4c iget-object Lorg/andengine/b/a;.j:Lorg/andengine/b/c; v0, v2
+000a 106e 23ec 0000 invoke-virtual Lorg/andengine/b/c;.b()V {v0}
+000d 2054 0b4c iget-object Lorg/andengine/b/a;.j:Lorg/andengine/b/c; v0, v2
+000f 106e 23f1 0000 invoke-virtual Lorg/andengine/b/c;.unlock()V {v0}
+0012 2054 0b4d iget-object Lorg/andengine/b/a;.k:Lorg/andengine/b/d; v0, v2
+0014 106e 23f5 0000 invoke-virtual Lorg/andengine/b/d;.join()V {v0}
+0017 2054 0b51 iget-object Lorg/andengine/b/a;.o:Lorg/andengine/opengl/d/e; v0, v2
+0019 106e 2698 0000 invoke-virtual Lorg/andengine/opengl/d/e;.b()V {v0}
+001c 2054 0b52 iget-object Lorg/andengine/b/a;.p:Lorg/andengine/opengl/c/e; v0, v2
+001e 106e 265e 0000 invoke-virtual Lorg/andengine/opengl/c/e;.c()V {v0}
+0021 2054 0b53 iget-object Lorg/andengine/b/a;.q:Lorg/andengine/opengl/a/c; v0, v2
+0023 106e 25a1 0000 invoke-virtual Lorg/andengine/opengl/a/c;.b()V {v0}
+0026 2054 0b54 iget-object Lorg/andengine/b/a;.r:Lorg/andengine/opengl/b/h; v0, v2
+0028 106e 25e8 0000 invoke-virtual Lorg/andengine/opengl/b/h;.b()V {v0}
+002b 000e return-void 
+002c 000d op_0xd 
+002d 2154 0b4c iget-object Lorg/andengine/b/a;.j:Lorg/andengine/b/c; v1, v2
+002f 106e 23f1 0001 invoke-virtual Lorg/andengine/b/c;.unlock()V {v1}
+0032 0027 op_0x27 
+0033 000d op_0xd 
+0034 011a 02a4 const-string 'Could not join UpdateThread.'
+0036 2071 2514 0001 invoke-static Lorg/andengine/d/e/a;.b(Ljava/lang/String;Ljava/lang/Throwable;)V {v1,v0}
+0039 001a 0b78 const-string 'Trying to manually interrupt UpdateThread.'
+003b 1071 2515 0000 invoke-static Lorg/andengine/d/e/a;.c(Ljava/lang/String;)V {v0}
+003e 2054 0b4d iget-object Lorg/andengine/b/a;.k:Lorg/andengine/b/d; v0, v2
+0040 106e 23f4 0000 invoke-virtual Lorg/andengine/b/d;.interrupt()V {v0}
+0043 d428 goto 
+
+METHOD 9117 Lorg/andengine/b/a;.l()V flags 0x1
+registers 2 args registers 1 code units 21
+0000 1054 0b51 iget-object Lorg/andengine/b/a;.o:Lorg/andengine/opengl/d/e; v0, v1
+0002 106e 269a 0000 invoke-virtual Lorg/andengine/opengl/d/e;.c()V {v0}
+0005 1054 0b52 iget-object Lorg/andengine/b/a;.p:Lorg/andengine/opengl/c/e; v0, v1
+0007 106e 265d 0000 invoke-virtual Lorg/andengine/opengl/c/e;.b()V {v0}
+000a 1054 0b53 iget-object Lorg/andengine/b/a;.q:Lorg/andengine/opengl/a/c; v0, v1
+000c 106e 25a2 0000 invoke-virtual Lorg/andengine/opengl/a/c;.c()V {v0}
+000f 1054 0b54 iget-object Lorg/andengine/b/a;.r:Lorg/andengine/opengl/b/h; v0, v1
+0011 106e 25e9 0000 invoke-virtual Lorg/andengine/opengl/b/h;.c()V {v0}
+0014 000e return-void 
+
+METHOD 9118 Lorg/andengine/b/a;.m()V flags 0x0
+registers 4 args registers 1 code units 81
+0000 3055 0b48 iget-boolean Lorg/andengine/b/a;.f:Z v0, v3
+0002 0038 002b if-eqz v0 -> 002d
+0004 1070 23a0 0003 invoke-direct Lorg/andengine/b/a;.o()J {v3}
+0007 000b move-result-wide 
+0008 3254 0b4c iget-object Lorg/andengine/b/a;.j:Lorg/andengine/b/c; v2, v3
+000a 106e 23ef 0002 invoke-virtual Lorg/andengine/b/c;.lock()V {v2}
+000d 1070 239f 0003 invoke-direct Lorg/andengine/b/a;.n()V {v3}
+0010 306e 2386 0103 invoke-virtual Lorg/andengine/b/a;.a(J)V {v3,v0,v1}
+0013 1070 239f 0003 invoke-direct Lorg/andengine/b/a;.n()V {v3}
+0016 3054 0b4c iget-object Lorg/andengine/b/a;.j:Lorg/andengine/b/c; v0, v3
+0018 106e 23eb 0000 invoke-virtual Lorg/andengine/b/c;.a()V {v0}
+001b 3054 0b4c iget-object Lorg/andengine/b/a;.j:Lorg/andengine/b/c; v0, v3
+001d 106e 23ee 0000 invoke-virtual Lorg/andengine/b/c;.d()V {v0}
+0020 3054 0b4c iget-object Lorg/andengine/b/a;.j:Lorg/andengine/b/c; v0, v3
+0022 106e 23f1 0000 invoke-virtual Lorg/andengine/b/c;.unlock()V {v0}
+0025 000e return-void 
+0026 000d op_0xd 
+0027 3154 0b4c iget-object Lorg/andengine/b/a;.j:Lorg/andengine/b/c; v1, v3
+0029 106e 23f1 0001 invoke-virtual Lorg/andengine/b/c;.unlock()V {v1}
+002c 0027 op_0x27 
+002d 3054 0b4c iget-object Lorg/andengine/b/a;.j:Lorg/andengine/b/c; v0, v3
+002f 106e 23ef 0000 invoke-virtual Lorg/andengine/b/c;.lock()V {v0}
+0032 1070 239f 0003 invoke-direct Lorg/andengine/b/a;.n()V {v3}
+0035 3054 0b4c iget-object Lorg/andengine/b/a;.j:Lorg/andengine/b/c; v0, v3
+0037 106e 23eb 0000 invoke-virtual Lorg/andengine/b/c;.a()V {v0}
+003a 3054 0b4c iget-object Lorg/andengine/b/a;.j:Lorg/andengine/b/c; v0, v3
+003c 106e 23ee 0000 invoke-virtual Lorg/andengine/b/c;.d()V {v0}
+003f 3054 0b4c iget-object Lorg/andengine/b/a;.j:Lorg/andengine/b/c; v0, v3
+0041 106e 23f1 0000 invoke-virtual Lorg/andengine/b/c;.unlock()V {v0}
+0044 0016 0010 const-wide/16 v0, 16
+0046 2071 2235 0010 invoke-static Ljava/lang/Thread;.sleep(J)V {v0,v1}
+0049 dc28 goto 
+004a 000d op_0xd 
+004b 3154 0b4c iget-object Lorg/andengine/b/a;.j:Lorg/andengine/b/c; v1, v3
+004d 106e 23f1 0001 invoke-virtual Lorg/andengine/b/c;.unlock()V {v1}
+0050 0027 op_0x27 
+
+METHOD 9121 Lorg/andengine/b/a;.onAccuracyChanged(Landroid/hardware/Sensor;I)V flags 0x1
+registers 5 args registers 3 code units 68
+0000 2055 0b48 iget-boolean Lorg/andengine/b/a;.f:Z v0, v2
+0002 0038 0009 if-eqz v0 -> 000b
+0004 106e 00ea 0003 invoke-virtual Landroid/hardware/Sensor;.getType()I {v3}
+0007 000a move-result 
+0008 002b 0034 0000 packed-switch 
+000b 000e return-void 
+000c 2054 0b5a iget-object Lorg/andengine/b/a;.x:Lorg/andengine/input/sensor/a/a; v0, v2
+000e 0038 000f if-eqz v0 -> 001d
+0010 2054 0b5a iget-object Lorg/andengine/b/a;.x:Lorg/andengine/input/sensor/a/a; v0, v2
+0012 206e 256b 0040 invoke-virtual Lorg/andengine/input/sensor/a/a;.a(I)V {v0,v4}
+0015 2054 0b59 iget-object Lorg/andengine/b/a;.w:Lorg/andengine/input/sensor/a/g; v0, v2
+0017 2154 0b5a iget-object Lorg/andengine/b/a;.x:Lorg/andengine/input/sensor/a/a; v1, v2
+0019 2072 2577 0010 invoke-interface Lorg/andengine/input/sensor/a/g;.a(Lorg/andengine/input/sensor/a/a;)V {v0,v1}
+001c ef28 goto 
+001d 2054 0b5c iget-object Lorg/andengine/b/a;.z:Lorg/andengine/input/sensor/b/b; v0, v2
+001f 0038 ffec if-eqz v0 -> 000b
+0021 2054 0b5c iget-object Lorg/andengine/b/a;.z:Lorg/andengine/input/sensor/b/b; v0, v2
+0023 206e 2581 0040 invoke-virtual Lorg/andengine/input/sensor/b/b;.b(I)V {v0,v4}
+0026 2054 0b5b iget-object Lorg/andengine/b/a;.y:Lorg/andengine/input/sensor/b/a; v0, v2
+0028 2154 0b5c iget-object Lorg/andengine/b/a;.z:Lorg/andengine/input/sensor/b/b; v1, v2
+002a 2072 257c 0010 invoke-interface Lorg/andengine/input/sensor/b/a;.a(Lorg/andengine/input/sensor/b/b;)V {v0,v1}
+002d de28 goto 
+002e 2054 0b5c iget-object Lorg/andengine/b/a;.z:Lorg/andengine/input/sensor/b/b; v0, v2
+0030 206e 2583 0040 invoke-virtual Lorg/andengine/input/sensor/b/b;.c(I)V {v0,v4}
+0033 2054 0b5b iget-object Lorg/andengine/b/a;.y:Lorg/andengine/input/sensor/b/a; v0, v2
+0035 2154 0b5c iget-object Lorg/andengine/b/a;.z:Lorg/andengine/input/sensor/b/b; v1, v2
+0037 2072 257c 0010 invoke-interface Lorg/andengine/input/sensor/b/a;.a(Lorg/andengine/input/sensor/b/b;)V {v0,v1}
+003a d128 goto 
+003b 0000 nop 
+003c 0100 0002 0001 0000 0004 0000 0026 0000 payload 
+
+METHOD 9122 Lorg/andengine/b/a;.onLocationChanged(Landroid/location/Location;)V flags 0x1
+registers 3 args registers 2 code units 23
+0000 1054 0b58 iget-object Lorg/andengine/b/a;.v:Landroid/location/Location; v0, v1
+0002 0039 0005 if-nez v0 -> 0007
+0004 125b 0b58 iput-object Lorg/andengine/b/a;.v:Landroid/location/Location; v2, v1
+0006 000e return-void 
+0007 0239 0008 if-nez v2 -> 000f
+0009 1054 0b57 iget-object Lorg/andengine/b/a;.u:Lorg/andengine/input/sensor/location/a; v0, v1
+000b 1072 258e 0000 invoke-interface Lorg/andengine/input/sensor/location/a;.b()V {v0}
+000e f828 goto 
+000f 125b 0b58 iput-object Lorg/andengine/b/a;.v:Landroid/location/Location; v2, v1
+0011 1054 0b57 iget-object Lorg/andengine/b/a;.u:Lorg/andengine/input/sensor/location/a; v0, v1
+0013 2072 258c 0020 invoke-interface Lorg/andengine/input/sensor/location/a;.a(Landroid/location/Location;)V {v0,v2}
+0016 f028 goto 
+
+METHOD 9123 Lorg/andengine/b/a;.onProviderDisabled(Ljava/lang/String;)V flags 0x1
+registers 3 args registers 2 code units 6
+0000 1054 0b57 iget-object Lorg/andengine/b/a;.u:Lorg/andengine/input/sensor/location/a; v0, v1
+0002 1072 258f 0000 invoke-interface Lorg/andengine/input/sensor/location/a;.c()V {v0}
+0005 000e return-void 
+
+METHOD 9124 Lorg/andengine/b/a;.onProviderEnabled(Ljava/lang/String;)V flags 0x1
+registers 3 args registers 2 code units 6
+0000 1054 0b57 iget-object Lorg/andengine/b/a;.u:Lorg/andengine/input/sensor/location/a; v0, v1
+0002 1072 258b 0000 invoke-interface Lorg/andengine/input/sensor/location/a;.a()V {v0}
+0005 000e return-void 
+
+METHOD 9125 Lorg/andengine/b/a;.onSensorChanged(Landroid/hardware/SensorEvent;)V flags 0x1
+registers 4 args registers 2 code units 76
+0000 2055 0b48 iget-boolean Lorg/andengine/b/a;.f:Z v0, v2
+0002 0038 000b if-eqz v0 -> 000d
+0004 3054 0023 iget-object Landroid/hardware/SensorEvent;.sensor:Landroid/hardware/Sensor; v0, v3
+0006 106e 00ea 0000 invoke-virtual Landroid/hardware/Sensor;.getType()I {v0}
+0009 000a move-result 
+000a 002b 003a 0000 packed-switch 
+000d 000e return-void 
+000e 2054 0b5a iget-object Lorg/andengine/b/a;.x:Lorg/andengine/input/sensor/a/a; v0, v2
+0010 0038 0011 if-eqz v0 -> 0021
+0012 2054 0b5a iget-object Lorg/andengine/b/a;.x:Lorg/andengine/input/sensor/a/a; v0, v2
+0014 3154 0024 iget-object Landroid/hardware/SensorEvent;.values:[F v1, v3
+0016 206e 256c 0010 invoke-virtual Lorg/andengine/input/sensor/a/a;.a([F)V {v0,v1}
+0019 2054 0b59 iget-object Lorg/andengine/b/a;.w:Lorg/andengine/input/sensor/a/g; v0, v2
+001b 2154 0b5a iget-object Lorg/andengine/b/a;.x:Lorg/andengine/input/sensor/a/a; v1, v2
+001d 2072 2578 0010 invoke-interface Lorg/andengine/input/sensor/a/g;.b(Lorg/andengine/input/sensor/a/a;)V {v0,v1}
+0020 ed28 goto 
+0021 2054 0b5c iget-object Lorg/andengine/b/a;.z:Lorg/andengine/input/sensor/b/b; v0, v2
+0023 0038 ffea if-eqz v0 -> 000d
+0025 2054 0b5c iget-object Lorg/andengine/b/a;.z:Lorg/andengine/input/sensor/b/b; v0, v2
+0027 3154 0024 iget-object Landroid/hardware/SensorEvent;.values:[F v1, v3
+0029 206e 2582 0010 invoke-virtual Lorg/andengine/input/sensor/b/b;.b([F)V {v0,v1}
+002c 2054 0b5b iget-object Lorg/andengine/b/a;.y:Lorg/andengine/input/sensor/b/a; v0, v2
+002e 2154 0b5c iget-object Lorg/andengine/b/a;.z:Lorg/andengine/input/sensor/b/b; v1, v2
+0030 2072 257d 0010 invoke-interface Lorg/andengine/input/sensor/b/a;.b(Lorg/andengine/input/sensor/b/b;)V {v0,v1}
+0033 da28 goto 
+0034 2054 0b5c iget-object Lorg/andengine/b/a;.z:Lorg/andengine/input/sensor/b/b; v0, v2
+0036 3154 0024 iget-object Landroid/hardware/SensorEvent;.values:[F v1, v3
+0038 206e 2584 0010 invoke-virtual Lorg/andengine/input/sensor/b/b;.c([F)V {v0,v1}
+003b 2054 0b5b iget-object Lorg/andengine/b/a;.y:Lorg/andengine/input/sensor/b/a; v0, v2
+003d 2154 0b5c iget-object Lorg/andengine/b/a;.z:Lorg/andengine/input/sensor/b/b; v1, v2
+003f 2072 257d 0010 invoke-interface Lorg/andengine/input/sensor/b/a;.b(Lorg/andengine/input/sensor/b/b;)V {v0,v1}
+0042 cb28 goto 
+0043 0000 nop 
+0044 0100 0002 0001 0000 0004 0000 002a 0000 payload 
+
+METHOD 9126 Lorg/andengine/b/a;.onStatusChanged(Ljava/lang/String;ILandroid/os/Bundle;)V flags 0x1
+registers 6 args registers 4 code units 38
+0000 042b 001c 0000 packed-switch 
+0003 000e return-void 
+0004 2054 0b57 iget-object Lorg/andengine/b/a;.u:Lorg/andengine/input/sensor/location/a; v0, v2
+0006 0162 0c53 sget-object Lorg/andengine/input/sensor/location/b;.a:Lorg/andengine/input/sensor/location/b; v1
+0008 3072 258d 0510 invoke-interface Lorg/andengine/input/sensor/location/a;.a(Lorg/andengine/input/sensor/location/b;Landroid/os/Bundle;)V {v0,v1,v5}
+000b f828 goto 
+000c 2054 0b57 iget-object Lorg/andengine/b/a;.u:Lorg/andengine/input/sensor/location/a; v0, v2
+000e 0162 0c54 sget-object Lorg/andengine/input/sensor/location/b;.b:Lorg/andengine/input/sensor/location/b; v1
+0010 3072 258d 0510 invoke-interface Lorg/andengine/input/sensor/location/a;.a(Lorg/andengine/input/sensor/location/b;Landroid/os/Bundle;)V {v0,v1,v5}
+0013 f028 goto 
+0014 2054 0b57 iget-object Lorg/andengine/b/a;.u:Lorg/andengine/input/sensor/location/a; v0, v2
+0016 0162 0c55 sget-object Lorg/andengine/input/sensor/location/b;.c:Lorg/andengine/input/sensor/location/b; v1
+0018 3072 258d 0510 invoke-interface Lorg/andengine/input/sensor/location/a;.a(Lorg/andengine/input/sensor/location/b;Landroid/os/Bundle;)V {v0,v1,v5}
+001b e828 goto 
+001c 0100 0003 0000 0000 000c 0000 0014 0000 0004 0000 payload 
+
+METHOD 9127 Lorg/andengine/b/a;.onTouch(Landroid/view/View;Landroid/view/MotionEvent;)Z flags 0x1
+registers 5 args registers 3 code units 31
+0000 2055 0b48 iget-boolean Lorg/andengine/b/a;.f:Z v0, v2
+0002 0038 001b if-eqz v0 -> 001d
+0004 2054 0b50 iget-object Lorg/andengine/b/a;.n:Lorg/andengine/input/a/a/d; v0, v2
+0006 2072 2546 0040 invoke-interface Lorg/andengine/input/a/a/d;.a(Landroid/view/MotionEvent;)V {v0,v4}
+0009 2054 0b4f iget-object Lorg/andengine/b/a;.m:Lorg/andengine/b/c/b; v0, v2
+000b 106e 23c6 0000 invoke-virtual Lorg/andengine/b/c/b;.c()Lorg/andengine/b/c/g; {v0}
+000e 000c move-result-object 
+000f 106e 23e4 0000 invoke-virtual Lorg/andengine/b/c/g;.b()J {v0}
+0012 000b move-result-wide 
+0013 2071 2235 0010 invoke-static Ljava/lang/Thread;.sleep(J)V {v0,v1}
+0016 1012 const/4 v0, 1
+0017 000f return 
+0018 000d op_0xd 
+0019 1071 2511 0000 invoke-static Lorg/andengine/d/e/a;.a(Ljava/lang/Throwable;)V {v0}
+001c fa28 goto 
+001d 0012 const/4 v0, 0
+001e f928 goto 
+
+CLASS Lorg/andengine/opengl/c/f; extends Ljava/lang/Object;
+FIELDS [('Lorg/andengine/opengl/c/f;.a:Lorg/andengine/opengl/c/f;', 25), ('Lorg/andengine/opengl/c/f;.b:Lorg/andengine/opengl/c/f;', 25), ('Lorg/andengine/opengl/c/f;.c:Lorg/andengine/opengl/c/f;', 25), ('Lorg/andengine/opengl/c/f;.d:Lorg/andengine/opengl/c/f;', 25), ('Lorg/andengine/opengl/c/f;.e:Lorg/andengine/opengl/c/f;', 25), ('Lorg/andengine/opengl/c/f;.f:Lorg/andengine/opengl/c/f;', 25), ('Lorg/andengine/opengl/c/f;.g:Lorg/andengine/opengl/c/f;', 25), ('Lorg/andengine/opengl/c/f;.h:Lorg/andengine/opengl/c/f;', 25), ('Lorg/andengine/opengl/c/f;.i:Lorg/andengine/opengl/c/f;', 25), ('Lorg/andengine/opengl/c/f;.j:I', 17), ('Lorg/andengine/opengl/c/f;.k:I', 17), ('Lorg/andengine/opengl/c/f;.l:F', 17), ('Lorg/andengine/opengl/c/f;.m:F', 17), ('Lorg/andengine/opengl/c/f;.n:Z', 17)]
+
+METHOD 9823 Lorg/andengine/opengl/c/f;.<clinit>()V flags 0x10008
+registers 15 args registers 0 code units 101
+0000 0512 const/4 v5, 0
+0001 0314 812f 0000 const v3, 33071 [float 4.63423e-41]
+0004 0e13 2901 const/16 v14, 10497
+0006 0713 2601 const/16 v7, 9729
+0008 0113 2600 const/16 v1, 9728
+000a 0022 05c0 new-instance Lorg/andengine/opengl/c/f;
+000c 1201 move v2, v1
+000d 3401 move v4, v3
+000e 0676 2660 0000 invoke-direct/range Lorg/andengine/opengl/c/f;.<init>(IIIIZ)V {v0 ..} count=6
+0011 0069 0cd9 sput-object Lorg/andengine/opengl/c/f;.a:Lorg/andengine/opengl/c/f; v0
+0013 0622 05c0 new-instance Lorg/andengine/opengl/c/f;
+0015 7801 move v8, v7
+0016 3901 move v9, v3
+0017 3a01 move v10, v3
+0018 5b01 move v11, v5
+0019 0676 2660 0006 invoke-direct/range Lorg/andengine/opengl/c/f;.<init>(IIIIZ)V {v6 ..} count=6
+001c 0669 0cda sput-object Lorg/andengine/opengl/c/f;.b:Lorg/andengine/opengl/c/f; v6
+001e 0822 05c0 new-instance Lorg/andengine/opengl/c/f;
+0020 1901 move v9, v1
+0021 1a01 move v10, v1
+0022 eb01 move v11, v14
+0023 ec01 move v12, v14
+0024 5d01 move v13, v5
+0025 0676 2660 0008 invoke-direct/range Lorg/andengine/opengl/c/f;.<init>(IIIIZ)V {v8 ..} count=6
+0028 0869 0cdb sput-object Lorg/andengine/opengl/c/f;.c:Lorg/andengine/opengl/c/f; v8
+002a 0622 05c0 new-instance Lorg/andengine/opengl/c/f;
+002c 7801 move v8, v7
+002d e901 move v9, v14
+002e ea01 move v10, v14
+002f 5b01 move v11, v5
+0030 0676 2660 0006 invoke-direct/range Lorg/andengine/opengl/c/f;.<init>(IIIIZ)V {v6 ..} count=6
+0033 0669 0cdc sput-object Lorg/andengine/opengl/c/f;.d:Lorg/andengine/opengl/c/f; v6
+0035 0022 05c0 new-instance Lorg/andengine/opengl/c/f;
+0037 1512 const/4 v5, 1
+0038 1201 move v2, v1
+0039 3401 move v4, v3
+003a 0676 2660 0000 invoke-direct/range Lorg/andengine/opengl/c/f;.<init>(IIIIZ)V {v0 ..} count=6
+003d 0069 0cdd sput-object Lorg/andengine/opengl/c/f;.e:Lorg/andengine/opengl/c/f; v0
+003f 0622 05c0 new-instance Lorg/andengine/opengl/c/f;
+0041 1b12 const/4 v11, 1
+0042 7801 move v8, v7
+0043 3901 move v9, v3
+0044 3a01 move v10, v3
+0045 0676 2660 0006 invoke-direct/range Lorg/andengine/opengl/c/f;.<init>(IIIIZ)V {v6 ..} count=6
+0048 0669 0cde sput-object Lorg/andengine/opengl/c/f;.f:Lorg/andengine/opengl/c/f; v6
+004a 0022 05c0 new-instance Lorg/andengine/opengl/c/f;
+004c 1512 const/4 v5, 1
+004d 1201 move v2, v1
+004e e301 move v3, v14
+004f e401 move v4, v14
+0050 0676 2660 0000 invoke-direct/range Lorg/andengine/opengl/c/f;.<init>(IIIIZ)V {v0 ..} count=6
+0053 0069 0cdf sput-object Lorg/andengine/opengl/c/f;.g:Lorg/andengine/opengl/c/f; v0
+0055 0622 05c0 new-instance Lorg/andengine/opengl/c/f;
+0057 1b12 const/4 v11, 1
+0058 7801 move v8, v7
+0059 e901 move v9, v14
+005a ea01 move v10, v14
+005b 0676 2660 0006 invoke-direct/range Lorg/andengine/opengl/c/f;.<init>(IIIIZ)V {v6 ..} count=6
+005e 0669 0ce0 sput-object Lorg/andengine/opengl/c/f;.h:Lorg/andengine/opengl/c/f; v6
+0060 0062 0cd9 sget-object Lorg/andengine/opengl/c/f;.a:Lorg/andengine/opengl/c/f; v0
+0062 0069 0ce1 sput-object Lorg/andengine/opengl/c/f;.i:Lorg/andengine/opengl/c/f; v0
+0064 000e return-void 
+
+METHOD 9824 Lorg/andengine/opengl/c/f;.<init>(IIIIZ)V flags 0x10001
+registers 7 args registers 6 code units 16
+0000 1070 21e2 0001 invoke-direct Ljava/lang/Object;.<init>()V {v1}
+0003 1259 0ce3 iput Lorg/andengine/opengl/c/f;.k:I v2, v1
+0005 1359 0ce2 iput Lorg/andengine/opengl/c/f;.j:I v3, v1
+0007 4082 int-to-float v0, v4
+0008 1059 0ce4 iput Lorg/andengine/opengl/c/f;.l:F v0, v1
+000a 5082 int-to-float v0, v5
+000b 1059 0ce5 iput Lorg/andengine/opengl/c/f;.m:F v0, v1
+000d 165c 0ce6 iput-boolean Lorg/andengine/opengl/c/f;.n:Z v6, v1
+000f 000e return-void 
+
+METHOD 9825 Lorg/andengine/opengl/c/f;.a()V flags 0x1
+registers 4 args registers 1 code units 33
+0000 0213 0de1 const/16 v2, 3553
+0002 0013 2801 const/16 v0, 10241
+0004 3152 0ce3 iget Lorg/andengine/opengl/c/f;.k:I v1, v3
+0006 1182 int-to-float v1, v1
+0007 3071 0139 0102 invoke-static Landroid/opengl/GLES20;.glTexParameterf(IIF)V {v2,v0,v1}
+000a 0013 2800 const/16 v0, 10240
+000c 3152 0ce2 iget Lorg/andengine/opengl/c/f;.j:I v1, v3
+000e 1182 int-to-float v1, v1
+000f 3071 0139 0102 invoke-static Landroid/opengl/GLES20;.glTexParameterf(IIF)V {v2,v0,v1}
+0012 0013 2802 const/16 v0, 10242
+0014 3152 0ce5 iget Lorg/andengine/opengl/c/f;.m:F v1, v3
+0016 3071 0139 0102 invoke-static Landroid/opengl/GLES20;.glTexParameterf(IIF)V {v2,v0,v1}
+0019 0013 2803 const/16 v0, 10243
+001b 3152 0ce4 iget Lorg/andengine/opengl/c/f;.l:F v1, v3
+001d 3071 0139 0102 invoke-static Landroid/opengl/GLES20;.glTexParameterf(IIF)V {v2,v0,v1}
+0020 000e return-void 
+
+CLASS Lorg/andengine/b/c/a/b; extends Lorg/andengine/b/c/a/a;
+FIELDS [('Lorg/andengine/b/c/a/b;.a:F', 18), ('Lorg/andengine/b/c/a/b;.b:F', 18), ('Lorg/andengine/b/c/a/b;.c:F', 2), ('Lorg/andengine/b/c/a/b;.d:F', 2), ('Lorg/andengine/b/c/a/b;.e:F', 2), ('Lorg/andengine/b/c/a/b;.f:F', 2), ('Lorg/andengine/b/c/a/b;.g:F', 2), ('Lorg/andengine/b/c/a/b;.h:F', 2)]
+
+METHOD 9145 Lorg/andengine/b/c/a/b;.<init>(FF)V flags 0x10001
+registers 3 args registers 3 code units 8
+0000 1070 23b7 0000 invoke-direct Lorg/andengine/b/c/a/a;.<init>()V {v0}
+0003 0159 0b5f iput Lorg/andengine/b/c/a/b;.a:F v1, v0
+0005 0259 0b60 iput Lorg/andengine/b/c/a/b;.b:F v2, v0
+0007 000e return-void 
+
+METHOD 9146 Lorg/andengine/b/c/a/b;.a(Lorg/andengine/opengl/view/RenderSurfaceView;II)V flags 0x1
+registers 10 args registers 4 code units 83
+0000 0515 4000 const/high16 v5, 1073741824 [float 2]
+0002 2071 23b8 0098 invoke-static Lorg/andengine/b/c/a/a;.a(II)V {v8,v9}
+0005 1071 08e7 0008 invoke-static Landroid/view/View$MeasureSpec;.getSize(I)I {v8}
+0008 030a move-result 
+0009 1071 08e7 0009 invoke-static Landroid/view/View$MeasureSpec;.getSize(I)I {v9}
+000c 040a move-result 
+000d 6052 0b5f iget Lorg/andengine/b/c/a/b;.a:F v0, v6
+000f 6152 0b60 iget Lorg/andengine/b/c/a/b;.b:F v1, v6
+0011 10c9 div-float/2addr v0, v1
+0012 3182 int-to-float v1, v3
+0013 4282 int-to-float v2, v4
+0014 21c9 div-float/2addr v1, v2
+0015 012e 0001 cmpg-float 
+0017 013b 0034 if-gez v1 -> 004b
+0019 4182 int-to-float v1, v4
+001a 01c8 mul-float/2addr v1, v0
+001b 4082 int-to-float v0, v4
+001c 6252 0b60 iget Lorg/andengine/b/c/a/b;.b:F v2, v6
+001e 02c9 div-float/2addr v2, v0
+001f 3382 int-to-float v3, v3
+0020 23c8 mul-float/2addr v3, v2
+0021 6359 0b61 iput Lorg/andengine/b/c/a/b;.c:F v3, v6
+0023 4382 int-to-float v3, v4
+0024 32c8 mul-float/2addr v2, v3
+0025 6259 0b62 iput Lorg/andengine/b/c/a/b;.d:F v2, v6
+0027 6252 0b5f iget Lorg/andengine/b/c/a/b;.a:F v2, v6
+0029 6352 0b61 iget Lorg/andengine/b/c/a/b;.c:F v3, v6
+002b 32c7 sub-float/2addr v2, v3
+002c 52c9 div-float/2addr v2, v5
+002d 6259 0b63 iput Lorg/andengine/b/c/a/b;.e:F v2, v6
+002f 6252 0b61 iget Lorg/andengine/b/c/a/b;.c:F v2, v6
+0031 6352 0b63 iget Lorg/andengine/b/c/a/b;.e:F v3, v6
+0033 32c6 add-float/2addr v2, v3
+0034 6259 0b64 iput Lorg/andengine/b/c/a/b;.f:F v2, v6
+0036 6252 0b60 iget Lorg/andengine/b/c/a/b;.b:F v2, v6
+0038 6352 0b62 iget Lorg/andengine/b/c/a/b;.d:F v3, v6
+003a 32c7 sub-float/2addr v2, v3
+003b 52c9 div-float/2addr v2, v5
+003c 6259 0b66 iput Lorg/andengine/b/c/a/b;.h:F v2, v6
+003e 6252 0b62 iget Lorg/andengine/b/c/a/b;.d:F v2, v6
+0040 6352 0b66 iget Lorg/andengine/b/c/a/b;.h:F v3, v6
+0042 32c6 add-float/2addr v2, v3
+0043 6259 0b65 iput Lorg/andengine/b/c/a/b;.g:F v2, v6
+0045 1187 float-to-int v1, v1
+0046 0087 float-to-int v0, v0
+0047 306e 26db 0017 invoke-virtual Lorg/andengine/opengl/view/RenderSurfaceView;.a(II)V {v7,v1,v0}
+004a 000e return-void 
+004b 3182 int-to-float v1, v3
+004c 00a9 0001 div-float v0, v1, v0
+004e 3182 int-to-float v1, v3
+004f 6252 0b5f iget Lorg/andengine/b/c/a/b;.a:F v2, v6
+0051 12c9 div-float/2addr v2, v1
+0052 cd28 goto 
+
+CLASS Lorg/andengine/input/a/a; extends Ljava/lang/Object;
+FIELDS [('Lorg/andengine/input/a/a;.f:Lorg/andengine/input/a/b;', 26), ('Lorg/andengine/input/a/a;.a:I', 4), ('Lorg/andengine/input/a/a;.b:F', 4), ('Lorg/andengine/input/a/a;.c:F', 4), ('Lorg/andengine/input/a/a;.d:I', 4), ('Lorg/andengine/input/a/a;.e:Landroid/view/MotionEvent;', 4)]
+
+METHOD 9555 Lorg/andengine/input/a/a;.<clinit>()V flags 0x10008
+registers 2 args registers 0 code units 9
+0000 0022 058b new-instance Lorg/andengine/input/a/b;
+0002 0112 const/4 v1, 0
+0003 2070 2565 0010 invoke-direct Lorg/andengine/input/a/b;.<init>(Lorg/andengine/input/a/b;)V {v0,v1}
+0006 0069 0c3d sput-object Lorg/andengine/input/a/a;.f:Lorg/andengine/input/a/b; v0
+0008 000e return-void 
+
+METHOD 9556 Lorg/andengine/input/a/a;.<init>()V flags 0x10001
+registers 1 args registers 1 code units 4
+0000 1070 21e2 0000 invoke-direct Ljava/lang/Object;.<init>()V {v0}
+0003 000e return-void 
+
+METHOD 9557 Lorg/andengine/input/a/a;.a(FFIILandroid/view/MotionEvent;)Lorg/andengine/input/a/a; flags 0x9
+registers 11 args registers 5 code units 17
+0000 0062 0c3d sget-object Lorg/andengine/input/a/a;.f:Lorg/andengine/input/a/b; v0
+0002 106e 2569 0000 invoke-virtual Lorg/andengine/input/a/b;.d()Ljava/lang/Object; {v0}
+0005 000c move-result-object 
+0006 001f 058a op_0x1f Lorg/andengine/input/a/a;
+0008 6101 move v1, v6
+0009 7201 move v2, v7
+000a 8301 move v3, v8
+000b 9401 move v4, v9
+000c a507 move-object v5, v10
+000d 0676 255a 0000 invoke-direct/range Lorg/andengine/input/a/a;.b(FFIILandroid/view/MotionEvent;)V {v0 ..} count=6
+0010 0011 return-object 
+
+METHOD 9562 Lorg/andengine/input/a/a;.b(FFIILandroid/view/MotionEvent;)V flags 0x2
+registers 6 args registers 6 code units 11
+0000 0159 0c39 iput Lorg/andengine/input/a/a;.b:F v1, v0
+0002 0259 0c3a iput Lorg/andengine/input/a/a;.c:F v2, v0
+0004 0359 0c3b iput Lorg/andengine/input/a/a;.d:I v3, v0
+0006 0459 0c38 iput Lorg/andengine/input/a/a;.a:I v4, v0
+0008 055b 0c3c iput-object Lorg/andengine/input/a/a;.e:Landroid/view/MotionEvent; v5, v0
+000a 000e return-void 
+
+METHOD 9558 Lorg/andengine/input/a/a;.a()V flags 0x1
+registers 2 args registers 1 code units 6
+0000 0062 0c3d sget-object Lorg/andengine/input/a/a;.f:Lorg/andengine/input/a/b; v0
+0002 206e 2568 0010 invoke-virtual Lorg/andengine/input/a/b;.c(Ljava/lang/Object;)V {v0,v1}
+0005 000e return-void 
+
+METHOD 9559 Lorg/andengine/input/a/a;.a(FF)V flags 0x1
+registers 3 args registers 3 code units 5
+0000 0159 0c39 iput Lorg/andengine/input/a/a;.b:F v1, v0
+0002 0259 0c3a iput Lorg/andengine/input/a/a;.c:F v2, v0
+0004 000e return-void 
+
+METHOD 9560 Lorg/andengine/input/a/a;.b()F flags 0x1
+registers 2 args registers 1 code units 3
+0000 1052 0c39 iget Lorg/andengine/input/a/a;.b:F v0, v1
+0002 000f return 
+
+METHOD 9561 Lorg/andengine/input/a/a;.b(FF)V flags 0x1
+registers 4 args registers 3 code units 11
+0000 1052 0c39 iget Lorg/andengine/input/a/a;.b:F v0, v1
+0002 20c6 add-float/2addr v0, v2
+0003 1059 0c39 iput Lorg/andengine/input/a/a;.b:F v0, v1
+0005 1052 0c3a iget Lorg/andengine/input/a/a;.c:F v0, v1
+0007 30c6 add-float/2addr v0, v3
+0008 1059 0c3a iput Lorg/andengine/input/a/a;.c:F v0, v1
+000a 000e return-void 
+
+METHOD 9563 Lorg/andengine/input/a/a;.c()F flags 0x1
+registers 2 args registers 1 code units 3
+0000 1052 0c3a iget Lorg/andengine/input/a/a;.c:F v0, v1
+0002 000f return 
+
+METHOD 9564 Lorg/andengine/input/a/a;.d()I flags 0x1
+registers 2 args registers 1 code units 3
+0000 1052 0c38 iget Lorg/andengine/input/a/a;.a:I v0, v1
+0002 000f return 
+
+METHOD 9565 Lorg/andengine/input/a/a;.e()I flags 0x1
+registers 2 args registers 1 code units 3
+0000 1052 0c3b iget Lorg/andengine/input/a/a;.d:I v0, v1
+0002 000f return 
+
+METHOD 9566 Lorg/andengine/input/a/a;.f()Z flags 0x1
+registers 2 args registers 1 code units 8
+0000 1052 0c3b iget Lorg/andengine/input/a/a;.d:I v0, v1
+0002 0039 0004 if-nez v0 -> 0006
+0004 1012 const/4 v0, 1
+0005 000f return 
+0006 0012 const/4 v0, 0
+0007 fe28 goto 
+
+METHOD 9567 Lorg/andengine/input/a/a;.g()Z flags 0x1
+registers 3 args registers 1 code units 8
+0000 1012 const/4 v0, 1
+0001 2152 0c3b iget Lorg/andengine/input/a/a;.d:I v1, v2
+0003 0133 0003 if-ne v1, v0 -> 0006
+0005 000f return 
+0006 0012 const/4 v0, 0
+0007 fe28 goto 
+
+METHOD 9568 Lorg/andengine/input/a/a;.h()Z flags 0x1
+registers 3 args registers 1 code units 9
+0000 2052 0c3b iget Lorg/andengine/input/a/a;.d:I v0, v2
+0002 2112 const/4 v1, 2
+0003 1033 0004 if-ne v0, v1 -> 0007
+0005 1012 const/4 v0, 1
+0006 000f return 
+0007 0012 const/4 v0, 0
+0008 fe28 goto 
+
+METHOD 9569 Lorg/andengine/input/a/a;.i()Z flags 0x1
+registers 3 args registers 1 code units 9
+0000 2052 0c3b iget Lorg/andengine/input/a/a;.d:I v0, v2
+0002 3112 const/4 v1, 3
+0003 1033 0004 if-ne v0, v1 -> 0007
+0005 1012 const/4 v0, 1
+0006 000f return 
+0007 0012 const/4 v0, 0
+0008 fe28 goto 
+
+METHOD 9570 Lorg/andengine/input/a/a;.j()Z flags 0x1
+registers 3 args registers 1 code units 9
+0000 2052 0c3b iget Lorg/andengine/input/a/a;.d:I v0, v2
+0002 4112 const/4 v1, 4
+0003 1033 0004 if-ne v0, v1 -> 0007
+0005 1012 const/4 v0, 1
+0006 000f return 
+0007 0012 const/4 v0, 0
+0008 fe28 goto 
+
+METHOD 9571 Lorg/andengine/input/a/a;.k()Landroid/view/MotionEvent; flags 0x1
+registers 2 args registers 1 code units 3
+0000 1054 0c3c iget-object Lorg/andengine/input/a/a;.e:Landroid/view/MotionEvent; v0, v1
+0002 0011 return-object 

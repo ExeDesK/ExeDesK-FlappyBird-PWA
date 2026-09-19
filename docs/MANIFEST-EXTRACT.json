@@ -1,0 +1,96 @@
+[
+  {
+    "element": "manifest",
+    "attributes": {
+      "versionCode": 4,
+      "versionName": "1.3",
+      "package": "com.dotgears.flappybird"
+    }
+  },
+  {
+    "element": "uses-sdk",
+    "attributes": {
+      "minSdkVersion": 8,
+      "targetSdkVersion": 23
+    }
+  },
+  {
+    "element": "uses-permission",
+    "attributes": {
+      "name": "android.permission.WAKE_LOCK"
+    }
+  },
+  {
+    "element": "uses-permission",
+    "attributes": {
+      "name": "android.permission.INTERNET"
+    }
+  },
+  {
+    "element": "uses-permission",
+    "attributes": {
+      "name": "android.permission.ACCESS_NETWORK_STATE"
+    }
+  },
+  {
+    "element": "uses-feature",
+    "attributes": {
+      "glEsVersion": 131072,
+      "required": true
+    }
+  },
+  {
+    "element": "application",
+    "attributes": {
+      "theme": 2131230720,
+      "label": 2131165214,
+      "icon": 2130837528
+    }
+  },
+  {
+    "element": "activity",
+    "attributes": {
+      "label": 2131165214,
+      "name": "com.dotgears.flappy.SplashScreen",
+      "screenOrientation": 1
+    }
+  },
+  {
+    "element": "intent-filter",
+    "attributes": {}
+  },
+  {
+    "element": "action",
+    "attributes": {
+      "name": "android.intent.action.MAIN"
+    }
+  },
+  {
+    "element": "category",
+    "attributes": {
+      "name": "android.intent.category.LAUNCHER"
+    }
+  },
+  {
+    "element": "activity",
+    "attributes": {
+      "label": 2131165214,
+      "name": "com.dotgears.GameActivity",
+      "screenOrientation": 1
+    }
+  },
+  {
+    "element": "activity",
+    "attributes": {
+      "name": "com.google.ads.AdActivity",
+      "configChanges": 4016
+    }
+  },
+  {
+    "element": "meta-data",
+    "attributes": {
+      "name": "com.google.android.gms.games.APP_ID",
+      "value": 2131165213
+    }
+  }
+]
