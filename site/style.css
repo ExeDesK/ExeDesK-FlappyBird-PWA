@@ -1,26 +1,324 @@
-:root{font-family:system-ui,-apple-system,"Segoe UI",sans-serif;color-scheme:dark;background:#000;color:#eee}
-*{box-sizing:border-box}
-html,body{margin:0;width:100%;height:100%;overflow:hidden;overscroll-behavior:none}
-body{height:100%;min-height:100svh;-webkit-user-select:none;user-select:none;background:#000}
-#stage{position:fixed;inset:0;overflow:hidden;display:flex;align-items:center;justify-content:center;background:#000;--game-width:0px;--game-height:0px}
-#stage[data-aspect="adapted"],#stage[data-aspect="original"]{align-items:center;justify-content:center}
-#game{display:block;flex:none;image-rendering:pixelated;image-rendering:crisp-edges;touch-action:none;outline:none;max-width:none;max-height:none}
-#loading{position:absolute;padding:24px;background:#101719;border:1px solid #344144;border-radius:12px;max-width:min(90vw,460px);line-height:1.6;text-align:center}
-.utility{position:fixed;right:max(10px,env(safe-area-inset-right));top:max(10px,env(safe-area-inset-top));z-index:2;border:0;width:34px;height:34px;border-radius:50%;background:#0008;color:#fffa;font-size:20px;padding:0;opacity:.4}
-.utility:hover,.utility:focus-visible{opacity:1}
-button{font:inherit;cursor:pointer;border:1px solid #455b62;border-radius:8px;padding:9px 13px;background:#263b43;color:#fff}
-button:hover{background:#38535c}button:disabled{opacity:.45;cursor:default;background:#263b43}button:focus-visible,select:focus-visible{outline:2px solid #73dde5;outline-offset:3px}
-[hidden]{display:none!important}
-dialog{width:min(450px,94vw);max-height:88dvh;overflow:auto;border:1px solid #344b54;border-radius:17px;padding:24px;background:#101d23;box-shadow:0 16px 70px #0009;line-height:1.5}
-dialog::backdrop{background:#000b}
-header{display:flex;align-items:center;justify-content:space-between}header h1{margin:4px 0 0;font-size:25px}header h1 span{font-size:17px;color:#b2c8d0}header small{font-size:10px;letter-spacing:.18em;color:#88b3bf}header button{font-size:25px;border:0;background:transparent;padding:0 7px}
-.version,.hint,footer{font-size:12px;color:#a7bac0}.version{margin-top:5px}#offline-status{font-size:14px;padding:11px;border:1px solid #3f5b56;border-radius:8px;background:#152d25}
-.settings{margin:18px 0}.settings label{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 0;border-bottom:1px solid #2c3e47;font-size:14px}.settings select{max-width:210px;padding:6px;border-radius:7px;background:#20333c;color:#fff;border:1px solid #41565e}.settings input{width:18px;height:18px}.settings label span small{display:block;color:#8eabb4;font-size:10px;font-weight:400;margin-top:2px}
-footer{border-top:1px solid #2c3e47;margin-top:18px;padding-top:15px}footer p{margin:0 0 10px}footer p:last-child{margin-bottom:0}#toast{position:fixed;bottom:max(14px,env(safe-area-inset-bottom));left:50%;transform:translateX(-50%);padding:10px 16px;margin:0;background:#10261dee;border:1px solid #375943;border-radius:9px;font-size:13px;max-width:90vw;text-align:center;z-index:4;pointer-events:none}
-#diagnostic{position:fixed;top:50px;left:10px;max-width:280px;padding:12px;background:#00141bee;border:1px solid #46616d;border-radius:8px;font-size:11px;z-index:2}#diagnostic pre{margin:0 0 10px;white-space:pre-wrap}#diagnostic p{margin:9px 0 0;color:#a5cbd8}#diagnostic button{padding:6px;font-size:11px}
-noscript{position:fixed;inset:20%;background:#000;padding:2em}
+:root {
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  color-scheme: dark;
+  background: #000;
+  color: #eee;
+}
 
-#diagnostic .perf-actions{display:flex;gap:6px;margin-top:8px}#perf-output{margin-top:8px;padding-top:8px;border-top:1px solid #29424c;color:#c8e7ee;line-height:1.45}#diagnostic button:disabled{opacity:.45;cursor:default}
+* {
+  box-sizing: border-box;
+}
 
-#orientation-lock{position:fixed;inset:0;z-index:20;display:flex;align-items:center;justify-content:center;padding:32px;background:#000;color:#fff;text-align:center;font-size:18px;line-height:1.5}
-#orientation-lock strong{display:block;font-size:24px;margin-bottom:10px}
+html,
+body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+}
+
+body {
+  min-height: 100svh;
+  background: #000;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+#stage {
+  --game-width: 0px;
+  --game-height: 0px;
+
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background: #000;
+}
+
+#stage[data-aspect="adapted"],
+#stage[data-aspect="original"] {
+  align-items: center;
+  justify-content: center;
+}
+
+#game {
+  display: block;
+  flex: none;
+  max-width: none;
+  max-height: none;
+  outline: none;
+  touch-action: none;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+#loading {
+  position: absolute;
+  max-width: min(90vw, 460px);
+  padding: 24px;
+  border: 1px solid #344144;
+  border-radius: 12px;
+  background: #101719;
+  line-height: 1.6;
+  text-align: center;
+}
+
+.utility {
+  position: fixed;
+  z-index: 2;
+  top: max(10px, env(safe-area-inset-top));
+  right: max(10px, env(safe-area-inset-right));
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #0008;
+  color: #fffa;
+  font-size: 20px;
+  opacity: 0.4;
+}
+
+.utility:hover,
+.utility:focus-visible {
+  opacity: 1;
+}
+
+button {
+  padding: 9px 13px;
+  border: 1px solid #455b62;
+  border-radius: 8px;
+  background: #263b43;
+  color: #fff;
+  font: inherit;
+  cursor: pointer;
+}
+
+button:hover {
+  background: #38535c;
+}
+
+button:disabled {
+  background: #263b43;
+  opacity: 0.45;
+  cursor: default;
+}
+
+button:focus-visible,
+select:focus-visible {
+  outline: 2px solid #73dde5;
+  outline-offset: 3px;
+}
+
+dialog {
+  width: min(450px, 94vw);
+  max-height: 88dvh;
+  padding: 24px;
+  overflow: auto;
+  border: 1px solid #344b54;
+  border-radius: 17px;
+  background: #101d23;
+  box-shadow: 0 16px 70px #0009;
+  line-height: 1.5;
+}
+
+dialog::backdrop {
+  background: #000b;
+}
+
+header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+header h1 {
+  margin: 4px 0 0;
+  font-size: 25px;
+}
+
+header h1 span {
+  color: #b2c8d0;
+  font-size: 17px;
+}
+
+header small {
+  color: #88b3bf;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+}
+
+header button {
+  padding: 0 7px;
+  border: 0;
+  background: transparent;
+  font-size: 25px;
+}
+
+.version,
+.hint,
+footer {
+  color: #a7bac0;
+  font-size: 12px;
+}
+
+.version {
+  margin-top: 5px;
+}
+
+#offline-status {
+  padding: 11px;
+  border: 1px solid #3f5b56;
+  border-radius: 8px;
+  background: #152d25;
+  font-size: 14px;
+}
+
+.settings {
+  margin: 18px 0;
+}
+
+.settings label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 0;
+  border-bottom: 1px solid #2c3e47;
+  font-size: 14px;
+}
+
+.settings select {
+  max-width: 210px;
+  padding: 6px;
+  border: 1px solid #41565e;
+  border-radius: 7px;
+  background: #20333c;
+  color: #fff;
+}
+
+.settings input {
+  width: 18px;
+  height: 18px;
+}
+
+.settings label span small {
+  display: block;
+  margin-top: 2px;
+  color: #8eabb4;
+  font-size: 10px;
+  font-weight: 400;
+}
+
+footer {
+  margin-top: 18px;
+  padding-top: 15px;
+  border-top: 1px solid #2c3e47;
+}
+
+footer p {
+  margin: 0 0 10px;
+}
+
+footer p:last-child {
+  margin-bottom: 0;
+}
+
+#toast {
+  position: fixed;
+  z-index: 4;
+  bottom: max(14px, env(safe-area-inset-bottom));
+  left: 50%;
+  max-width: 90vw;
+  margin: 0;
+  padding: 10px 16px;
+  transform: translateX(-50%);
+  border: 1px solid #375943;
+  border-radius: 9px;
+  background: #10261dee;
+  font-size: 13px;
+  text-align: center;
+  pointer-events: none;
+}
+
+#diagnostic {
+  position: fixed;
+  z-index: 2;
+  top: 50px;
+  left: 10px;
+  max-width: 280px;
+  padding: 12px;
+  border: 1px solid #46616d;
+  border-radius: 8px;
+  background: #00141bee;
+  font-size: 11px;
+}
+
+#diagnostic pre {
+  margin: 0 0 10px;
+  white-space: pre-wrap;
+}
+
+#diagnostic p {
+  margin: 9px 0 0;
+  color: #a5cbd8;
+}
+
+#diagnostic button {
+  padding: 6px;
+  font-size: 11px;
+}
+
+#diagnostic button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+#diagnostic .perf-actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+#perf-output {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid #29424c;
+  color: #c8e7ee;
+  line-height: 1.45;
+}
+
+#orientation-lock {
+  position: fixed;
+  z-index: 20;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 32px;
+  background: #000;
+  color: #fff;
+  font-size: 18px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+#orientation-lock strong {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 24px;
+}
+
+noscript {
+  position: fixed;
+  inset: 20%;
+  padding: 2em;
+  background: #000;
+}

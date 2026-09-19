@@ -8,7 +8,7 @@ The goal is not to create another Flappy Bird-inspired clone, but to **reproduce
 
 The game runs entirely client-side, without a framework or backend, and can be installed as an application on Windows, iPhone/iPad and Android.
 
-> **Project status: beta — v0.2.1b**
+> **Project status: beta — v0.2.2b**
 
 ---
 
@@ -109,9 +109,12 @@ site/
 ├── index.html
 ├── manifest.webmanifest
 ├── style.css
-└── sw.js                   Service Worker / offline cache
+├── sw.js                   Service Worker / offline cache
+└── version.json            Published version / uncached network probe
 
-tests/                      Engine and cache tests
+tests/
+├── replay.mjs              Deterministic replay runner
+└── …                       Engine, cache and display tests
 docs/                       Technical notes and analysis evidence
 .github/                     GitHub project automation
 CHANGELOG.md                 Version history
@@ -212,6 +215,39 @@ Open the site and use:
 `Menu → Install app` or `Add to Home screen`.
 
 > Normal PWA installation requires the site to be served over **HTTPS**, except for development exceptions such as `localhost`.
+
+---
+
+## GitHub Pages deployment
+
+The repository is ready to be published directly with **GitHub Pages**, with no application server or production build step. The [`.github/workflows/pages.yml`](./.github/workflows/pages.yml) workflow:
+
+1. runs the Node test suite;
+2. configures GitHub Pages;
+3. publishes **only the `site/` directory**;
+4. deploys automatically after every push to `main`.
+
+After creating the repository on GitHub, enable this once:
+
+`Settings → Pages → Build and deployment → Source → GitHub Actions`
+
+After that, a simple:
+
+```bash
+git push
+```
+
+runs the tests and, if they pass, deploys the site over HTTPS. For `ExeDesK/FlappyBird-PWA`, the expected URL is:
+
+```text
+https://exedesk.github.io/FlappyBird-PWA/
+```
+
+All application paths are relative so the PWA works correctly under the `/FlappyBird-PWA/` project subpath.
+
+### PWA update check
+
+[`site/version.json`](./site/version.json) is the static network probe used by the **Clear cache and update** button. It is deliberately excluded from the Service Worker precache: a successful response therefore proves that the host is actually reachable rather than returning a stale offline response.
 
 ---
 

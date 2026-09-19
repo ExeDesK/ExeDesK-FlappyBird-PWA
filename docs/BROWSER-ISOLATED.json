@@ -1,5 +1,5 @@
 {
-  "environment": "Isolated Chromium DOM, original assets embedded; no network navigation",
+  "environment": "Isolated Chromium DOM with embedded original assets; no network navigation",
   "errors": [],
   "audio": {
     "state": "running",

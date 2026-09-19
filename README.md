@@ -8,7 +8,7 @@ L'objectif n'est pas de produire un simple clone « inspiré de » Flappy Bird, 
 
 Le jeu fonctionne entièrement côté client, sans framework ni backend, et peut être installé comme une application sur Windows, iPhone/iPad et Android.
 
-> **État du projet : bêta — v0.2.1b**
+> **État du projet : bêta — v0.2.2b**
 
 ---
 
@@ -109,9 +109,12 @@ site/
 ├── index.html
 ├── manifest.webmanifest
 ├── style.css
-└── sw.js                   Service Worker / cache hors ligne
+├── sw.js                   Service Worker / cache hors ligne
+└── version.json            Version publiée / sonde réseau non mise en cache
 
-tests/                      Tests du moteur et du cache
+tests/
+├── replay.mjs              Relecture déterministe des exports
+└── …                       Tests du moteur, du cache et de l’affichage
 docs/                       Documentation technique et preuves d'analyse
 .github/                     Automatisation GitHub du projet
 CHANGELOG.md                 Historique des versions
@@ -212,6 +215,39 @@ Ouvrir le site puis utiliser :
 `Menu → Installer l'application` ou `Ajouter à l'écran d'accueil`.
 
 > Pour une installation PWA normale, le site doit être servi en **HTTPS** (hors exceptions de développement comme `localhost`).
+
+---
+
+## Déploiement GitHub Pages
+
+Le dépôt est prêt à être publié directement avec **GitHub Pages**, sans serveur applicatif ni build de production. Le workflow [`.github/workflows/pages.yml`](./.github/workflows/pages.yml) :
+
+1. lance les tests Node ;
+2. prépare GitHub Pages ;
+3. publie **uniquement le dossier `site/`** ;
+4. déploie automatiquement après chaque push sur `main`.
+
+Une fois le dépôt créé sur GitHub, activer une seule fois :
+
+`Settings → Pages → Build and deployment → Source → GitHub Actions`
+
+Puis un simple :
+
+```bash
+git push
+```
+
+déclenche les tests et, s’ils passent, le déploiement HTTPS. Pour le dépôt `ExeDesK/FlappyBird-PWA`, l’URL attendue est :
+
+```text
+https://exedesk.github.io/FlappyBird-PWA/
+```
+
+Tous les chemins de l’application sont relatifs afin de fonctionner correctement sous le sous-chemin `/FlappyBird-PWA/`.
+
+### Mise à jour de la PWA
+
+Le fichier [`site/version.json`](./site/version.json) sert de sonde réseau statique au bouton **Vider le cache et mettre à jour**. Il est volontairement exclu du précache du Service Worker : une réponse valide prouve ainsi que l’hébergement est réellement joignable et non qu’une ancienne réponse vient du cache hors ligne.
 
 ---
 

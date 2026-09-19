@@ -1,27 +1,37 @@
 # Changelog
 
+## v0.2.2b - GitHub Pages beta
+
+- Préparation du dépôt pour un hébergement statique sur GitHub Pages.
+- Ajout du workflow `.github/workflows/pages.yml` : tests puis publication automatique de `site/` sur chaque push de `main`.
+- Ajout d'un workflow de tests dédié aux pull requests.
+- Remplacement de la sonde serveur dynamique par `site/version.json`, volontairement non mise en cache par le Service Worker.
+- Vérification des chemins relatifs pour supporter l'URL de projet `/<repository>/` de GitHub Pages.
+- Suppression des éléments de self-hosting devenus inutiles dans le dépôt : Docker, Caddy, serveur local et scripts associés.
+- Déplacement de l'outil de replay déterministe dans `tests/replay.mjs`.
+- Nettoyage et réindentation du code JavaScript, CSS, HTML, tests et workflows sans modification volontaire du gameplay.
+- Mise à jour du cache PWA et de l'interface vers `0.2.2b`.
+
 ## v0.2.1b - beta patch
 
-- Mode Adapte entierement rendu dans le meme Canvas : scene 288 x 512 centree, ciel complete au-dessus et terre complete au-dessous.
-- Suppression de l'extension CSS separee qui pouvait laisser un vide ou clignoter lors d'un resize/orientationchange iOS.
-- Le ciel ajoute suit automatiquement le fond jour/nuit exact de l'atlas; les fades noir et flash blanc couvrent aussi les extensions.
-- Les tuyaux superieurs peuvent se prolonger dans le ciel ajoute; les tuyaux inferieurs restent clipses au viewport original et ne debordent jamais dans la terre.
-- Mode Original maintenu centre dans la fenetre.
-- Preference PWA `portrait-primary`, tentative de verrouillage via Screen Orientation API et garde-fou plein ecran en paysage sur appareils tactiles.
-- iOS standalone : status bar opaque noire au lieu de `black-translucent`, afin d'eviter le flou/translucidite au-dessus du jeu.
-- Mode Performance ne modifie plus la taille CSS du jeu; il limite uniquement le supersampling interne a x2.
-- Version serveur/health mise a jour vers 0.2.1b.
+- Mode Adapté entièrement rendu dans le même Canvas : scène 288 × 512 centrée, ciel complété au-dessus et terre complétée au-dessous.
+- Suppression de l'extension CSS séparée qui pouvait laisser un vide ou clignoter lors d'un resize/orientationchange iOS.
+- Le ciel ajouté suit automatiquement le fond jour/nuit exact de l'atlas ; les fades noir et flash blanc couvrent aussi les extensions.
+- Les tuyaux supérieurs peuvent se prolonger dans le ciel ajouté ; les tuyaux inférieurs restent clipsés au viewport original et ne débordent jamais dans la terre.
+- Mode Original maintenu centré dans la fenêtre.
+- Préférence PWA `portrait-primary`, tentative de verrouillage via Screen Orientation API et garde-fou plein écran en paysage sur appareils tactiles.
+- iOS standalone : status bar opaque noire au lieu de `black-translucent`.
+- Mode Performance ne modifie plus la taille CSS du jeu ; il limite uniquement le supersampling interne à ×2.
 
 ## v0.2b - beta
 
-- Passage du projet au statut beta.
-- Supersampling du Canvas : x2 minimum, jusqu'a x3 sur les ecrans a fort DPR.
-- Amelioration nette du rendu de l'oiseau lorsqu'il est incline, sans modifier la physique ni les coordonnees 288 x 512.
-- Mode Performance limite le supersampling a x2 sur les appareils a fort DPR.
-- Ratio Original par defaut sur desktop; Adapte par defaut sur mobile.
-- Mode Adapte : terre prolongee sous la scene, integree au fade et au flash.
+- Passage du projet au statut bêta.
+- Supersampling du Canvas : ×2 minimum, jusqu'à ×3 sur les écrans à fort DPR.
+- Amélioration du rendu de l'oiseau lorsqu'il est incliné, sans modifier la physique ni les coordonnées 288 × 512.
+- Mode Performance limité à ×2 sur les appareils à fort DPR.
+- Ratio Original par défaut sur desktop ; Adapté par défaut sur mobile.
 - Correction de l'interpolation du sol et des apparitions furtives de tuyaux.
 - Profiler iOS / rAF et export de performances.
-- Bouton de purge/mise a jour disponible uniquement si le serveur est joignable.
-- Nettoyage des mentions de portage personnel dans l'interface et les metadonnees PWA.
-- Footer d'installation PWA Windows / iOS / Android et credits .GEARS Studios.
+- Bouton de purge/mise à jour conditionné à la joignabilité de l'hébergement.
+- Nettoyage des mentions de portage personnel dans l'interface et les métadonnées PWA.
+- Footer d'installation PWA Windows / iOS / Android et crédits .GEARS Studios.
