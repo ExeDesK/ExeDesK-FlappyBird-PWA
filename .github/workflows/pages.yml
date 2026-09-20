@@ -55,6 +55,28 @@ jobs:
           chmod +x .ci/flappy13-apk-harness/*.sh
           ./.ci/flappy13-apk-harness/compare-suite.sh "$GITHUB_WORKSPACE"
 
+      - name: Generate Supabase runtime config
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_PUBLISHABLE_KEY: ${{ secrets.SUPABASE_PUBLISHABLE_KEY }}
+        run: |
+          node --input-type=module <<'NODE'
+          import { writeFileSync } from 'node:fs';
+
+          const supabaseUrl = process.env.SUPABASE_URL || '';
+          const supabasePublishableKey = process.env.SUPABASE_PUBLISHABLE_KEY || '';
+
+          if (!supabaseUrl || !supabasePublishableKey) {
+            throw new Error('Missing SUPABASE_URL or SUPABASE_PUBLISHABLE_KEY GitHub secret.');
+          }
+
+          const config = { supabaseUrl, supabasePublishableKey };
+          writeFileSync(
+            'site/config.js',
+            `window.FLAPPY_CONFIG = Object.freeze(${JSON.stringify(config, null, 2)});\n`,
+          );
+          NODE
+
       - name: Configure GitHub Pages
         uses: actions/configure-pages@v5
 

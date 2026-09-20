@@ -1,5 +1,6 @@
 import { Renderer, loadAtlas } from './atlas.js';
 import { Audio } from './audio.js';
+import { AuthClient } from './auth.js';
 import { FixedClock } from './clock.js';
 import {
   LOGICAL_WIDTH,
@@ -10,10 +11,19 @@ import {
 import { Game } from './game.js';
 import { PerfProfiler } from './perf.js';
 
-const VERSION = '0.2.6.5b';
+const VERSION = '0.2.7b';
 const BEST_SCORE_KEY = 'flappy13-personal-best-v1';
 const SETTINGS_KEY = 'flappy13-settings-v1';
 const LAST_VERSION_KEY = 'flappy13-last-version-v1';
+const runtimeConfig = globalThis.FLAPPY_CONFIG && typeof globalThis.FLAPPY_CONFIG === 'object'
+  ? globalThis.FLAPPY_CONFIG
+  : {};
+const SUPABASE_URL = typeof runtimeConfig.supabaseUrl === 'string'
+  ? runtimeConfig.supabaseUrl
+  : '';
+const SUPABASE_PUBLISHABLE_KEY = typeof runtimeConfig.supabasePublishableKey === 'string'
+  ? runtimeConfig.supabasePublishableKey
+  : '';
 const UPDATE_CHECK_INTERVAL_MS = 15 * 60 * 1000;
 const UPDATE_PROBE_TIMEOUT_MS = 3500;
 const MAX_REPLAY_INPUTS = 30000;
@@ -25,6 +35,10 @@ const canvas = $('game');
 const stage = $('stage');
 const options = $('options');
 const audio = new Audio({ version: VERSION });
+const auth = new AuthClient({
+  url: SUPABASE_URL,
+  publishableKey: SUPABASE_PUBLISHABLE_KEY,
+});
 const clock = new FixedClock(60);
 const profiler = new PerfProfiler(10000);
 
@@ -155,6 +169,85 @@ function saveBest(value) {
 
   $('best-score').textContent = best;
 }
+
+function accountDisplayName(state) {
+  return state.profile?.display_name || state.profile?.username || state.user?.user_metadata?.name || 'Joueur';
+}
+
+function accountUsername(state) {
+  const value = state.profile?.username || state.user?.user_metadata?.user_name || state.user?.user_metadata?.preferred_username;
+  return value ? `@${value}` : '';
+}
+
+function accountAvatar(state) {
+  return state.profile?.avatar_url || state.user?.user_metadata?.avatar_url || state.user?.user_metadata?.picture || '';
+}
+
+function renderAccount(state = auth.snapshot()) {
+  const signed = Boolean(state.user || state.profile) && ['signed_in', 'offline', 'loading'].includes(state.status);
+  $('account-signed-out').hidden = signed;
+  $('account-signed-in').hidden = !signed;
+  $('discord-login').disabled = !state.configured || !navigator.onLine || state.status === 'loading';
+  $('discord-logout').disabled = state.status === 'loading';
+
+  if (!signed) {
+    $('account-status').textContent = !state.configured
+      ? 'Connexion communautaire non configurée sur cette build.'
+      : state.status === 'error'
+        ? 'Connexion indisponible pour le moment. Le jeu reste jouable localement.'
+        : navigator.onLine
+          ? 'Compte facultatif · connectez-vous pour retrouver votre profil sur tous vos appareils.'
+          : 'Hors connexion · la connexion Discord sera disponible au retour du réseau.';
+    return;
+  }
+
+  $('account-name').textContent = accountDisplayName(state);
+  $('account-username').textContent = accountUsername(state);
+
+  const avatar = accountAvatar(state);
+  const image = $('account-avatar');
+  const fallback = $('account-avatar-fallback');
+  if (avatar) {
+    image.src = avatar;
+    image.hidden = false;
+    fallback.hidden = true;
+  } else {
+    image.removeAttribute('src');
+    image.hidden = true;
+    fallback.hidden = false;
+    fallback.textContent = accountDisplayName(state).slice(0, 1).toUpperCase() || '?';
+  }
+
+  $('account-status').textContent = state.status === 'offline'
+    ? 'Profil disponible hors connexion · synchronisation automatique au retour du réseau.'
+    : state.status === 'loading'
+      ? 'Synchronisation du profil…'
+      : state.error
+        ? 'Connecté à Discord · profil local disponible, synchronisation Supabase à vérifier.'
+        : 'Connecté avec Discord · profil synchronisé.';
+}
+
+$('account-avatar').addEventListener('error', () => {
+  $('account-avatar').hidden = true;
+  $('account-avatar-fallback').hidden = false;
+});
+
+auth.onChange(renderAccount);
+renderAccount();
+
+$('discord-login').onclick = () => {
+  try {
+    auth.signInWithDiscord();
+  } catch (error) {
+    toast(error.message);
+  }
+};
+
+$('discord-logout').onclick = async () => {
+  $('discord-logout').disabled = true;
+  await auth.signOut();
+  toast('Déconnecté de Discord.');
+};
 
 function resize() {
   if (orientationBlocked) {
@@ -1150,11 +1243,13 @@ $('refresh-cache').onclick = updateAction;
 
 window.addEventListener('online', () => {
   audio.note('NETWORK_ONLINE');
+  auth.sync({ reason: 'online' });
   checkForUpdates({ silent: true, reason: 'online' });
 });
 
 window.addEventListener('offline', () => {
   audio.note('NETWORK_OFFLINE');
+  renderAccount({ ...auth.snapshot(), status: auth.session ? 'offline' : 'signed_out' });
   $('update-status').textContent =
     'Hors connexion \u00b7 les mises \u00e0 jour reprendront automatiquement.';
   updateButton({ text: 'Rechercher une mise \u00e0 jour', disabled: true });
@@ -1229,6 +1324,7 @@ async function boot() {
       );
     }
 
+    const authInit = auth.init().catch(error => ({ status: 'error', error: error.message }));
     const [atlas] = await Promise.all([
       loadAtlas(),
       audio.preload(),
@@ -1261,6 +1357,16 @@ async function boot() {
     tryLockPortrait();
     requestAnimationFrame(animate);
 
+    authInit.then(state => {
+      renderAccount(auth.snapshot());
+      if (auth.callbackResult === 'signed_in') {
+        toast('Connexion Discord réussie.');
+        openOptions();
+      } else if (auth.callbackResult === 'error') {
+        toast(`Connexion Discord impossible : ${auth.error || 'erreur OAuth'}`);
+      }
+    });
+
     // Explicit diagnostics API. Ordinary controls do not expose gameplay cheats.
     window.flappy = {
       version: VERSION,
@@ -1270,6 +1376,7 @@ async function boot() {
       get audio() {
         return audio;
       },
+      auth: () => auth.snapshot(),
       snapshot: () => game.snapshot(),
       pause(value = true) {
         paused = value;

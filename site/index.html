@@ -19,6 +19,7 @@
     <link rel="apple-touch-icon" href="./icons/icon-180.png">
     <link rel="stylesheet" href="./style.css">
 
+    <script src="./config.js"></script>
     <script type="module" src="./src/main.js"></script>
   </head>
 
@@ -72,8 +73,34 @@
         <button id="close-options" class="close-options" aria-label="Fermer">X</button>
       </header>
 
-      <p class="version">BETA 0.2.6.5b</p>
+      <p class="version">BETA 0.2.7b</p>
       <p id="offline-status" class="status-card">Préparation du mode hors ligne...</p>
+
+      <section class="menu-card account-card" aria-labelledby="account-title">
+        <h2 id="account-title">COMPTE</h2>
+
+        <div id="account-signed-out">
+          <button id="discord-login" class="discord-login" type="button">SE CONNECTER AVEC DISCORD</button>
+        </div>
+
+        <div id="account-signed-in" hidden>
+          <div class="account-profile">
+            <div class="account-avatar-wrap" aria-hidden="true">
+              <img id="account-avatar" class="account-avatar" alt="" hidden>
+              <span id="account-avatar-fallback" class="account-avatar-fallback">?</span>
+            </div>
+            <div class="account-identity">
+              <strong id="account-name">Joueur</strong>
+              <span id="account-username"></span>
+            </div>
+          </div>
+          <button id="discord-logout" type="button">SE DÉCONNECTER</button>
+        </div>
+
+        <p id="account-status" class="hint account-hint">
+          Compte facultatif · connectez-vous pour retrouver votre profil sur tous vos appareils.
+        </p>
+      </section>
 
       <section class="menu-card" aria-labelledby="game-settings-title">
         <h2 id="game-settings-title">JEU</h2>

@@ -1,4 +1,4 @@
-# Rapport de tests - v0.2.6.5b
+# Rapport de tests - v0.2.7b
 
 ## Résultat
 
@@ -74,3 +74,16 @@ The GitHub Actions workflow `.github/workflows/apk-parity.yml` checks the determ
 The four golden scenarios are also executed by the GitHub Pages workflow before deployment, so a deterministic divergence blocks publication from `main`.
 
 The APK itself is never required in CI; only the previously validated golden traces are used.
+
+## Auth Discord / profils (v0.2.7b)
+
+Tests automatiques dédiés :
+
+- génération de l'URL OAuth Discord via Supabase ;
+- consommation du fragment OAuth et suppression des tokens de l'URL visible ;
+- validation de session `/auth/v1/user` ;
+- chargement du profil `public.profiles` ;
+- démarrage hors ligne avec profil mis en cache ;
+- absence de secret serveur dans le frontend ;
+- présence des politiques RLS et grants Data API dans la migration SQL.
+

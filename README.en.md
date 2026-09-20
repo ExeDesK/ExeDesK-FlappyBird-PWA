@@ -6,9 +6,9 @@ An **unofficial** recreation of **Flappy Bird 1.3** as a Progressive Web App (PW
 
 The goal is not to create another Flappy Bird-inspired clone, but to **reproduce the behaviour of version 1.3 as faithfully as possible**: physics, timing, collisions, pipe generation, animations, scoring, transitions and rendering, while adapting the game cleanly to modern browsers and displays.
 
-The game runs entirely client-side, without a framework or backend, and can be installed as an application on Windows, iPhone/iPad and Android.
+Gameplay runs entirely client-side without a framework and can be installed as an application on Windows, iPhone/iPad and Android. Optional community features use Supabase; no account is required to play.
 
-> **Project status: beta — v0.2.6.5b**
+> **Project status: beta — v0.2.7b**
 
 ---
 
@@ -21,6 +21,7 @@ The game runs entirely client-side, without a framework or backend, and can be i
 - Automatic PWA updates downloaded in the background without interrupting an active run.
 - Installable PWA on Windows, iOS/iPadOS and Android.
 - Local high-score persistence.
+- Optional Discord sign-in through Supabase Auth with a cross-platform player profile.
 - **Original** and **Adapted** display modes.
 - Dynamic sky and ground extensions for displays taller than the original aspect ratio.
 - Performance mode to limit supersampling on high-DPR devices.
@@ -66,6 +67,7 @@ Detailed notes are available in:
 
 - [`docs/REVERSE-ENGINEERING.md`](./docs/REVERSE-ENGINEERING.md)
 - [`docs/TESTS.md`](./docs/TESTS.md)
+- [`docs/AUTH-DISCORD.md`](./docs/AUTH-DISCORD.md)
 
 ---
 
@@ -101,12 +103,14 @@ site/
 ├── src/
 │   ├── atlas.js            Canvas rendering, atlas and interpolation
 │   ├── audio.js            Audio handling
+│   ├── auth.js             Discord/Supabase auth and local session
 │   ├── clock.js            60 Hz simulation clock
 │   ├── display.js          Display modes and sizing
 │   ├── game.js             Gameplay and state machine
 │   ├── main.js             Input, PWA, options and main loop
 │   ├── math.js             Math, RNG, animation and tweens
 │   └── perf.js             Performance profiler
+├── config.example.js      Runtime configuration template (Supabase)
 ├── index.html
 ├── manifest.webmanifest
 ├── style.css
@@ -117,6 +121,7 @@ tests/
 ├── replay.mjs              Deterministic replay runner
 └── …                       Engine, cache and display tests
 docs/                       Technical notes and analysis evidence
+supabase/                   Versioned profile/RLS SQL
 .github/                     GitHub project automation
 CHANGELOG.md                 Version history
 README.md                    French documentation
@@ -221,16 +226,27 @@ Open the site and use:
 
 ## GitHub Pages deployment
 
-The repository is ready to be published directly with **GitHub Pages**, with no application server or production build step. The [`.github/workflows/pages.yml`](./.github/workflows/pages.yml) workflow:
+The repository is ready to be published directly with **GitHub Pages**, with no application server. The [`.github/workflows/pages.yml`](./.github/workflows/pages.yml) workflow:
 
 1. runs the Node test suite;
-2. configures GitHub Pages;
-3. publishes **only the `site/` directory**;
-4. deploys automatically after every push to `main`.
+2. verifies APK 1.3 parity;
+3. generates `site/config.js` from GitHub secrets;
+4. configures GitHub Pages;
+5. publishes **only the `site/` directory**;
+6. deploys automatically after every push to `main`.
 
-After creating the repository on GitHub, enable this once:
+Before the first deployment, create these two **Repository secrets** under `Settings → Secrets and variables → Actions`:
+
+```text
+SUPABASE_URL
+SUPABASE_PUBLISHABLE_KEY
+```
+
+Then enable once:
 
 `Settings → Pages → Build and deployment → Source → GitHub Actions`
+
+> The Supabase publishable key and project URL are not security secrets: a browser application must ultimately receive them. Keeping them in GitHub Secrets mainly prevents committing them to Git history. Actual access control relies on Supabase RLS and policies.
 
 After that, a simple:
 
@@ -256,7 +272,15 @@ The PWA automatically checks [`site/version.json`](./site/version.json) at launc
 
 ## Running locally
 
-There is no build step. Serve the `site/` directory with any static HTTP server.
+There is no application build step. Serve the `site/` directory with any static HTTP server.
+
+The game works without community configuration. To test Discord/Supabase locally, copy the template and fill in the two public values:
+
+```powershell
+Copy-Item .\site\config.example.js .\site\config.js
+```
+
+`site/config.js` is ignored by Git.
 
 Example with Python 3:
 

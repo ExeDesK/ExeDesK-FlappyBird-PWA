@@ -27,6 +27,7 @@ MODULE_ORDER = [
     'game.js',
     'atlas.js',
     'audio.js',
+    'auth.js',
     'display.js',
     'main.js',
 ]
@@ -208,6 +209,10 @@ def main() -> None:
         assert page.locator('#debug').count() == 0
         assert page.locator('#debug-access').count() == 1
         assert page.locator('a.footer-link').get_attribute('href') == 'https://github.com/ExeDesK/FlappyBird-PWA'
+        assert page.locator('#discord-login').count() == 1
+        assert page.locator('#discord-logout').count() == 1
+        assert not page.is_hidden('#account-signed-out')
+        assert page.is_hidden('#account-signed-in')
         assert 'Flappy Bird 1.3' in page.locator('.parity-note').inner_text()
         page.screenshot(path=str(output / 'options.png'))
         page.click('#close-options')

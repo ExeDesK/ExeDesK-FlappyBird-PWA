@@ -6,9 +6,9 @@ Recréation **non officielle** de **Flappy Bird 1.3** sous la forme d'une Progre
 
 L'objectif n'est pas de produire un simple clone « inspiré de » Flappy Bird, mais de **reproduire aussi fidèlement que possible le comportement de la version 1.3** : physique, cadence, collisions, génération des tuyaux, animations, score, transitions et rendu, tout en l'adaptant proprement aux navigateurs modernes et aux écrans actuels.
 
-Le jeu fonctionne entièrement côté client, sans framework ni backend, et peut être installé comme une application sur Windows, iPhone/iPad et Android.
+Le gameplay fonctionne entièrement côté client, sans framework, et peut être installé comme une application sur Windows, iPhone/iPad et Android. Les fonctions communautaires utilisent un backend Supabase facultatif : aucun compte n'est nécessaire pour jouer.
 
-> **État du projet : bêta — v0.2.6.5b**
+> **État du projet : bêta — v0.2.7b**
 
 ---
 
@@ -21,6 +21,7 @@ Le jeu fonctionne entièrement côté client, sans framework ni backend, et peut
 - Mises à jour PWA automatiques, téléchargées en arrière-plan sans interrompre une partie.
 - Installation PWA sur Windows, iOS/iPadOS et Android.
 - Sauvegarde locale du meilleur score.
+- Connexion Discord facultative via Supabase Auth et profil joueur cross-platform.
 - Affichage **Original** ou **Adapté** selon l'appareil.
 - Extension dynamique du ciel et du sol sur les écrans plus hauts que le format original.
 - Mode Performance pour limiter le supersampling sur les appareils à fort DPR.
@@ -66,6 +67,7 @@ Les notes détaillées sont disponibles dans :
 
 - [`docs/REVERSE-ENGINEERING.md`](./docs/REVERSE-ENGINEERING.md)
 - [`docs/TESTS.md`](./docs/TESTS.md)
+- [`docs/AUTH-DISCORD.md`](./docs/AUTH-DISCORD.md)
 
 ---
 
@@ -101,12 +103,14 @@ site/
 ├── src/
 │   ├── atlas.js            Rendu Canvas, atlas et interpolation
 │   ├── audio.js            Gestion audio
+│   ├── auth.js             Auth Discord/Supabase et session locale
 │   ├── clock.js            Horloge de simulation 60 Hz
 │   ├── display.js          Modes d'affichage et dimensions
 │   ├── game.js             Gameplay et machine d'états
 │   ├── main.js             Entrées, PWA, options et cycle principal
 │   ├── math.js             Maths, RNG, animations et tweens
 │   └── perf.js             Profiler de performances
+├── config.example.js      Modèle de configuration runtime (Supabase)
 ├── index.html
 ├── manifest.webmanifest
 ├── style.css
@@ -117,6 +121,7 @@ tests/
 ├── replay.mjs              Relecture déterministe des exports
 └── …                       Tests du moteur, du cache et de l’affichage
 docs/                       Documentation technique et preuves d'analyse
+supabase/                   SQL versionné pour profils et RLS
 .github/                     Automatisation GitHub du projet
 CHANGELOG.md                 Historique des versions
 README.md                    Documentation française
@@ -221,16 +226,27 @@ Ouvrir le site puis utiliser :
 
 ## Déploiement GitHub Pages
 
-Le dépôt est prêt à être publié directement avec **GitHub Pages**, sans serveur applicatif ni build de production. Le workflow [`.github/workflows/pages.yml`](./.github/workflows/pages.yml) :
+Le dépôt est prêt à être publié directement avec **GitHub Pages**, sans serveur applicatif. Le workflow [`.github/workflows/pages.yml`](./.github/workflows/pages.yml) :
 
 1. lance les tests Node ;
-2. prépare GitHub Pages ;
-3. publie **uniquement le dossier `site/`** ;
-4. déploie automatiquement après chaque push sur `main`.
+2. vérifie la parité APK 1.3 ;
+3. génère `site/config.js` à partir des secrets GitHub ;
+4. prépare GitHub Pages ;
+5. publie **uniquement le dossier `site/`** ;
+6. déploie automatiquement après chaque push sur `main`.
 
-Une fois le dépôt créé sur GitHub, activer une seule fois :
+Avant le premier déploiement, créer dans `Settings → Secrets and variables → Actions` les deux **Repository secrets** suivants :
+
+```text
+SUPABASE_URL
+SUPABASE_PUBLISHABLE_KEY
+```
+
+Puis activer une seule fois :
 
 `Settings → Pages → Build and deployment → Source → GitHub Actions`
+
+> La publishable key Supabase et l'URL du projet ne sont pas des secrets de sécurité : toute application web doit les transmettre au navigateur. Les stocker dans GitHub Secrets évite surtout de les versionner en clair dans l'historique Git. La protection réelle repose sur RLS et les politiques Supabase.
 
 Puis un simple :
 
@@ -256,7 +272,15 @@ La PWA vérifie automatiquement [`site/version.json`](./site/version.json) au la
 
 ## Lancer le projet localement
 
-Il n'y a pas de build à effectuer. Il suffit de servir le dossier `site/` avec un serveur HTTP statique.
+Il n'y a pas de build applicatif à effectuer. Il suffit de servir le dossier `site/` avec un serveur HTTP statique.
+
+Le jeu fonctionne sans configuration communautaire. Pour tester Discord/Supabase en local, copier le modèle puis renseigner les deux valeurs publiques :
+
+```powershell
+Copy-Item .\site\config.example.js .\site\config.js
+```
+
+`site/config.js` est ignoré par Git.
 
 Exemple avec Python 3 :
 

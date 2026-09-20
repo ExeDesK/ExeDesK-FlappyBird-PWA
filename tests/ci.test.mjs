@@ -53,3 +53,45 @@ test('Settings expose parity statement and GitHub link', () => {
   assert.match(html, /dernière version originale[\s\S]*Flappy Bird 1\.3/);
   assert.match(html, /https:\/\/github\.com\/ExeDesK\/FlappyBird-PWA/);
 });
+
+test('Discord community auth uses deploy-time runtime config and ships no server secret', () => {
+  const auth = read('site/src/auth.js');
+  const main = read('site/src/main.js');
+  const html = read('site/index.html');
+  const workflow = read('.github/workflows/pages.yml');
+  const gitignore = read('.gitignore');
+  const example = read('site/config.example.js');
+  const sql = read('supabase/001_profiles.sql');
+
+  assert.match(main, /globalThis\.FLAPPY_CONFIG/);
+  assert.doesNotMatch(main, /sb_publishable_[A-Za-z0-9_-]{16,}/);
+  assert.doesNotMatch(main, /sb_secret_/);
+  assert.doesNotMatch(main, /service_role/i);
+  assert.match(html, /<script src="\.\/config\.js"><\/script>/);
+  assert.match(workflow, /secrets\.SUPABASE_URL/);
+  assert.match(workflow, /secrets\.SUPABASE_PUBLISHABLE_KEY/);
+  assert.match(workflow, /site\/config\.js/);
+  assert.match(gitignore, /site\/config\.js/);
+  assert.match(example, /YOUR_PROJECT_REF/);
+  assert.match(example, /sb_publishable_YOUR_PUBLIC_KEY/);
+  assert.match(auth, /provider', 'discord'/);
+  assert.match(auth, /auth\/v1\/user/);
+  assert.match(auth, /grant_type=refresh_token/);
+  assert.match(sql, /enable row level security/i);
+  assert.match(sql, /auth\.uid\(\) = id/);
+  assert.match(sql, /grant select on public\.profiles to anon, authenticated/i);
+});
+
+test('repository does not contain a production Supabase runtime configuration', () => {
+  const publishableKey = /sb_publishable_(?!YOUR_PUBLIC_KEY)[A-Za-z0-9_-]{16,}/;
+  const concreteProjectUrl = /https:\/\/[a-z0-9]{20}\.supabase\.co/;
+  const textFiles = walk('.').filter((file) => !/\.(png|jpg|jpeg|gif|webp|ogg|wav|zip)$/i.test(file));
+
+  for (const file of textFiles) {
+    const content = read(file);
+    assert.equal(publishableKey.test(content), false, `${file} contains a concrete Supabase publishable key`);
+    publishableKey.lastIndex = 0;
+    assert.equal(concreteProjectUrl.test(content), false, `${file} contains a concrete Supabase project URL`);
+    concreteProjectUrl.lastIndex = 0;
+  }
+});

@@ -6,3 +6,11 @@ Thumbs.db
 
 # Temporary CI dependencies / local parity harness
 .ci/
+
+# Local environment / secrets
+.env
+.env.*
+!.env.example
+
+# Generated/local runtime configuration (created by GitHub Actions in production)
+site/config.js

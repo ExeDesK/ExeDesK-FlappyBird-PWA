@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.2.7b - Discord Auth & Profiles
+
+- Connexion Discord facultative via Supabase Auth.
+- Profil joueur synchronisé (`username`, nom d’affichage, avatar) avec cache local pour l’affichage hors connexion.
+- Le jeu reste entièrement jouable sans compte.
+- Session OAuth persistée et renouvelée via refresh token, sans dépendance JavaScript distante.
+- Ajout de `supabase/001_profiles.sql` avec RLS et droits Data API explicites.
+- La configuration Supabase n'est plus versionnée dans le code : GitHub Pages génère `site/config.js` depuis `SUPABASE_URL` et `SUPABASE_PUBLISHABLE_KEY`.
+- La publishable key reste nécessairement visible côté navigateur ; les contrôles d'accès reposent sur RLS.
+
 ## v0.2.6.5b - iOS startup audio recovery
 
 - Correction d’une régression de v0.2.6.4b où un `AudioContext` fraîchement créé pouvait rester `suspended` sur iOS et bloquer tout le son dès le lancement.

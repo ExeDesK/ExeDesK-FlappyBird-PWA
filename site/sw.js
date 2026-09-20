@@ -1,4 +1,4 @@
-const BUILD = '0.2.6.5b';
+const BUILD = '0.2.7b';
 const PREFIX = `flappy13-${encodeURIComponent(self.registration.scope)}-`;
 const CACHE = `${PREFIX}${BUILD}`;
 const ASSETS = [
@@ -23,6 +23,7 @@ const ASSETS = [
   './manifest.webmanifest',
   './src/atlas.js',
   './src/audio.js',
+  './src/auth.js',
   './src/clock.js',
   './src/display.js',
   './src/game.js',
@@ -31,14 +32,31 @@ const ASSETS = [
   './src/perf.js',
   './style.css',
 ];
+const OPTIONAL_ASSETS = [
+  './config.js',
+];
 const URLS = ASSETS.map(path => new URL(path, self.registration.scope).href);
-const ALLOWED = new Set(URLS);
+const OPTIONAL_URLS = OPTIONAL_ASSETS.map(path => new URL(path, self.registration.scope).href);
+const ALLOWED = new Set([...URLS, ...OPTIONAL_URLS]);
 self.addEventListener('install', event => {
   event.waitUntil((async () => {
     const cache = await caches.open(CACHE);
     try {
       const requests = URLS.map(url => new Request(url, { cache: 'reload' }));
       await cache.addAll(requests);
+
+      // Runtime auth configuration is generated only for deployed builds.
+      // Cache it when present, but never make offline game installation depend on it.
+      for (const url of OPTIONAL_URLS) {
+        try {
+          const response = await fetch(new Request(url, { cache: 'reload' }));
+          if (response.ok) {
+            await cache.put(url, response.clone());
+          }
+        } catch {
+          // Local/offline builds intentionally work without community configuration.
+        }
+      }
     }
     catch (error) {
       await caches.delete(CACHE);
