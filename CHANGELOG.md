@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.2.3b-dev1 - Audio diagnostics
+
+- Ajout d'un journal circulaire des 250 derniers événements audio/lifecycle.
+- Trace les ouvertures/fermetures des réglages, debug, focus, visibilité, pageshow/pagehide et réseau.
+- Trace la création/reprise de l'AudioContext, son état, le décodage et chaque SFX demandé/joué/ignoré.
+- Ajout d'un état audio live dans le panneau debug.
+- Ajout de « Copier audio » et « Exporter audio » pour capturer le bug sans recharger l'application.
+- Aucun changement volontaire de la logique de jeu ou de la politique audio : cette build sert à identifier le déclencheur exact.
+
+
 ## v0.2.2b - GitHub Pages beta
 
 - Préparation du dépôt pour un hébergement statique sur GitHub Pages.

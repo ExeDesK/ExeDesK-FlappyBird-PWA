@@ -10,7 +10,7 @@ import {
 import { Game } from './game.js';
 import { PerfProfiler } from './perf.js';
 
-const VERSION = '0.2.2b';
+const VERSION = '0.2.3b-dev1';
 const BEST_SCORE_KEY = 'flappy13-personal-best-v1';
 const SETTINGS_KEY = 'flappy13-settings-v1';
 const MAX_REPLAY_INPUTS = 30000;
@@ -21,7 +21,7 @@ const query = new URLSearchParams(location.search);
 const canvas = $('game');
 const stage = $('stage');
 const options = $('options');
-const audio = new Audio();
+const audio = new Audio({ version: VERSION });
 const clock = new FixedClock(60);
 const profiler = new PerfProfiler(10000);
 
@@ -237,7 +237,8 @@ function openOptions(showScores = false) {
     return;
   }
 
-  audio.unlock();
+  audio.note('SETTINGS_OPEN', { showScores });
+  audio.unlock('settings-open');
   $('scores-message').hidden = !showScores;
   $('best-score').textContent = best;
 
@@ -251,6 +252,7 @@ function openOptions(showScores = false) {
 }
 
 function closeOptions() {
+  audio.note('SETTINGS_CLOSE');
   options.close();
   clearInput();
   clock.reset();
@@ -280,7 +282,7 @@ function press(id, point) {
     return;
   }
 
-  audio.unlock();
+  audio.unlock('game-input');
   touchRecords.set(id, {
     ...point,
     released: false,
@@ -376,11 +378,25 @@ window.addEventListener('keyup', event => {
 });
 
 window.addEventListener('blur', () => {
+  audio.note('WINDOW_BLUR');
   clearInput();
   clock.reset();
 });
 
+window.addEventListener('focus', () => {
+  audio.note('WINDOW_FOCUS');
+});
+
+window.addEventListener('pageshow', event => {
+  audio.note('PAGE_SHOW', { persisted: event.persisted });
+});
+
+window.addEventListener('pagehide', event => {
+  audio.note('PAGE_HIDE', { persisted: event.persisted });
+});
+
 document.addEventListener('visibilitychange', () => {
+  audio.note('VISIBILITY_CHANGE', { state: document.visibilityState });
   clearInput();
   clock.reset();
 
@@ -399,6 +415,7 @@ $('open-options').onclick = () => openOptions();
 $('close-options').onclick = closeOptions;
 
 options.addEventListener('close', () => {
+  audio.note('SETTINGS_DIALOG_CLOSED');
   clock.reset();
   stopUpdateChecks();
 });
@@ -424,13 +441,20 @@ $('sound').onchange = () => {
   settings.sound = $('sound').checked;
   saveSettings();
   audio.muted = !settings.sound;
-  audio.unlock();
+  audio.note('SOUND_SETTING_CHANGED', { enabled: settings.sound });
+  audio.unlock('sound-toggle');
 };
 
 function setDebug(value) {
+  const changed = debug !== value;
   debug = value;
   $('debug').checked = debug;
   $('diagnostic').hidden = !debug;
+
+  if (changed) {
+    audio.note(debug ? 'DEBUG_ENABLED' : 'DEBUG_DISABLED');
+  }
+
   render();
 }
 
@@ -567,6 +591,56 @@ function exportPerf() {
 $('profile').onclick = startProfiler;
 $('export-perf').onclick = exportPerf;
 
+function audioDiagnosticData() {
+  return audio.diagnostics({
+    app: {
+      paused,
+      debug,
+      optionsOpen: options.open,
+      orientationBlocked,
+      online: navigator.onLine,
+      gameFrame: game?.frame ?? null,
+      gameState: game?.snapshot?.().state ?? null,
+    },
+  });
+}
+
+function exportAudioDiagnostics() {
+  downloadJson(`flappy13-audio-${Date.now()}.json`, audioDiagnosticData());
+}
+
+async function copyAudioDiagnostics() {
+  const text = JSON.stringify(audioDiagnosticData(), null, 2);
+
+  try {
+    await navigator.clipboard.writeText(text);
+    toast('Diagnostic audio copié.');
+    return;
+  } catch {
+    // Clipboard API can be unavailable in standalone Safari/PWA contexts.
+  }
+
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.setAttribute('readonly', '');
+  textarea.style.position = 'fixed';
+  textarea.style.opacity = '0';
+  document.body.append(textarea);
+  textarea.select();
+
+  try {
+    document.execCommand('copy');
+    toast('Diagnostic audio copié.');
+  } catch {
+    toast('Copie impossible : utilisez Exporter audio.');
+  } finally {
+    textarea.remove();
+  }
+}
+
+$('copy-audio').onclick = copyAudioDiagnostics;
+$('export-audio').onclick = exportAudioDiagnostics;
+
 function animate(now) {
   rafCount++;
 
@@ -613,6 +687,16 @@ function animate(now) {
         `v=${snapshot.bird.velocity.toFixed(7)} | rot=${snapshot.bird.rotation.toFixed(4)}`,
         `score=${snapshot.score} | hidden=${snapshot.hidden}`,
         `pipes ${snapshot.pipes.map(pipe => `${pipe.x}:${pipe.y}`).join(' / ')}`,
+      ].join('\n');
+
+      const audioState = audio.summary();
+      $('audio-status').textContent = [
+        `AUDIO context=${audioState.context} muted=${audioState.muted}`,
+        `buffers=${audioState.buffersLoaded}/${audioState.rawLoaded} focus=${audioState.focus}`,
+        `visibility=${audioState.visibility}`,
+        `last=${audioState.lastSound ?? '-'} -> ${audioState.lastSoundResult ?? '-'}`,
+        `event=${audioState.lastEvent ?? '-'} (${audioState.eventCount})`,
+        `error=${audioState.error ?? '-'}`,
       ].join('\n');
     }
 
@@ -829,12 +913,14 @@ async function flushCacheAndUpdate() {
 $('refresh-cache').onclick = flushCacheAndUpdate;
 
 window.addEventListener('online', () => {
+  audio.note('NETWORK_ONLINE');
   if (options.open) {
     checkUpdateSource({ silent: true });
   }
 });
 
 window.addEventListener('offline', () => {
+  audio.note('NETWORK_OFFLINE');
   $('refresh-cache').disabled = true;
   $('update-status').textContent =
     'Hébergement non joignable : mise à jour désactivée.';
@@ -940,6 +1026,9 @@ async function boot() {
       startProfiler,
       perf: () => lastPerfResult,
       exportPerf,
+      audioDiagnostics: audioDiagnosticData,
+      copyAudioDiagnostics,
+      exportAudioDiagnostics,
       layout: () => structuredClone(displayLayout),
       tryLockPortrait,
     };
