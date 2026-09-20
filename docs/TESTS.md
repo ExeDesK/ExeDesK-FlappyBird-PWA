@@ -1,4 +1,4 @@
-# Rapport de tests - v0.2.7.1b
+# Rapport de tests - v0.2.7.1n-hotfix1
 
 ## Résultat
 
@@ -75,7 +75,7 @@ The four golden scenarios are also executed by the GitHub Pages workflow before 
 
 The APK itself is never required in CI; only the previously validated golden traces are used.
 
-## Auth Discord / profils et score sync (v0.2.7.1b)
+## Auth Discord / profils et score sync (v0.2.7.1n-hotfix1)
 
 Tests automatiques dédiés :
 

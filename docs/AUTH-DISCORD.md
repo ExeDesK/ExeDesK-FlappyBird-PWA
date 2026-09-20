@@ -74,3 +74,8 @@ Aucun token utilisateur n'est ajouté aux diagnostics du jeu.
 Ainsi, un nouvel appareil récupère automatiquement le meilleur score du compte, et un appareil possédant un meilleur record le pousse automatiquement dans le cloud.
 
 Ce champ est un **record personnel synchronisé non vérifié**. Il ne servira pas d'autorité au futur leaderboard : les classements utiliseront exclusivement les Verified Runs validés côté serveur.
+
+
+## v0.2.7.1n-hotfix1
+
+Le statut du meilleur score est désormais indépendant des erreurs transitoires du profil : une synchronisation de record réussie affiche toujours l'état synchronisé. Les erreurs de profil sont effacées dès qu'une lecture ou création ultérieure réussit.

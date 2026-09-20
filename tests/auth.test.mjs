@@ -202,3 +202,46 @@ test('best score migration performs an atomic max merge and prevents direct brow
   assert.match(sql, /grant execute on function public\.sync_best_score\(integer\) to authenticated/i);
 });
 
+
+
+test('successful profile refresh clears a previous transient profile error', async () => {
+  const browser = installBrowser();
+  const previousFetch = globalThis.fetch;
+  globalThis.fetch = async input => {
+    const url = String(input);
+    if (url.endsWith('/auth/v1/user')) {
+      return new Response(JSON.stringify({
+        id: 'user-1',
+        user_metadata: { user_name: 'birdplayer' },
+      }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    }
+    if (url.includes('/rest/v1/profiles?')) {
+      return new Response(JSON.stringify([{
+        id: 'user-1',
+        username: 'birdplayer',
+        display_name: 'Bird Player',
+        avatar_url: null,
+        best_score: 42,
+      }]), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    }
+    throw new Error(`Unexpected fetch: ${url}`);
+  };
+
+  try {
+    const auth = new AuthClient({ ...config, storage: new MemoryStorage() });
+    auth.session = {
+      accessToken: 'access',
+      refreshToken: 'refresh',
+      tokenType: 'bearer',
+      expiresAt: Date.now() + 3600000,
+    };
+    auth.error = 'Profil Supabase indisponible (HTTP 503).';
+    const state = await auth.sync({ reason: 'manual' });
+    assert.equal(state.status, 'signed_in');
+    assert.equal(state.profile.best_score, 42);
+    assert.equal(state.error, null);
+  } finally {
+    globalThis.fetch = previousFetch;
+    browser.restore();
+  }
+});

@@ -11,7 +11,7 @@ import {
 import { Game } from './game.js';
 import { PerfProfiler } from './perf.js';
 
-const VERSION = '0.2.7.1b';
+const VERSION = '0.2.7.1n-hotfix1';
 const BEST_SCORE_KEY = 'flappy13-personal-best-v1';
 const SETTINGS_KEY = 'flappy13-settings-v1';
 const LAST_VERSION_KEY = 'flappy13-last-version-v1';
@@ -310,11 +310,13 @@ function renderAccount(state = auth.snapshot()) {
     ? `Profil disponible hors connexion · record local ${best}, synchronisation au retour du réseau.`
     : state.status === 'loading' || scoreSyncState === 'syncing'
       ? 'Synchronisation du profil et du record…'
-      : state.error || scoreSyncState === 'error'
-        ? `Connecté à Discord · record local ${best} · synchronisation à réessayer.`
-        : scoreSyncState === 'synced'
-          ? `Connecté à Discord · record synchronisé : ${best}.`
-          : 'Connecté avec Discord · profil synchronisé.';
+      : scoreSyncState === 'synced'
+        ? `Connecté à Discord · record synchronisé : ${best}.`
+        : scoreSyncState === 'error'
+          ? `Connecté à Discord · record local ${best} · synchronisation à réessayer.`
+          : state.error
+            ? `Connecté à Discord · record local ${best} · profil à resynchroniser.`
+            : 'Connecté avec Discord · profil synchronisé.';
 }
 
 $('account-avatar').addEventListener('error', () => {

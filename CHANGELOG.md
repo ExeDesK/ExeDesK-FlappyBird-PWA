@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.2.7.1n-hotfix1 - Score sync status hotfix
+
+- Correction du message « synchronisation à réessayer » qui pouvait rester affiché après une synchronisation de record réussie.
+- L'état du record est désormais indépendant d'une ancienne erreur de profil/authentification.
+- Une lecture ou création de profil Supabase réussie efface explicitement l'erreur de profil précédente.
+- Aucun changement du moteur déterministe, du score lui-même ni de la parité APK 1.3.
+
 ## v0.2.7.1b - Cross-device Score Sync
 
 - Synchronisation du meilleur score entre appareils dès qu'un compte Discord est connecté.

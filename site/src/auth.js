@@ -309,6 +309,7 @@ export class AuthClient {
 
     const rows = await response.json();
     if (rows[0]) {
+      this.error = null;
       return rows[0];
     }
 
@@ -335,6 +336,7 @@ export class AuthClient {
     }
 
     const rows = await response.json();
+    this.error = null;
     return rows[0] || fallback;
   }
 
