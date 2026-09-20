@@ -31,6 +31,7 @@ export class Audio {
     this.sequence = 0;
     this.lastSound = null;
     this.lastSoundResult = null;
+    this.resumePromise = null;
 
     this.note('AUDIO_CREATED');
   }
@@ -136,16 +137,60 @@ export class Audio {
       });
     }
 
-    // Must run synchronously within the user's gesture, before any await.
-    if (this.context.state === 'suspended') {
-      this.note('RESUME_REQUEST', { origin });
-      this.context.resume().then(() => {
-        this.note('RESUME_OK', { origin });
-      }).catch(error => {
-        this.error = error.message;
-        this.note('RESUME_ERROR', { origin, message: error.message });
-      });
+    // Safari/iOS exposes the non-standard `interrupted` state when audio is
+    // taken away from the PWA. It must be treated like `suspended`. Keep this
+    // call synchronous with the user gesture whenever unlock() is the caller.
+    this._requestResume(origin);
+  }
+
+  _requestResume(origin = 'unknown') {
+    if (!this.context) {
+      return false;
     }
+
+    const from = this.context.state;
+
+    if (from === 'running') {
+      return true;
+    }
+
+    if (from === 'closed') {
+      this.note('RESUME_SKIPPED', { origin, from, reason: 'context-closed' });
+      return false;
+    }
+
+    if (this.resumePromise) {
+      this.note('RESUME_PENDING', { origin, from });
+      return false;
+    }
+
+    this.note('RESUME_REQUEST', { origin, from });
+
+    try {
+      const result = this.context.resume();
+      this.resumePromise = Promise.resolve(result)
+        .then(() => {
+          this.note('RESUME_OK', { origin, from, to: this.context?.state ?? 'none' });
+        })
+        .catch(error => {
+          this.error = error.message;
+          this.note('RESUME_ERROR', { origin, from, message: error.message });
+        })
+        .finally(() => {
+          this.resumePromise = null;
+        });
+    } catch (error) {
+      this.error = error.message;
+      this.note('RESUME_ERROR', { origin, from, message: error.message });
+      this.resumePromise = null;
+    }
+
+    return false;
+  }
+
+  recover(origin = 'foreground') {
+    this.note('RECOVERY_REQUEST', { origin });
+    return this._requestResume(origin);
   }
 
   play(name) {
@@ -165,7 +210,9 @@ export class Audio {
     }
 
     if (this.context.state !== 'running') {
-      this.lastSoundResult = `context-${this.context.state}`;
+      const state = this.context.state;
+      this._requestResume(`sfx-${name}`);
+      this.lastSoundResult = `context-${state}`;
       this.note('SFX_SKIPPED', { name, reason: this.lastSoundResult });
       return;
     }

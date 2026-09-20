@@ -1,4 +1,4 @@
-# Diagnostic audio - instrumentation v0.2.3b-dev1 (conservée en v0.2.4b)
+# Diagnostic audio - instrumentation et correctif iOS
 
 Cette build instrumente le moteur audio sans modifier volontairement son comportement.
 
@@ -31,3 +31,9 @@ Le journal garde les 250 derniers événements et enregistre notamment :
 - revenir dans la PWA puis jouer immédiatement.
 
 Si le son disparaît, le JSON produit par **Copier audio** est le diagnostic à conserver.
+
+## Bug reproduit et corrigé en v0.2.6.2b
+
+Une capture réelle sur iPhone/iOS 18.7 a montré que Safari peut placer le `AudioContext` dans l'état WebKit non standard `interrupted`. Lors d'un retour au premier plan, cet état peut persister alors que la page est `visible` et focalisée. L'ancienne logique ne relançait `resume()` que pour `suspended`, ce qui laissait ensuite tous les SFX ignorés avec `context-interrupted`.
+
+La correction traite désormais tout état non `running` et non `closed` comme récupérable. Une reprise est tentée au retour au premier plan et, si iOS exige un geste utilisateur, au prochain input.

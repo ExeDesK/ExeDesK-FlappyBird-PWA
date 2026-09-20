@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.2.6.2b - iOS audio interruption recovery
+
+- Correction du bug audio reproduit sur iOS/Safari : un `AudioContext` pouvait rester dans l’état WebKit `interrupted` après un retour au premier plan.
+- `interrupted` est désormais traité comme un état récupérable, au même titre que `suspended`, et déclenche `AudioContext.resume()`.
+- Tentative de récupération au retour de focus, `pageshow` et `visibilitychange`, avec nouvelle tentative garantie au prochain geste utilisateur.
+- Un SFX demandé alors que le contexte est interrompu déclenche aussi une tentative de récupération avant d’être ignoré pour ce tick.
+- Ajout de tests de régression dédiés à l’état iOS `interrupted`.
+- Aucun changement du moteur déterministe ; la parité APK 1.3 reste inchangée.
+
 ## v0.2.6.1b - Navigation & settings polish
 
 - Le bouton Maison est désormais disponible sur READY et GAME OVER ; il reste masqué uniquement pendant le gameplay et la phase de mort.

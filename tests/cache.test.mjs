@@ -278,7 +278,7 @@ test('Waiting workers expose their build number to the page', async () => {
     }],
   });
 
-  assert.equal(result.build, '0.2.6.1b');
+  assert.equal(result.build, '0.2.6.2b');
 });
 
 test('Activation of a waiting update requires an explicit message', async () => {

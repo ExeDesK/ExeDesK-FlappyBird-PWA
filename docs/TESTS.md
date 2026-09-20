@@ -1,8 +1,8 @@
-# Rapport de tests - v0.2.6.1b
+# Rapport de tests - v0.2.6.2b
 
 ## Résultat
 
-- **58/58 tests Node passent** avec `npm test`.
+- **61/61 tests Node passent** avec `npm test`.
 - Le smoke test Chromium isolé passe sans erreur JavaScript.
 - Les 5 sons sont décodés dans le test navigateur.
 - Le garde-fou paysage est visible dans un contexte mobile tactile simulé.

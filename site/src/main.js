@@ -10,7 +10,7 @@ import {
 import { Game } from './game.js';
 import { PerfProfiler } from './perf.js';
 
-const VERSION = '0.2.6.1b';
+const VERSION = '0.2.6.2b';
 const BEST_SCORE_KEY = 'flappy13-personal-best-v1';
 const SETTINGS_KEY = 'flappy13-settings-v1';
 const LAST_VERSION_KEY = 'flappy13-last-version-v1';
@@ -442,10 +442,12 @@ window.addEventListener('blur', () => {
 
 window.addEventListener('focus', () => {
   audio.note('WINDOW_FOCUS');
+  audio.recover('window-focus');
 });
 
 window.addEventListener('pageshow', event => {
   audio.note('PAGE_SHOW', { persisted: event.persisted });
+  audio.recover('pageshow');
 
   if (swRegistration && navigator.onLine) {
     checkForUpdates({ silent: true, reason: 'pageshow' });
@@ -462,6 +464,7 @@ document.addEventListener('visibilitychange', () => {
   clock.reset();
 
   if (!document.hidden) {
+    audio.recover('visibility-visible');
     tryLockPortrait();
     updateOrientationGuard();
 
