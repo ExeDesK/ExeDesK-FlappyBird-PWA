@@ -29,6 +29,7 @@ MODULE_ORDER = [
     'verified-run-client.js',
     'atlas.js',
     'audio.js',
+    'leaderboard.js',
     'auth.js',
     'display.js',
     'main.js',

@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.2.7.3b-dev1 - Public verified leaderboard
+
+- Ajout d'un classement global public accessible sans compte Discord via la RPC Supabase `get_leaderboard()`.
+- Le classement est construit exclusivement depuis `public.verified_runs` avec `status = 'verified'`; `profiles.best_score` n'est jamais utilisé comme source d'autorité.
+- Une seule ligne est conservée par joueur : son meilleur `verified_score`, avec le premier accomplissement comme départage stable en cas d'égalité.
+- La table `verified_runs` reste privée : la RPC publique n'expose ni seed, ni taps, ni hash, ni collision, ni donnée interne de vérification.
+- Le bouton SCORES du menu original ouvre désormais le classement global dans l'interface existante; les options permettent aussi de l'actualiser manuellement.
+- Les visiteurs non connectés voient la mention « Se connecter pour apparaître sur le classement. » tout en conservant un accès complet en lecture.
+- Ajout de `supabase/004_leaderboard.sql`, de `site/src/leaderboard.js` et de tests dédiés.
+- Validation automatisée : **105/105 tests Node** passent.
+
 ## v0.2.7.2b - Verified Runs
 
 - Stabilisation du pipeline Verified Runs après validation en conditions réelles des phases `dev1` à `dev4`.

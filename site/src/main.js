@@ -9,6 +9,7 @@ import {
   renderQualityScale,
 } from './display.js';
 import { Game } from './game.js';
+import { leaderboardName } from './leaderboard.js';
 import { PerfProfiler } from './perf.js';
 import {
   VerifiedRunRecorder,
@@ -22,7 +23,7 @@ import {
 } from './verified-run-client.js';
 import { createCanonicalRunGame } from './verified-runs.js';
 
-const VERSION = '0.2.7.2b';
+const VERSION = '0.2.7.3b-dev1';
 const BEST_SCORE_KEY = 'flappy13-personal-best-v1';
 const SETTINGS_KEY = 'flappy13-settings-v1';
 const LAST_VERSION_KEY = 'flappy13-last-version-v1';
@@ -91,6 +92,11 @@ let verifiedRunRecorder = null;
 let lastVerifiedRun = null;
 let unrankedWarningResolver = null;
 let verifiedQueueFlushPromise = null;
+let leaderboardRows = [];
+let leaderboardState = 'idle';
+let leaderboardPromise = null;
+let leaderboardLoadedAt = 0;
+const LEADERBOARD_STALE_MS = 60 * 1000;
 
 const touchRecords = new Map();
 const trace = [];
@@ -386,6 +392,10 @@ async function flushVerifiedRunQueue({ reason = 'manual', notify = false } = {})
 
     if (highestVerifiedScore >= 0) {
       saveBest(highestVerifiedScore);
+      leaderboardLoadedAt = 0;
+      if (options.open && navigator.onLine) {
+        void loadLeaderboard({ force: true });
+      }
     }
 
     if (lastResult) {
@@ -554,6 +564,143 @@ async function syncBestWithCloud({ reason = 'manual', notify = false } = {}) {
   return scoreSyncPromise;
 }
 
+function leaderboardSignedIn(state = auth.snapshot()) {
+  return Boolean(state.user || state.profile)
+    && ['signed_in', 'offline', 'loading'].includes(state.status);
+}
+
+function renderLeaderboard(state = auth.snapshot()) {
+  const list = $('leaderboard-list');
+  const empty = $('leaderboard-empty');
+  const status = $('leaderboard-status');
+  const refresh = $('refresh-leaderboard');
+  const currentPlayerId = state.user?.id || state.profile?.id || null;
+
+  $('leaderboard-login-hint').hidden = leaderboardSignedIn(state);
+  refresh.disabled = !auth.configured || !navigator.onLine || leaderboardState === 'loading';
+
+  if (!auth.configured) {
+    status.textContent = 'Classement indisponible sur cette build.';
+  } else if (!navigator.onLine) {
+    status.textContent = 'Classement indisponible hors connexion.';
+  } else if (leaderboardState === 'loading') {
+    status.textContent = 'Chargement du classement...';
+  } else if (leaderboardState === 'error') {
+    status.textContent = 'Classement indisponible pour le moment.';
+  } else if (leaderboardState === 'loaded') {
+    status.textContent = leaderboardRows.length
+      ? `Top ${leaderboardRows.length} \u00b7 meilleur score v\u00e9rifi\u00e9 par joueur.`
+      : 'Aucun score v\u00e9rifi\u00e9 pour le moment.';
+  } else {
+    status.textContent = 'Classement public des runs v\u00e9rifi\u00e9s.';
+  }
+
+  list.replaceChildren();
+  for (const row of leaderboardRows) {
+    const item = document.createElement('li');
+    item.className = 'leaderboard-row';
+    if (currentPlayerId && row.player_id === currentPlayerId) {
+      item.classList.add('is-current-player');
+    }
+
+    const rank = document.createElement('strong');
+    rank.className = 'leaderboard-rank';
+    rank.textContent = `#${row.rank}`;
+
+    const avatarWrap = document.createElement('span');
+    avatarWrap.className = 'leaderboard-avatar-wrap';
+    const fallback = document.createElement('span');
+    fallback.className = 'leaderboard-avatar-fallback';
+    fallback.textContent = leaderboardName(row).slice(0, 1).toUpperCase() || '?';
+    avatarWrap.append(fallback);
+
+    if (row.avatar_url) {
+      const image = document.createElement('img');
+      image.className = 'leaderboard-avatar';
+      image.alt = '';
+      image.loading = 'lazy';
+      image.referrerPolicy = 'no-referrer';
+      image.src = row.avatar_url;
+      image.addEventListener('load', () => {
+        fallback.hidden = true;
+      });
+      image.addEventListener('error', () => {
+        image.remove();
+        fallback.hidden = false;
+      });
+      avatarWrap.prepend(image);
+    }
+
+    const identity = document.createElement('span');
+    identity.className = 'leaderboard-identity';
+    const name = document.createElement('strong');
+    name.textContent = leaderboardName(row);
+    identity.append(name);
+    if (row.username) {
+      const username = document.createElement('span');
+      username.textContent = `@${row.username}`;
+      identity.append(username);
+    }
+
+    const score = document.createElement('strong');
+    score.className = 'leaderboard-score';
+    score.textContent = String(row.score);
+
+    item.append(rank, avatarWrap, identity, score);
+    list.append(item);
+  }
+
+  empty.hidden = leaderboardRows.length > 0 || leaderboardState !== 'loaded';
+}
+
+async function loadLeaderboard({ force = false, notify = false } = {}) {
+  if (leaderboardPromise) {
+    return leaderboardPromise;
+  }
+
+  if (!auth.configured || !navigator.onLine) {
+    leaderboardState = 'error';
+    renderLeaderboard();
+    return leaderboardRows;
+  }
+
+  if (
+    !force
+    && leaderboardState === 'loaded'
+    && Date.now() - leaderboardLoadedAt < LEADERBOARD_STALE_MS
+  ) {
+    renderLeaderboard();
+    return leaderboardRows;
+  }
+
+  leaderboardState = 'loading';
+  renderLeaderboard();
+
+  leaderboardPromise = (async () => {
+    try {
+      leaderboardRows = await auth.fetchLeaderboard({ limit: 100 });
+      leaderboardState = 'loaded';
+      leaderboardLoadedAt = Date.now();
+          if (notify) {
+        toast('Classement actualis\u00e9.');
+      }
+      return leaderboardRows;
+    } catch (error) {
+      leaderboardState = 'error';
+      console.warn('[Leaderboard] Chargement impossible.', error);
+      if (notify) {
+        toast('Impossible d\u2019actualiser le classement.');
+      }
+      return leaderboardRows;
+    } finally {
+      leaderboardPromise = null;
+      renderLeaderboard();
+    }
+  })();
+
+  return leaderboardPromise;
+}
+
 function accountDisplayName(state) {
   return state.profile?.display_name || state.profile?.username || state.user?.user_metadata?.name || 'Joueur';
 }
@@ -620,8 +767,12 @@ $('account-avatar').addEventListener('error', () => {
   $('account-avatar-fallback').hidden = false;
 });
 
-auth.onChange(renderAccount);
+auth.onChange(state => {
+  renderAccount(state);
+  renderLeaderboard(state);
+});
 renderAccount();
+renderLeaderboard();
 
 $('discord-login').onclick = () => {
   try {
@@ -638,6 +789,10 @@ $('discord-logout').onclick = async () => {
   scoreSyncError = null;
   renderAccount(auth.snapshot());
   toast('Déconnecté de Discord.');
+};
+
+$('refresh-leaderboard').onclick = () => {
+  void loadLeaderboard({ force: true, notify: true });
 };
 
 function resize() {
@@ -794,6 +949,13 @@ function openOptions(showScores = false) {
   clearInput();
   clock.reset();
   checkForUpdates({ silent: true, reason: 'options-open' });
+  void loadLeaderboard({ force: showScores });
+
+  if (showScores) {
+    requestAnimationFrame(() => {
+      $('leaderboard-card').scrollIntoView({ block: 'start', behavior: 'smooth' });
+    });
+  }
 }
 
 function closeOptions() {
@@ -1686,6 +1848,11 @@ window.addEventListener('online', () => {
       await flushVerifiedRunQueue({ reason: 'online', notify: true });
     }
   });
+  if (options.open) {
+    void loadLeaderboard({ force: true });
+  } else {
+    renderLeaderboard();
+  }
   checkForUpdates({ silent: true, reason: 'online' });
 });
 
@@ -1693,6 +1860,7 @@ window.addEventListener('offline', () => {
   audio.note('NETWORK_OFFLINE');
   scoreSyncState = auth.session ? 'offline' : 'local';
   renderAccount({ ...auth.snapshot(), status: auth.session ? 'offline' : 'signed_out' });
+  renderLeaderboard({ ...auth.snapshot(), status: auth.session ? 'offline' : 'signed_out' });
   $('update-status').textContent =
     'Hors connexion \u00b7 les mises \u00e0 jour reprendront automatiquement.';
   updateButton({ text: 'Rechercher une mise \u00e0 jour', disabled: true });
@@ -1823,6 +1991,8 @@ async function boot() {
         return audio;
       },
       auth: () => auth.snapshot(),
+      leaderboard: () => structuredClone(leaderboardRows),
+      refreshLeaderboard: () => loadLeaderboard({ force: true }),
       verifiedRun: () => verifiedRunRecorder?.snapshot() ?? structuredClone(lastVerifiedRun),
       pendingVerifiedRuns() {
         try {

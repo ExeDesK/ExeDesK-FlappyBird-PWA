@@ -511,6 +511,130 @@ body {
   line-height: 1.45;
 }
 
+.leaderboard-card {
+  scroll-margin-top: 10px;
+}
+
+.leaderboard-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.leaderboard-toolbar .hint {
+  margin: 0;
+}
+
+#options .leaderboard-toolbar button {
+  flex: 0 0 auto;
+  padding: 7px 9px;
+  font-size: 8px;
+}
+
+.leaderboard-login-hint {
+  margin-top: 8px;
+  padding: 7px 8px;
+  border-left: 4px solid var(--flappy-green-dark);
+  background: #dbe7a5;
+  color: #344422;
+}
+
+.leaderboard-list {
+  display: grid;
+  gap: 6px;
+  margin: 10px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.leaderboard-row {
+  display: grid;
+  grid-template-columns: 30px 34px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 7px;
+  min-height: 42px;
+  padding: 5px 6px;
+  border: 2px solid #b39555;
+  background: #fff7cf;
+  box-shadow: inset 0 -2px 0 #e5ce87;
+}
+
+.leaderboard-row.is-current-player {
+  border-color: var(--flappy-green-dark);
+  background: #e7efb8;
+}
+
+.leaderboard-rank {
+  color: var(--flappy-brown-dark);
+  font-size: 11px;
+  text-align: center;
+}
+
+.leaderboard-avatar-wrap {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  overflow: hidden;
+  border: 2px solid var(--flappy-brown-dark);
+  background: var(--flappy-cream-dark);
+}
+
+.leaderboard-avatar,
+.leaderboard-avatar-fallback {
+  grid-area: 1 / 1;
+}
+
+.leaderboard-avatar {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.leaderboard-avatar-fallback {
+  color: var(--flappy-brown-dark);
+  font-size: 11px;
+}
+
+.leaderboard-identity {
+  min-width: 0;
+}
+
+.leaderboard-identity strong,
+.leaderboard-identity span {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.leaderboard-identity strong {
+  color: var(--flappy-brown-dark);
+  font-size: 9px;
+}
+
+.leaderboard-identity span {
+  margin-top: 2px;
+  color: #806438;
+  font-size: 7px;
+}
+
+.leaderboard-score {
+  min-width: 42px;
+  color: var(--flappy-brown-dark);
+  font-size: 14px;
+  text-align: right;
+}
+
+.leaderboard-source {
+  margin: 9px 0 0;
+  color: #806438;
+  font-size: 7px;
+  line-height: 1.45;
+  text-align: center;
+}
+
 .score-card {
   display: flex;
   align-items: center;

@@ -1,3 +1,4 @@
+import { parseLeaderboardRows, LEADERBOARD_MAX_ROWS } from './leaderboard.js';
 import {
   createVerifiedRunSubmission,
   parseRunTicket,
@@ -399,6 +400,43 @@ export class AuthClient {
     this._save();
     this._emit();
     return remoteBest;
+  }
+
+  async fetchLeaderboard({ limit = LEADERBOARD_MAX_ROWS } = {}) {
+    if (!this.configured) {
+      throw new Error('Leaderboard unavailable: Supabase is not configured.');
+    }
+
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      const error = new Error('Leaderboard unavailable offline.');
+      error.code = 'offline';
+      throw error;
+    }
+
+    const normalizedLimit = Math.max(
+      1,
+      Math.min(Number(limit) || LEADERBOARD_MAX_ROWS, LEADERBOARD_MAX_ROWS),
+    );
+    const response = await fetch(`${this.url}/rest/v1/rpc/get_leaderboard`, {
+      method: 'POST',
+      headers: {
+        ...this._authHeaders(),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ limit_count: normalizedLimit }),
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({}));
+      const error = new Error(
+        body?.message || body?.hint || body?.details || `Leaderboard HTTP ${response.status}`,
+      );
+      error.status = response.status;
+      throw error;
+    }
+
+    return parseLeaderboardRows(await response.json(), { maxRows: normalizedLimit });
   }
 
   async startVerifiedRun() {

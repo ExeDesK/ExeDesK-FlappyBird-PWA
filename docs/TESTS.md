@@ -1,11 +1,11 @@
-# Rapport de tests - v0.2.7.2b
+# Rapport de tests - v0.2.7.3b-dev1
 
 ## Résultat
 
-- **101/101 tests Node passent** avec `npm test`.
+- **105/105 tests Node passent** avec `npm test`.
 - Le bundle concaténé utilisé par le smoke test passe le contrôle de syntaxe JavaScript.
 - Le smoke test Chromium n’a pas été relancé dans cet environnement, où Playwright Python et Chromium ne sont pas installés.
-- Le cache PWA contient **31 ressources** et refuse de se déclarer complet si une ressource de précache manque.
+- Le cache PWA contient **32 ressources** et refuse de se déclarer complet si une ressource de précache manque.
 - `version.json` reste volontairement hors du cache du Service Worker afin de servir de sonde réseau réelle pour la mise à jour.
 - Les liens et ressources du site utilisent des chemins relatifs compatibles avec un projet GitHub Pages publié sous `/<repository>/`.
 
@@ -32,6 +32,7 @@
 | GitHub Pages | Chemins relatifs vérifiés ; `version.json` reste network-only. |
 | Audio iOS | `interrupted` et `suspended` bloqués, timeout de `resume()`, hard recovery et impulsion silencieuse couverts par des tests dédiés. |
 | Verified Runs | Ticket serveur, capture différée, moteur Edge synchronisé, relecture autoritaire et résolution atomique `verified/rejected`. |
+| Leaderboard | RPC publique sans session, uniquement runs `verified`, meilleur score unique par joueur et absence de données replay exposées. |
 
 ## Smoke test navigateur
 
@@ -122,3 +123,9 @@ La copie Edge de `math.js`, `game.js` et `verified-runs.js` est comparée octet 
 Les tests client couvrent désormais la migration automatique des anciennes files : les entrées sans `player_id`, les entrées malformées et les doublons sont supprimés, tandis que les runs valides d’un autre compte restent stockés mais isolés.
 
 Ils vérifient aussi qu’une nouvelle soumission ne peut pas être mise en file sans propriétaire valide et qu’un `404 run_not_found` est terminal, alors que les erreurs réseau, `429`, `5xx` et les `404` non liés à un run absent restent différables. Cette protection empêche une entrée irrécupérable en tête de file de bloquer les runs suivants.
+
+## Leaderboard public vérifié (v0.2.7.3b-dev1)
+
+Les tests dédiés valident que la RPC `get_leaderboard()` est appelable sans session Discord et n'envoie aucun header `Authorization`. Ils vérifient également que la migration SQL filtre strictement `status = 'verified'`, choisit un seul meilleur score par `player_id`, accorde l'exécution à `anon`/`authenticated` et ne publie aucun champ de replay interne.
+
+Le parser frontend refuse les joueurs dupliqués et les rangs/scores/timestamps invalides. Un contrôle statique garantit enfin la présence du classement dans l'interface, de la mention de connexion pour les visiteurs et du raccordement du bouton SCORES original.

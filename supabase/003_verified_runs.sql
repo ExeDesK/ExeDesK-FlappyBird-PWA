@@ -80,8 +80,8 @@ create index if not exists verified_runs_verified_score_idx
 alter table public.verified_runs enable row level security;
 
 -- Tickets, seeds, replay payloads and verification decisions are server-owned.
--- The future leaderboard will expose a deliberately restricted view/RPC rather
--- than granting browser clients direct access to this table.
+-- Browser clients read leaderboard data through the deliberately restricted
+-- get_leaderboard() RPC from 004_leaderboard.sql, never from this table.
 revoke all on table public.verified_runs from public, anon, authenticated;
 
 -- RLS bypass does not replace PostgreSQL object privileges. Edge Functions use
