@@ -1,5 +1,6 @@
 const SOUND_NAMES = ['wing', 'point', 'hit', 'die', 'swooshing'];
 const DEFAULT_DIAGNOSTIC_LIMIT = 250;
+const INTERRUPTED_RESUME_TIMEOUT_MS = 700;
 
 function safeFocusState() {
   try {
@@ -17,6 +18,10 @@ function safeVisibilityState() {
   }
 }
 
+function delay(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 export class Audio {
   constructor({ version = null, diagnosticLimit = DEFAULT_DIAGNOSTIC_LIMIT } = {}) {
     this.raw = new Map();
@@ -32,6 +37,11 @@ export class Audio {
     this.lastSound = null;
     this.lastSoundResult = null;
     this.resumePromise = null;
+    this.resumeAttempt = 0;
+    this.contextGeneration = 0;
+    this.hardRecoveryNeeded = false;
+    this.recoveryPromise = null;
+    this.pendingSound = null;
 
     this.note('AUDIO_CREATED');
   }
@@ -43,6 +53,7 @@ export class Audio {
       rawLoaded: this.raw.size,
       buffersLoaded: this.buffers.size,
       decoding: Boolean(this.decoding),
+      hardRecoveryNeeded: this.hardRecoveryNeeded,
       visibility: safeVisibilityState(),
       focus: safeFocusState(),
       ...extra,
@@ -92,69 +103,186 @@ export class Audio {
     }
   }
 
-  _bindContextDiagnostics() {
-    if (!this.context) {
-      return;
+  _audioContextType() {
+    return window.AudioContext || window.webkitAudioContext || null;
+  }
+
+  _bindContextDiagnostics(context, generation) {
+    context?.addEventListener?.('statechange', () => {
+      this.note('AUDIO_STATECHANGE', {
+        generation,
+        contextState: context.state,
+        active: context === this.context,
+      });
+    });
+  }
+
+  _decodeContext(context, generation, origin) {
+    const decoded = new Map();
+
+    this.note('DECODE_START', { origin, generation });
+
+    const promise = Promise.all(
+      [...this.raw].map(async ([name, raw]) => {
+        const buffer = await context.decodeAudioData(raw.slice(0));
+        decoded.set(name, buffer);
+      }),
+    )
+      .then(() => {
+        if (context !== this.context || generation !== this.contextGeneration) {
+          this.note('DECODE_DISCARDED', { origin, generation });
+          return false;
+        }
+
+        this.buffers = decoded;
+        this.note('DECODE_OK', { origin, generation, names: [...this.buffers.keys()] });
+        this._flushPendingSound(`decode-${origin}`);
+        return true;
+      })
+      .catch(error => {
+        if (context === this.context && generation === this.contextGeneration) {
+          this.error = error.message;
+        }
+        this.note('DECODE_ERROR', { origin, generation, message: error.message });
+        return false;
+      })
+      .finally(() => {
+        if (this.decoding === promise) {
+          this.decoding = null;
+        }
+      });
+
+    this.decoding = promise;
+    return promise;
+  }
+
+  _createContext(origin, { replacing = false } = {}) {
+    const AudioContextType = this._audioContextType();
+
+    if (!AudioContextType) {
+      this.error = 'Web Audio indisponible';
+      this.note('AUDIO_UNAVAILABLE', { origin });
+      return null;
     }
 
-    this.context.addEventListener?.('statechange', () => {
-      this.note('AUDIO_STATECHANGE');
-    });
+    try {
+      const context = new AudioContextType();
+      const generation = ++this.contextGeneration;
+      this.context = context;
+      this.buffers = new Map();
+      this.hardRecoveryNeeded = false;
+
+      this.note(replacing ? 'CONTEXT_RECREATED' : 'CONTEXT_CREATED', {
+        origin,
+        generation,
+        sampleRate: context.sampleRate,
+      });
+
+      this._bindContextDiagnostics(context, generation);
+      this._decodeContext(context, generation, origin);
+      return context;
+    } catch (error) {
+      this.error = error.message;
+      this.note(replacing ? 'CONTEXT_RECREATE_ERROR' : 'CONTEXT_CREATE_ERROR', {
+        origin,
+        message: error.message,
+      });
+      return null;
+    }
+  }
+
+  _hardRecover(origin = 'user-gesture') {
+    if (this.recoveryPromise) {
+      this.note('HARD_RECOVERY_PENDING', { origin });
+      return false;
+    }
+
+    const previous = this.context;
+    const previousState = previous?.state ?? 'none';
+    this.note('HARD_RECOVERY_REQUEST', { origin, previousState });
+
+    // Invalidate any resume attempt tied to the old context. A Safari resume()
+    // promise may stay pending indefinitely after device lock.
+    this.resumeAttempt += 1;
+    this.resumePromise = null;
+
+    const context = this._createContext(origin, { replacing: Boolean(previous) });
+    if (!context) {
+      this.hardRecoveryNeeded = true;
+      return false;
+    }
+
+    if (previous && previous !== context) {
+      try {
+        Promise.resolve(previous.close?.()).catch(error => {
+          this.note('OLD_CONTEXT_CLOSE_ERROR', { origin, message: error.message });
+        });
+      } catch (error) {
+        this.note('OLD_CONTEXT_CLOSE_ERROR', { origin, message: error.message });
+      }
+    }
+
+    // The replacement context is created synchronously from a user gesture.
+    // Ask it to run immediately, before the gesture stack unwinds.
+    this._requestResume(`${origin}-recreated`);
+
+    const decodePromise = this.decoding ?? Promise.resolve(true);
+    this.recoveryPromise = Promise.resolve(decodePromise)
+      .then(() => {
+        if (this.context !== context) return false;
+
+        if (context.state === 'running') {
+          this.hardRecoveryNeeded = false;
+          this.note('HARD_RECOVERY_OK', { origin, state: context.state });
+          this._flushPendingSound(`hard-recovery-${origin}`);
+          return true;
+        }
+
+        this.hardRecoveryNeeded = true;
+        this.note('HARD_RECOVERY_WAITING_FOR_GESTURE', { origin, state: context.state });
+        return false;
+      })
+      .finally(() => {
+        this.recoveryPromise = null;
+      });
+
+    return false;
   }
 
   unlock(origin = 'unknown') {
     this.note('UNLOCK_REQUEST', { origin });
 
     if (!this.context) {
-      const AudioContextType = window.AudioContext || window.webkitAudioContext;
-
-      if (!AudioContextType) {
-        this.error = 'Web Audio indisponible';
-        this.note('AUDIO_UNAVAILABLE', { origin });
-        return;
-      }
-
-      try {
-        this.context = new AudioContextType();
-        this.note('CONTEXT_CREATED', { origin, sampleRate: this.context.sampleRate });
-        this._bindContextDiagnostics();
-      } catch (error) {
-        this.error = error.message;
-        this.note('CONTEXT_CREATE_ERROR', { origin, message: error.message });
-        return;
-      }
-
-      this.decoding = Promise.all(
-        [...this.raw].map(async ([name, raw]) => {
-          const buffer = await this.context.decodeAudioData(raw.slice(0));
-          this.buffers.set(name, buffer);
-        }),
-      ).then(() => {
-        this.note('DECODE_OK', { names: [...this.buffers.keys()] });
-      }).catch(error => {
-        this.error = error.message;
-        this.note('DECODE_ERROR', { message: error.message });
-      });
+      if (!this._createContext(origin)) return;
+      this._requestResume(origin);
+      return;
     }
 
-    // Safari/iOS exposes the non-standard `interrupted` state when audio is
-    // taken away from the PWA. It must be treated like `suspended`. Keep this
-    // call synchronous with the user gesture whenever unlock() is the caller.
+    // A context left in WebKit's `interrupted` state after device lock is not
+    // reliably recoverable with resume() alone. On a real user gesture, replace
+    // it entirely and re-decode the five tiny SFX buffers.
+    if (this.context.state === 'interrupted' || this.hardRecoveryNeeded) {
+      this._hardRecover(origin);
+      return;
+    }
+
     this._requestResume(origin);
   }
 
   _requestResume(origin = 'unknown') {
-    if (!this.context) {
-      return false;
-    }
+    if (!this.context) return false;
 
-    const from = this.context.state;
+    const context = this.context;
+    const from = context.state;
 
     if (from === 'running') {
+      this.hardRecoveryNeeded = false;
+      this._flushPendingSound(`resume-${origin}`);
       return true;
     }
 
     if (from === 'closed') {
+      this.hardRecoveryNeeded = true;
       this.note('RESUME_SKIPPED', { origin, from, reason: 'context-closed' });
       return false;
     }
@@ -164,23 +292,52 @@ export class Audio {
       return false;
     }
 
-    this.note('RESUME_REQUEST', { origin, from });
+    const attempt = ++this.resumeAttempt;
+    this.note('RESUME_REQUEST', { origin, from, attempt });
 
     try {
-      const result = this.context.resume();
-      this.resumePromise = Promise.resolve(result)
-        .then(() => {
-          this.note('RESUME_OK', { origin, from, to: this.context?.state ?? 'none' });
+      const result = context.resume();
+      const completion = Promise.resolve(result).then(() => 'resolved');
+      const guarded = from === 'interrupted'
+        ? Promise.race([completion, delay(INTERRUPTED_RESUME_TIMEOUT_MS).then(() => 'timeout')])
+        : completion;
+
+      const promise = guarded
+        .then(outcome => {
+          if (attempt !== this.resumeAttempt || context !== this.context) return;
+
+          const to = context.state;
+          if (to === 'running') {
+            this.hardRecoveryNeeded = false;
+            this.note('RESUME_OK', { origin, from, to, attempt, outcome });
+            this._flushPendingSound(`resume-${origin}`);
+            return;
+          }
+
+          this.hardRecoveryNeeded = true;
+          this.note(outcome === 'timeout' ? 'RESUME_TIMEOUT' : 'RESUME_STUCK', {
+            origin,
+            from,
+            to,
+            attempt,
+          });
         })
         .catch(error => {
+          if (attempt !== this.resumeAttempt || context !== this.context) return;
           this.error = error.message;
-          this.note('RESUME_ERROR', { origin, from, message: error.message });
+          this.hardRecoveryNeeded = true;
+          this.note('RESUME_ERROR', { origin, from, attempt, message: error.message });
         })
         .finally(() => {
-          this.resumePromise = null;
+          if (attempt === this.resumeAttempt && this.resumePromise === promise) {
+            this.resumePromise = null;
+          }
         });
+
+      this.resumePromise = promise;
     } catch (error) {
       this.error = error.message;
+      this.hardRecoveryNeeded = true;
       this.note('RESUME_ERROR', { origin, from, message: error.message });
       this.resumePromise = null;
     }
@@ -191,6 +348,47 @@ export class Audio {
   recover(origin = 'foreground') {
     this.note('RECOVERY_REQUEST', { origin });
     return this._requestResume(origin);
+  }
+
+  _startSound(name, { flushedFrom = null } = {}) {
+    const buffer = this.buffers.get(name);
+    if (!buffer || !this.context || this.context.state !== 'running') return false;
+
+    try {
+      const source = this.context.createBufferSource();
+      source.buffer = buffer;
+      source.connect(this.context.destination);
+      source.start();
+      this.lastSoundResult = 'started';
+      this.note(flushedFrom ? 'SFX_FLUSHED' : 'SFX_STARTED', {
+        name,
+        ...(flushedFrom ? { from: flushedFrom } : {}),
+      });
+      return true;
+    } catch (error) {
+      this.error = error.message;
+      this.lastSoundResult = 'error';
+      this.note('SFX_ERROR', { name, message: error.message });
+      return false;
+    }
+  }
+
+  _queueSound(name, reason) {
+    // Keep only the most recent requested sound. This avoids a burst of stale
+    // flap sounds if decoding takes a few milliseconds after lock recovery.
+    this.pendingSound = name;
+    this.lastSoundResult = `queued-${reason}`;
+    this.note('SFX_QUEUED', { name, reason });
+  }
+
+  _flushPendingSound(origin) {
+    if (!this.pendingSound || this.muted) return false;
+    if (!this.context || this.context.state !== 'running') return false;
+    if (!this.buffers.has(this.pendingSound)) return false;
+
+    const name = this.pendingSound;
+    this.pendingSound = null;
+    return this._startSound(name, { flushedFrom: origin });
   }
 
   play(name) {
@@ -211,32 +409,24 @@ export class Audio {
 
     if (this.context.state !== 'running') {
       const state = this.context.state;
+      if (state === 'interrupted') this.hardRecoveryNeeded = true;
+      this._queueSound(name, `context-${state}`);
       this._requestResume(`sfx-${name}`);
-      this.lastSoundResult = `context-${state}`;
-      this.note('SFX_SKIPPED', { name, reason: this.lastSoundResult });
       return;
     }
 
-    const buffer = this.buffers.get(name);
+    if (!this.buffers.has(name)) {
+      if (this.decoding || this.recoveryPromise) {
+        this._queueSound(name, 'buffer-decoding');
+        return;
+      }
 
-    if (!buffer) {
       this.lastSoundResult = 'buffer-missing';
       this.note('SFX_SKIPPED', { name, reason: 'buffer-missing' });
       return;
     }
 
-    try {
-      const source = this.context.createBufferSource();
-      source.buffer = buffer;
-      source.connect(this.context.destination);
-      source.start();
-      this.lastSoundResult = 'started';
-      this.note('SFX_STARTED', { name });
-    } catch (error) {
-      this.error = error.message;
-      this.lastSoundResult = 'error';
-      this.note('SFX_ERROR', { name, message: error.message });
-    }
+    this._startSound(name);
   }
 
   summary() {
@@ -246,6 +436,9 @@ export class Audio {
       muted: this.muted,
       rawLoaded: this.raw.size,
       buffersLoaded: this.buffers.size,
+      hardRecoveryNeeded: this.hardRecoveryNeeded,
+      recoveryPending: Boolean(this.recoveryPromise),
+      pendingSound: this.pendingSound,
       lastSound: this.lastSound,
       lastSoundResult: this.lastSoundResult,
       error: this.error,
@@ -258,7 +451,7 @@ export class Audio {
 
   diagnostics(extra = {}) {
     return {
-      schema: 'flappy13-audio-diagnostics-v1',
+      schema: 'flappy13-audio-diagnostics-v2',
       version: this.version,
       capturedAt: new Date().toISOString(),
       userAgent: globalThis.navigator?.userAgent ?? null,

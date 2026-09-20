@@ -1,39 +1,49 @@
-# Diagnostic audio - instrumentation et correctif iOS
+# Diagnostic audio - instrumentation et récupération iOS
 
-Cette build instrumente le moteur audio sans modifier volontairement son comportement.
+Le moteur audio conserve un journal circulaire des 250 derniers événements afin de diagnostiquer les problèmes Web Audio, en particulier sur iOS/PWA.
 
 ## Quand le bug se reproduit
 
 1. Ne rechargez pas la PWA.
-2. Ouvrez les options et activez **Hitboxes et diagnostic** si nécessaire.
-3. Fermez les options.
-4. Vérifiez le bloc `AUDIO` dans le panneau diagnostic.
-5. Cliquez sur **Copier audio** puis conservez le JSON, ou utilisez **Exporter audio**.
+2. Ouvrez **Réglages** puis **Outils de diagnostic** en bas de l'écran.
+3. Vérifiez le bloc `AUDIO`.
+4. Utilisez **Copier audio** ou **Exporter audio** et conservez le JSON.
 
-Le journal garde les 250 derniers événements et enregistre notamment :
+Le journal enregistre notamment :
 
 - état de `AudioContext` ;
-- ouverture/fermeture des réglages ;
-- activation/désactivation du debug ;
 - focus, blur, `visibilitychange`, `pageshow`, `pagehide` ;
-- passage online/offline ;
+- ouverture/fermeture des réglages et activation du debug ;
 - chargement et décodage des buffers ;
-- chaque SFX demandé, joué, ignoré ou en erreur ;
-- demandes et résultats de `AudioContext.resume()`.
+- chaque SFX demandé, joué, mis en attente ou ignoré ;
+- demandes et résultats de `AudioContext.resume()` ;
+- récupération forte par recréation du contexte audio.
 
 ## Scénarios utiles
 
 - lancer puis jouer directement ;
 - ouvrir/fermer les réglages puis jouer ;
-- activer/désactiver le debug puis jouer ;
 - jouer puis passer l'application en arrière-plan ;
-- verrouiller/déverrouiller l'iPhone ;
-- revenir dans la PWA puis jouer immédiatement.
+- **verrouiller l'iPhone pendant une partie, attendre quelques secondes, puis déverrouiller** ;
+- revenir dans la PWA et toucher immédiatement l'écran.
 
-Si le son disparaît, le JSON produit par **Copier audio** est le diagnostic à conserver.
+## Diagnostic établi
 
-## Bug reproduit et corrigé en v0.2.6.3b
+Une capture réelle sur iPhone/iOS 18.7 a montré que WebKit peut placer le `AudioContext` dans l'état non standard `interrupted` lorsque l'application perd l'accès à la session audio. Dans certains cas, le contexte revient spontanément à `running`. Dans d'autres, il reste `interrupted` alors que la page est de nouveau visible et focalisée.
 
-Une capture réelle sur iPhone/iOS 18.7 a montré que Safari peut placer le `AudioContext` dans l'état WebKit non standard `interrupted`. Lors d'un retour au premier plan, cet état peut persister alors que la page est `visible` et focalisée. L'ancienne logique ne relançait `resume()` que pour `suspended`, ce qui laissait ensuite tous les SFX ignorés avec `context-interrupted`.
+La v0.2.6.2b a ajouté une tentative de `resume()` pour cet état. Le verrouillage/déverrouillage du téléphone peut toutefois laisser le contexte irrécupérable avec `resume()` seul, ou laisser la promesse de reprise bloquée.
 
-La correction traite désormais tout état non `running` et non `closed` comme récupérable. Une reprise est tentée au retour au premier plan et, si iOS exige un geste utilisateur, au prochain input.
+## Récupération v0.2.6.4b
+
+La stratégie est désormais à deux niveaux :
+
+1. au retour au premier plan, tenter une reprise normale avec `resume()` ;
+2. si le contexte reste `interrupted`, le prochain geste utilisateur déclenche une **récupération forte** :
+   - création d'un nouvel `AudioContext` pendant le geste utilisateur ;
+   - fermeture de l'ancien contexte ;
+   - re-décodage des cinq SFX déjà chargés en mémoire ;
+   - remise en lecture du premier SFX demandé pendant la récupération.
+
+Un timeout protège aussi contre un `resume()` iOS qui resterait indéfiniment en attente après verrouillage.
+
+Les événements `HARD_RECOVERY_*`, `SFX_QUEUED` et `SFX_FLUSHED` permettent de vérifier précisément ce chemin dans un export diagnostic.

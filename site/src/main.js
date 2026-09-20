@@ -10,7 +10,7 @@ import {
 import { Game } from './game.js';
 import { PerfProfiler } from './perf.js';
 
-const VERSION = '0.2.6.3b';
+const VERSION = '0.2.6.4b';
 const BEST_SCORE_KEY = 'flappy13-personal-best-v1';
 const SETTINGS_KEY = 'flappy13-settings-v1';
 const LAST_VERSION_KEY = 'flappy13-last-version-v1';

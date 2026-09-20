@@ -1,11 +1,22 @@
 # Changelog
 
+## v0.2.6.4b - iOS lock-screen audio hard recovery
+
+- Renforcement de la récupération audio iOS après verrouillage/déverrouillage du téléphone.
+- Si WebKit laisse l'`AudioContext` en état `interrupted`, le prochain geste utilisateur recrée entièrement le contexte audio au lieu de dépendre uniquement de `resume()`.
+- Re-décodage automatique des cinq SFX après recréation du contexte, sans rechargement de la PWA.
+- Le premier son demandé pendant la récupération est mis en attente puis joué dès que le nouveau contexte est prêt.
+- Détection des `resume()` qui résolvent sans réellement sortir de `interrupted`, avec bascule vers la récupération forte au geste suivant.
+- Ajout d'un timeout de sécurité pour les promesses `resume()` iOS qui resteraient bloquées après verrouillage.
+- Diagnostics audio enrichis (`HARD_RECOVERY_*`, `SFX_QUEUED`, `SFX_FLUSHED`) et schéma v2.
+- Aucun changement du moteur déterministe ni de la parité APK 1.3.
+
 ## v0.2.6.3b - Home icon alignment
 
 - Remplacement du pictogramme Maison en `box-shadow` par une icône SVG pixel-art centrée géométriquement dans le bouton.
 - Aucun changement du moteur déterministe ni du correctif audio iOS.
 
-## v0.2.6.3b - iOS audio interruption recovery
+## v0.2.6.2b - iOS audio interruption recovery
 
 - Correction du bug audio reproduit sur iOS/Safari : un `AudioContext` pouvait rester dans l’état WebKit `interrupted` après un retour au premier plan.
 - `interrupted` est désormais traité comme un état récupérable, au même titre que `suspended`, et déclenche `AudioContext.resume()`.
