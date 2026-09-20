@@ -8,7 +8,7 @@ The goal is not to create another Flappy Bird-inspired clone, but to **reproduce
 
 The game runs entirely client-side, without a framework or backend, and can be installed as an application on Windows, iPhone/iPad and Android.
 
-> **Project status: beta — v0.2.6.4b**
+> **Project status: beta — v0.2.6.5b**
 
 ---
 

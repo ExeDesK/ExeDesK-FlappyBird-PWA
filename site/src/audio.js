@@ -1,6 +1,6 @@
 const SOUND_NAMES = ['wing', 'point', 'hit', 'die', 'swooshing'];
 const DEFAULT_DIAGNOSTIC_LIMIT = 250;
-const INTERRUPTED_RESUME_TIMEOUT_MS = 700;
+const RESUME_TIMEOUT_MS = 700;
 
 function safeFocusState() {
   try {
@@ -23,7 +23,7 @@ function delay(ms) {
 }
 
 export class Audio {
-  constructor({ version = null, diagnosticLimit = DEFAULT_DIAGNOSTIC_LIMIT } = {}) {
+  constructor({ version = null, diagnosticLimit = DEFAULT_DIAGNOSTIC_LIMIT, resumeTimeoutMs = RESUME_TIMEOUT_MS } = {}) {
     this.raw = new Map();
     this.buffers = new Map();
     this.context = null;
@@ -42,6 +42,7 @@ export class Audio {
     this.hardRecoveryNeeded = false;
     this.recoveryPromise = null;
     this.pendingSound = null;
+    this.resumeTimeoutMs = resumeTimeoutMs;
 
     this.note('AUDIO_CREATED');
   }
@@ -117,6 +118,22 @@ export class Audio {
     });
   }
 
+  _primeContext(context, origin) {
+    try {
+      if (!context?.createBuffer || !context?.createBufferSource) return false;
+      const buffer = context.createBuffer(1, 1, context.sampleRate || 48000);
+      const source = context.createBufferSource();
+      source.buffer = buffer;
+      source.connect(context.destination);
+      source.start(0);
+      this.note('UNLOCK_PULSE', { origin });
+      return true;
+    } catch (error) {
+      this.note('UNLOCK_PULSE_ERROR', { origin, message: error.message });
+      return false;
+    }
+  }
+
   _decodeContext(context, generation, origin) {
     const decoded = new Map();
 
@@ -179,6 +196,7 @@ export class Audio {
       });
 
       this._bindContextDiagnostics(context, generation);
+      this._primeContext(context, origin);
       this._decodeContext(context, generation, origin);
       return context;
     } catch (error) {
@@ -298,9 +316,14 @@ export class Audio {
     try {
       const result = context.resume();
       const completion = Promise.resolve(result).then(() => 'resolved');
-      const guarded = from === 'interrupted'
-        ? Promise.race([completion, delay(INTERRUPTED_RESUME_TIMEOUT_MS).then(() => 'timeout')])
-        : completion;
+      // Safari can leave resume() pending forever not only from the non-standard
+      // `interrupted` state, but also from a freshly-created `suspended` context.
+      // Bound every non-running resume attempt so a later user gesture can
+      // trigger hard recovery instead of being blocked by RESUME_PENDING forever.
+      const guarded = Promise.race([
+        completion,
+        delay(this.resumeTimeoutMs).then(() => 'timeout'),
+      ]);
 
       const promise = guarded
         .then(outcome => {

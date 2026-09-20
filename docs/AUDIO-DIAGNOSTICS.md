@@ -47,3 +47,17 @@ La stratégie est désormais à deux niveaux :
 Un timeout protège aussi contre un `resume()` iOS qui resterait indéfiniment en attente après verrouillage.
 
 Les événements `HARD_RECOVERY_*`, `SFX_QUEUED` et `SFX_FLUSHED` permettent de vérifier précisément ce chemin dans un export diagnostic.
+
+
+## Correctif v0.2.6.5b
+
+Une seconde capture a montré qu’iOS peut également laisser un `AudioContext` **fraîchement créé** en état `suspended`, avec une promesse `resume()` qui ne se résout jamais. Dans ce cas, le verrou de reprise restait actif et tous les sons suivants étaient mis en attente.
+
+La v0.2.6.5b corrige ce cas en :
+
+- appliquant le timeout de sécurité à toutes les reprises non `running`, y compris `suspended` ;
+- libérant le verrou de reprise après timeout ;
+- marquant le contexte pour récupération forte au prochain geste ;
+- envoyant une impulsion audio silencieuse lors de la création du contexte pour initialiser la session Web Audio iOS pendant le geste utilisateur.
+
+Les événements `UNLOCK_PULSE` et `RESUME_TIMEOUT` permettent de confirmer ce chemin dans les diagnostics.

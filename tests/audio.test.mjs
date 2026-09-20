@@ -21,9 +21,10 @@ function installDom({ AudioContextType = null } = {}) {
 }
 
 class FakeContext {
-  constructor(state = 'suspended', { resumeTo = 'running', decodeDelay = 0 } = {}) {
+  constructor(state = 'suspended', { resumeTo = 'running', decodeDelay = 0, resumeMode = 'resolve' } = {}) {
     this.state = state;
     this.resumeTo = resumeTo;
+    this.resumeMode = resumeMode;
     this.decodeDelay = decodeDelay;
     this.resumeCalls = 0;
     this.closeCalls = 0;
@@ -43,6 +44,7 @@ class FakeContext {
 
   resume() {
     this.resumeCalls += 1;
+    if (this.resumeMode === 'hang') return new Promise(() => {});
     this.state = this.resumeTo;
     this._emit('statechange');
     return Promise.resolve();
@@ -58,6 +60,10 @@ class FakeContext {
   async decodeAudioData(raw) {
     if (this.decodeDelay) await new Promise(resolve => setTimeout(resolve, this.decodeDelay));
     return { bytes: raw.byteLength };
+  }
+
+  createBuffer(channels, length, sampleRate) {
+    return { channels, length, sampleRate };
   }
 
   createBufferSource() {
@@ -154,7 +160,7 @@ test('first SFX after lock recovery is queued then played after buffers are deco
     await audio.recoveryPromise;
 
     assert.equal(created.length, 1);
-    assert.equal(created[0].started.length, 1);
+    assert.equal(created[0].started.length, 2);
     assert.equal(audio.pendingSound, null);
     assert.equal(audio.lastSoundResult, 'started');
     assert.ok(audio.events.some(event => event.type === 'SFX_QUEUED'));
@@ -194,6 +200,66 @@ test('running AudioContext is not resumed unnecessarily', () => {
 
     assert.equal(context.resumeCalls, 0);
     assert.equal(audio.resumePromise, null);
+  } finally {
+    restore();
+  }
+});
+
+
+test('fresh suspended iOS context cannot block all later unlock gestures forever', async () => {
+  const created = [];
+  class HangingContext extends FakeContext {
+    constructor() {
+      super('suspended', { resumeMode: created.length === 0 ? 'hang' : 'resolve' });
+      created.push(this);
+    }
+  }
+
+  const restore = installDom({ AudioContextType: HangingContext });
+  try {
+    const audio = new Audio({ version: 'test', resumeTimeoutMs: 10 });
+    addRaw(audio);
+
+    audio.unlock('game-input');
+    await new Promise(resolve => setTimeout(resolve, 20));
+
+    assert.equal(created.length, 1);
+    assert.equal(audio.hardRecoveryNeeded, true);
+    assert.equal(audio.resumePromise, null);
+    assert.ok(audio.events.some(event =>
+      event.type === 'RESUME_TIMEOUT' && event.detail.from === 'suspended'));
+
+    audio.unlock('game-input');
+    await audio.recoveryPromise;
+
+    assert.equal(created.length, 2);
+    assert.equal(audio.context.state, 'running');
+    assert.equal(audio.hardRecoveryNeeded, false);
+  } finally {
+    restore();
+  }
+});
+
+test('new AudioContext receives a silent unlock pulse before normal playback', async () => {
+  const created = [];
+  class PulseContext extends FakeContext {
+    constructor() {
+      super('suspended');
+      created.push(this);
+    }
+  }
+
+  const restore = installDom({ AudioContextType: PulseContext });
+  try {
+    const audio = new Audio({ version: 'test' });
+    addRaw(audio);
+    audio.unlock('game-input');
+    await audio.resumePromise;
+    await audio.decoding;
+
+    assert.equal(created.length, 1);
+    assert.ok(created[0].started.length >= 1);
+    assert.ok(audio.events.some(event => event.type === 'UNLOCK_PULSE'));
   } finally {
     restore();
   }

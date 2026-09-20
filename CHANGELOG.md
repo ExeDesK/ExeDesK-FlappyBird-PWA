@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.2.6.5b - iOS startup audio recovery
+
+- Correction d’une régression de v0.2.6.4b où un `AudioContext` fraîchement créé pouvait rester `suspended` sur iOS et bloquer tout le son dès le lancement.
+- Le timeout de sécurité couvre désormais aussi `suspended`, pas seulement `interrupted`, afin qu’une promesse `resume()` bloquée ne verrouille plus toutes les tentatives suivantes.
+- Ajout d’une impulsion audio silencieuse lors de la création/recréation du contexte pour initialiser la session Web Audio pendant le geste utilisateur.
+- Si la reprise reste bloquée, le prochain geste utilisateur déclenche toujours la récupération forte par recréation du contexte.
+- Ajout de tests de régression dédiés aux `resume()` suspendus indéfiniment sur un contexte initial.
+- Aucun changement du moteur déterministe ni de la parité APK 1.3.
+
 ## v0.2.6.4b - iOS lock-screen audio hard recovery
 
 - Renforcement de la récupération audio iOS après verrouillage/déverrouillage du téléphone.

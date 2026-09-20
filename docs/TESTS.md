@@ -1,8 +1,8 @@
-# Rapport de tests - v0.2.6.4b
+# Rapport de tests - v0.2.6.5b
 
 ## Résultat
 
-- **61/61 tests Node passent** avec `npm test`.
+- **65/65 tests Node passent** avec `npm test`.
 - Le smoke test Chromium isolé passe sans erreur JavaScript.
 - Les 5 sons sont décodés dans le test navigateur.
 - Le garde-fou paysage est visible dans un contexte mobile tactile simulé.
@@ -31,6 +31,7 @@
 | Supersampling | ×2 minimum, ×3 sur DPR élevé, ×2 en mode Performance. |
 | Service Worker | Installation atomique, lecture offline, mise à jour en attente, activation contrôlée et purge des anciens caches de la même portée. |
 | GitHub Pages | Chemins relatifs vérifiés ; `version.json` reste network-only. |
+| Audio iOS | `interrupted` et `suspended` bloqués, timeout de `resume()`, hard recovery et impulsion silencieuse couverts par des tests dédiés. |
 
 ## Smoke test navigateur
 
