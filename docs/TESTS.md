@@ -1,4 +1,4 @@
-# Rapport de tests - v0.2.7.2b-dev4
+# Rapport de tests - v0.2.7.2b
 
 ## Résultat
 

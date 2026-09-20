@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.2.7.2b - Verified Runs
+
+- Stabilisation du pipeline Verified Runs après validation en conditions réelles des phases `dev1` à `dev4`.
+- `run_id` et seed sont émis côté serveur, avec `physics_version` versionnée (`flappy13-physics-v1`).
+- Les taps sont enregistrés par tick puis rejoués autoritairement côté serveur ; score et collision finale sont recalculés sans faire confiance au navigateur.
+- Les runs invalides sont rejetés et une seconde soumission différente pour un même `run_id` est refusée ; les retries strictement identiques restent idempotents.
+- Un run classé ne nécessite le réseau qu'au démarrage : il peut être terminé hors ligne puis soumis automatiquement au retour de la connexion.
+- La file locale est isolée par joueur et auto-réparante : entrées ownerless/malformées/dupliquées nettoyées, `404 run_not_found` terminal, erreurs réseau/`429`/`5xx` conservées pour retry.
+- Validation finale : suite automatisée complète réussie et tests live `run-start` → `run-submit` → `verified` concluants, y compris reprise après hors-ligne.
+- Aucun changement du moteur déterministe par rapport à `v0.2.7.2b-dev4` et aucune nouvelle migration Supabase pour cette stabilisation.
+
 ## v0.2.7.2b-dev4 - Verified Runs queue hardening
 
 - Correction du blocage de la file locale causé par d’anciens runs sans `player_id`, qui pouvaient être renvoyés indéfiniment après un `404 run_not_found`.
