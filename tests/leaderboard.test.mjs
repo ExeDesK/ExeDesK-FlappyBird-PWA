@@ -101,13 +101,20 @@ test('leaderboard SQL exposes only verified per-player best scores through a pub
   assert.doesNotMatch(sql, /tap_ticks|replay_hash|seed|collision/);
 });
 
-test('leaderboard UI is public, explains sign-in, and the original scores action opens it', async () => {
+test('leaderboard UI is public, dedicated, explains sign-in, and the original scores action opens it', async () => {
   const html = await readFile(new URL('../site/index.html', import.meta.url), 'utf8');
   const main = await readFile(new URL('../site/src/main.js', import.meta.url), 'utf8');
-  assert.match(html, /id="leaderboard-card"/);
+  const css = await readFile(new URL('../site/style.css', import.meta.url), 'utf8');
+  assert.match(html, /<dialog id="leaderboard-dialog"/);
+  assert.match(html, /id="close-leaderboard"/);
   assert.match(html, /Se connecter pour appara\u00eetre sur le classement\./);
   assert.match(html, /UNIQUEMENT LES RUNS V\u00c9RIFI\u00c9S/);
-  assert.match(main, /type === 'local-scores'[\s\S]*openOptions\(true\)/);
+  assert.doesNotMatch(html, /id="leaderboard-card"/);
+  assert.match(main, /type === 'local-scores'[\s\S]*openLeaderboard\(\{ force: true \}\)/);
+  assert.match(main, /const leaderboardDialog = \$\('leaderboard-dialog'\)/);
+  assert.match(main, /leaderboardDialog\.showModal\(\)/);
   assert.match(main, /auth\.fetchLeaderboard\(\{ limit: 100 \}\)/);
   assert.match(main, /leaderboard-login-hint/);
+  assert.match(css, /#leaderboard-dialog\[open\]/);
+  assert.match(css, /#leaderboard-dialog::backdrop/);
 });

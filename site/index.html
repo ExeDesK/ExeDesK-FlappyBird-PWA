@@ -82,7 +82,7 @@
         <button id="close-options" class="close-options" aria-label="Fermer">X</button>
       </header>
 
-      <p class="version">BETA 0.2.7.3b-dev1</p>
+      <p class="version">BETA 0.2.7.3b-dev2</p>
       <p id="offline-status" class="status-card">Préparation du mode hors ligne...</p>
 
       <section class="menu-card account-card" aria-labelledby="account-title">
@@ -108,26 +108,6 @@
 
         <p id="account-status" class="hint account-hint">
           Compte facultatif · connectez-vous pour retrouver votre profil sur tous vos appareils.
-        </p>
-      </section>
-
-      <section id="leaderboard-card" class="menu-card leaderboard-card" aria-labelledby="leaderboard-title">
-        <h2 id="leaderboard-title">CLASSEMENT GLOBAL</h2>
-
-        <div class="leaderboard-toolbar">
-          <p id="leaderboard-status" class="hint">Chargement du classement...</p>
-          <button id="refresh-leaderboard" type="button">ACTUALISER</button>
-        </div>
-
-        <p id="leaderboard-login-hint" class="hint leaderboard-login-hint">
-          Se connecter pour apparaître sur le classement.
-        </p>
-
-        <ol id="leaderboard-list" class="leaderboard-list" aria-live="polite"></ol>
-        <p id="leaderboard-empty" class="hint" hidden>Aucun run vérifié pour le moment.</p>
-
-        <p class="leaderboard-source">
-          UNIQUEMENT LES RUNS VÉRIFIÉS · MEILLEUR SCORE PAR JOUEUR
         </p>
       </section>
 
@@ -179,10 +159,6 @@
         <strong id="best-score">0</strong>
       </section>
 
-      <p id="scores-message" class="info-note" hidden>
-        Le classement global utilise uniquement les runs vérifiés par le serveur et ne conserve que le meilleur score de chaque joueur.
-      </p>
-
       <p class="controls-note">
         CLIC / TOUCHER / ESPACE : VOLER<br>
         ECHAP : RETOUR / OPTIONS
@@ -214,6 +190,36 @@
           >GitHub</a>
         </div>
       </footer>
+    </dialog>
+
+    <dialog id="leaderboard-dialog" aria-labelledby="leaderboard-title">
+      <header class="options-header leaderboard-header">
+        <div>
+          <small>FLAPPY BIRD 1.3</small>
+          <h1 id="leaderboard-title">CLASSEMENT</h1>
+        </div>
+        <button id="close-leaderboard" class="close-options" type="button" aria-label="Fermer le classement">X</button>
+      </header>
+
+      <p class="version">BETA 0.2.7.3b-dev2</p>
+
+      <div class="leaderboard-toolbar">
+        <p id="leaderboard-status" class="hint">Chargement du classement...</p>
+        <button id="refresh-leaderboard" type="button">ACTUALISER</button>
+      </div>
+
+      <p id="leaderboard-login-hint" class="hint leaderboard-login-hint">
+        Se connecter pour apparaître sur le classement.
+      </p>
+
+      <div class="leaderboard-scroll">
+        <ol id="leaderboard-list" class="leaderboard-list" aria-live="polite"></ol>
+        <p id="leaderboard-empty" class="hint" hidden>Aucun run vérifié pour le moment.</p>
+      </div>
+
+      <p class="leaderboard-source">
+        UNIQUEMENT LES RUNS VÉRIFIÉS · MEILLEUR SCORE PAR JOUEUR
+      </p>
     </dialog>
 
     <section id="diagnostic" hidden aria-label="Outils de vérification">

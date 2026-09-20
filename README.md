@@ -8,7 +8,7 @@ L'objectif n'est pas de produire un simple clone « inspiré de » Flappy Bird, 
 
 Le gameplay fonctionne entièrement côté client, sans framework, et peut être installé comme une application sur Windows, iPhone/iPad et Android. Les fonctions communautaires utilisent un backend Supabase facultatif : aucun compte n'est nécessaire pour jouer.
 
-> **État du projet : bêta — v0.2.7.3b-dev1**
+> **État du projet : bêta — v0.2.7.3b-dev2**
 
 ---
 
@@ -24,7 +24,7 @@ Le gameplay fonctionne entièrement côté client, sans framework, et peut être
 - Connexion Discord facultative via Supabase Auth et profil joueur cross-platform.
 - Synchronisation du meilleur score entre appareils en conservant toujours la valeur la plus élevée.
 - Verified Runs : ticket/seed serveur, capture déterministe, file locale auto-réparante, soumission différée et relecture autoritaire avant validation ou rejet du score.
-- Classement global public : consultation sans compte, uniquement des runs vérifiés et un seul meilleur score par joueur.
+- Classement global public dans une modale dédiée : consultation sans compte, uniquement des runs vérifiés et un seul meilleur score par joueur.
 - Affichage **Original** ou **Adapté** selon l'appareil.
 - Extension dynamique du ciel et du sol sur les écrans plus hauts que le format original.
 - Mode Performance pour limiter le supersampling sur les appareils à fort DPR.

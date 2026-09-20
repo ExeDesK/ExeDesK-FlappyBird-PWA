@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.2.7.3b-dev2 - Dedicated leaderboard modal
+
+- Le bouton SCORES ouvre désormais une modale `CLASSEMENT` dédiée au lieu d'injecter le leaderboard dans les options.
+- La modale reprend le langage visuel existant (typographie pixel, palette crème/brun, bordures et ombres) sans mélanger compte, réglages et classement.
+- Ajout d'un header et d'un bouton de fermeture dédiés, d'un scroll interne du Top 100 et d'un comportement responsive mobile.
+- Le chargement public, l'actualisation manuelle, la mention « Se connecter pour apparaître sur le classement. » et le surlignage du joueur courant sont conservés.
+- Les entrées de jeu et la simulation sont suspendues tant que la modale de classement est ouverte.
+- Aucun changement de la RPC `get_leaderboard()`, du schéma Supabase, des Verified Runs ni de `flappy13-physics-v1`.
+- Validation automatisée : **105/105 tests Node** passent.
+
 ## v0.2.7.3b-dev1 - Public verified leaderboard
 
 - Ajout d'un classement global public accessible sans compte Discord via la RPC Supabase `get_leaderboard()`.

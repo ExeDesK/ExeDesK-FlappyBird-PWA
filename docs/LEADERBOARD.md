@@ -1,4 +1,4 @@
-# Leaderboard - contrat v0.2.7.3b-dev1
+# Leaderboard - contrat v0.2.7.3b-dev2
 
 ## Objectif
 
@@ -41,7 +41,9 @@ La consultation reste disponible. Pour apparaître, un joueur doit se connecter 
 
 ## Interface
 
-Le bouton SCORES du menu Flappy Bird 1.3 reste le point d'entrée naturel. Il ouvre les options et positionne le panneau sur `CLASSEMENT GLOBAL`. Le classement reprend les cartes, bordures, ombres et typographie pixel de l'interface existante.
+Le bouton SCORES du menu Flappy Bird 1.3 reste le point d'entrée naturel. Depuis `v0.2.7.3b-dev2`, il ouvre une modale `CLASSEMENT` dédiée : le leaderboard n'est plus mélangé aux options, au compte ou aux réglages. La modale reprend les bordures, ombres, palette crème/brun et typographie pixel de l'interface existante.
+
+Le Top 100 possède son propre scroll interne afin que le header, l'état de chargement, l'action `ACTUALISER`, la mention de connexion et la provenance des scores restent lisibles. La modale est responsive sur mobile et bloque les entrées/simulation de jeu tant qu'elle est ouverte.
 
 Le joueur courant est surligné lorsqu'il apparaît dans le Top 100. Un bouton `ACTUALISER` force une nouvelle lecture; sinon un classement chargé depuis moins d'une minute est réutilisé pendant la session de page.
 

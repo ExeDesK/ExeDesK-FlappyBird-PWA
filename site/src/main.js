@@ -23,7 +23,7 @@ import {
 } from './verified-run-client.js';
 import { createCanonicalRunGame } from './verified-runs.js';
 
-const VERSION = '0.2.7.3b-dev1';
+const VERSION = '0.2.7.3b-dev2';
 const BEST_SCORE_KEY = 'flappy13-personal-best-v1';
 const SETTINGS_KEY = 'flappy13-settings-v1';
 const LAST_VERSION_KEY = 'flappy13-last-version-v1';
@@ -46,6 +46,7 @@ const query = new URLSearchParams(location.search);
 const canvas = $('game');
 const stage = $('stage');
 const options = $('options');
+const leaderboardDialog = $('leaderboard-dialog');
 const unrankedWarning = $('unranked-warning');
 const audio = new Audio({ version: VERSION });
 const auth = new AuthClient({
@@ -224,9 +225,9 @@ function handleGameEvent({ type, value }) {
     // them authoritatively. The Game may still render its in-run panel value.
     saveBest(value);
   } else if (type === 'local-scores') {
-    openOptions(true);
+    openLeaderboard({ force: true });
   } else if (type === 'about') {
-    openOptions(false);
+    openOptions();
   }
 }
 
@@ -393,7 +394,7 @@ async function flushVerifiedRunQueue({ reason = 'manual', notify = false } = {})
     if (highestVerifiedScore >= 0) {
       saveBest(highestVerifiedScore);
       leaderboardLoadedAt = 0;
-      if (options.open && navigator.onLine) {
+      if (leaderboardDialog.open && navigator.onLine) {
         void loadLeaderboard({ force: true });
       }
     }
@@ -931,14 +932,13 @@ function returnToHome() {
   clock.reset();
 }
 
-function openOptions(showScores = false) {
+function openOptions() {
   if (!game) {
     return;
   }
 
-  audio.note('SETTINGS_OPEN', { showScores });
+  audio.note('SETTINGS_OPEN');
   audio.unlock('settings-open');
-  $('scores-message').hidden = !showScores;
   $('best-score').textContent = best;
 
   if (!options.open) {
@@ -949,12 +949,34 @@ function openOptions(showScores = false) {
   clearInput();
   clock.reset();
   checkForUpdates({ silent: true, reason: 'options-open' });
-  void loadLeaderboard({ force: showScores });
+}
 
-  if (showScores) {
-    requestAnimationFrame(() => {
-      $('leaderboard-card').scrollIntoView({ block: 'start', behavior: 'smooth' });
-    });
+function openLeaderboard({ force = false } = {}) {
+  if (!game) {
+    return;
+  }
+
+  audio.note('LEADERBOARD_OPEN');
+  audio.unlock('leaderboard-open');
+
+  if (options.open) {
+    options.close();
+  }
+
+  renderLeaderboard();
+  if (!leaderboardDialog.open) {
+    leaderboardDialog.showModal();
+  }
+
+  syncUtilityVisibility();
+  clearInput();
+  clock.reset();
+  void loadLeaderboard({ force });
+}
+
+function closeLeaderboard() {
+  if (leaderboardDialog.open) {
+    leaderboardDialog.close();
   }
 }
 
@@ -985,7 +1007,7 @@ function pointerPosition(event) {
 }
 
 function press(id, point) {
-  if (!game || options.open || unrankedWarning.open || verifiedStartPending) {
+  if (!game || options.open || leaderboardDialog.open || unrankedWarning.open || verifiedStartPending) {
     return;
   }
 
@@ -1038,7 +1060,7 @@ canvas.addEventListener('contextmenu', event => {
 });
 
 window.addEventListener('keydown', event => {
-  if (options.open || unrankedWarning.open || verifiedStartPending) {
+  if (options.open || leaderboardDialog.open || unrankedWarning.open || verifiedStartPending) {
     return;
   }
 
@@ -1141,6 +1163,15 @@ $('open-options').onclick = () => {
   }
 };
 $('close-options').onclick = closeOptions;
+$('close-leaderboard').onclick = closeLeaderboard;
+
+leaderboardDialog.addEventListener('close', () => {
+  audio.note('LEADERBOARD_DIALOG_CLOSED');
+  syncUtilityVisibility();
+  clearInput();
+  clock.reset();
+  canvas.focus({ preventScroll: true });
+});
 
 options.addEventListener('close', () => {
   audio.note('SETTINGS_DIALOG_CLOSED');
@@ -1371,6 +1402,7 @@ function audioDiagnosticData() {
       paused,
       debug,
       optionsOpen: options.open,
+      leaderboardOpen: leaderboardDialog.open,
       orientationBlocked,
       online: navigator.onLine,
       gameFrame: game?.frame ?? null,
@@ -1421,6 +1453,7 @@ function animate(now) {
   if (
     game &&
     !options.open &&
+    !leaderboardDialog.open &&
     !document.hidden &&
     !paused &&
     !orientationBlocked
@@ -1848,7 +1881,7 @@ window.addEventListener('online', () => {
       await flushVerifiedRunQueue({ reason: 'online', notify: true });
     }
   });
-  if (options.open) {
+  if (leaderboardDialog.open) {
     void loadLeaderboard({ force: true });
   } else {
     renderLeaderboard();
@@ -1992,6 +2025,8 @@ async function boot() {
       },
       auth: () => auth.snapshot(),
       leaderboard: () => structuredClone(leaderboardRows),
+      openLeaderboard: () => openLeaderboard({ force: true }),
+      closeLeaderboard,
       refreshLeaderboard: () => loadLeaderboard({ force: true }),
       verifiedRun: () => verifiedRunRecorder?.snapshot() ?? structuredClone(lastVerifiedRun),
       pendingVerifiedRuns() {

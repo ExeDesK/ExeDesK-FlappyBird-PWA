@@ -1,4 +1,4 @@
-# Rapport de tests - v0.2.7.3b-dev1
+# Rapport de tests - v0.2.7.3b-dev2
 
 ## Résultat
 
@@ -124,8 +124,8 @@ Les tests client couvrent désormais la migration automatique des anciennes file
 
 Ils vérifient aussi qu’une nouvelle soumission ne peut pas être mise en file sans propriétaire valide et qu’un `404 run_not_found` est terminal, alors que les erreurs réseau, `429`, `5xx` et les `404` non liés à un run absent restent différables. Cette protection empêche une entrée irrécupérable en tête de file de bloquer les runs suivants.
 
-## Leaderboard public vérifié (v0.2.7.3b-dev1)
+## Leaderboard public vérifié (v0.2.7.3b-dev2)
 
 Les tests dédiés valident que la RPC `get_leaderboard()` est appelable sans session Discord et n'envoie aucun header `Authorization`. Ils vérifient également que la migration SQL filtre strictement `status = 'verified'`, choisit un seul meilleur score par `player_id`, accorde l'exécution à `anon`/`authenticated` et ne publie aucun champ de replay interne.
 
-Le parser frontend refuse les joueurs dupliqués et les rangs/scores/timestamps invalides. Un contrôle statique garantit enfin la présence du classement dans l'interface, de la mention de connexion pour les visiteurs et du raccordement du bouton SCORES original.
+Le parser frontend refuse les joueurs dupliqués et les rangs/scores/timestamps invalides. Un contrôle statique garantit enfin que le classement vit dans une modale dédiée, que la mention de connexion reste visible pour les visiteurs et que le bouton SCORES original ouvre directement cette modale.
