@@ -8,7 +8,7 @@ L'objectif n'est pas de produire un simple clone « inspiré de » Flappy Bird, 
 
 Le jeu fonctionne entièrement côté client, sans framework ni backend, et peut être installé comme une application sur Windows, iPhone/iPad et Android.
 
-> **État du projet : bêta — v0.2.4b**
+> **État du projet : bêta — v0.2.5b**
 
 ---
 
@@ -292,7 +292,7 @@ Pour lancer les tests Node :
 npm test
 ```
 
-Le mode **Hitboxes et diagnostic** de l'application permet également :
+Les **Outils de diagnostic**, accessibles par le lien discret tout en bas des options, permettent également :
 
 - de mettre la simulation en pause ;
 - d'avancer tick par tick ;

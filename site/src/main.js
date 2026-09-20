@@ -10,7 +10,7 @@ import {
 import { Game } from './game.js';
 import { PerfProfiler } from './perf.js';
 
-const VERSION = '0.2.4b';
+const VERSION = '0.2.5b';
 const BEST_SCORE_KEY = 'flappy13-personal-best-v1';
 const SETTINGS_KEY = 'flappy13-settings-v1';
 const LAST_VERSION_KEY = 'flappy13-last-version-v1';
@@ -31,7 +31,7 @@ const profiler = new PerfProfiler(10000);
 let game;
 let renderer;
 let paused = false;
-let debug = query.has('debug');
+let debug = false;
 let installPrompt = null;
 let cacheInfo = null;
 let remoteVersion = null;
@@ -54,6 +54,7 @@ let pendingTap = null;
 let lastInputSignature = '';
 let droppedReplay = false;
 let toastTimer = null;
+let lastUtilityVisibility = null;
 
 const touchRecords = new Map();
 const trace = [];
@@ -240,6 +241,18 @@ function updateOrientationGuard() {
   setTimeout(scheduleResize, 80);
 }
 
+function syncUtilityVisibility() {
+  const button = $('open-options');
+  const visible = !game || (game.state === 'MENU' && game.fadeEvent !== 5);
+
+  if (visible === lastUtilityVisibility) {
+    return;
+  }
+
+  lastUtilityVisibility = visible;
+  button.hidden = !visible;
+}
+
 function openOptions(showScores = false) {
   if (!game) {
     return;
@@ -254,6 +267,7 @@ function openOptions(showScores = false) {
     options.showModal();
   }
 
+  syncUtilityVisibility();
   clearInput();
   clock.reset();
   checkForUpdates({ silent: true, reason: 'options-open' });
@@ -262,6 +276,7 @@ function openOptions(showScores = false) {
 function closeOptions() {
   audio.note('SETTINGS_CLOSE');
   options.close();
+  syncUtilityVisibility();
   clearInput();
   clock.reset();
   canvas.focus({ preventScroll: true });
@@ -364,9 +379,7 @@ window.addEventListener('keydown', event => {
     return;
   }
 
-  if (event.code === 'KeyH') {
-    setDebug(!debug);
-  } else if (debug && event.code === 'KeyP') {
+  if (debug && event.code === 'KeyP') {
     paused = !paused;
     syncPause();
   } else if (debug && event.code === 'KeyN') {
@@ -431,6 +444,7 @@ $('close-options').onclick = closeOptions;
 
 options.addEventListener('close', () => {
   audio.note('SETTINGS_DIALOG_CLOSED');
+  syncUtilityVisibility();
   clock.reset();
 });
 
@@ -460,10 +474,12 @@ $('sound').onchange = () => {
 };
 
 function setDebug(value) {
-  const changed = debug !== value;
-  debug = value;
-  $('debug').checked = debug;
+  const changed = debug !== Boolean(value);
+  debug = Boolean(value);
   $('diagnostic').hidden = !debug;
+  $('debug-access').textContent = debug
+    ? 'Masquer les outils de diagnostic'
+    : 'Outils de diagnostic';
 
   if (changed) {
     audio.note(debug ? 'DEBUG_ENABLED' : 'DEBUG_DISABLED');
@@ -472,8 +488,13 @@ function setDebug(value) {
   render();
 }
 
-$('debug').onchange = () => {
-  setDebug($('debug').checked);
+$('debug-access').onclick = () => {
+  const enable = !debug;
+  setDebug(enable);
+
+  if (enable) {
+    closeOptions();
+  }
 };
 
 function syncPause() {
@@ -538,6 +559,7 @@ function tick(input = nextInput()) {
   }
 
   game.tick(input);
+  syncUtilityVisibility();
   currentCommands = cloneCommands(game.commands);
 
   if (!previousCommands) {

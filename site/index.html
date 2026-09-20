@@ -36,8 +36,8 @@
 
     <div id="orientation-lock" hidden>
       <div>
-        <strong>Mode portrait requis</strong>
-        Tournez votre appareil en portrait pour continuer.
+        <strong>MODE PORTRAIT</strong>
+        Tournez votre appareil pour continuer.
       </div>
     </div>
 
@@ -47,77 +47,90 @@
       title="Options (Echap)"
       aria-label="Ouvrir les options"
     >
-      &#9881;
+      <span class="pixel-menu-icon" aria-hidden="true"></span>
     </button>
 
     <p id="toast" role="status" hidden></p>
 
     <dialog id="options">
-      <header>
+      <header class="options-header">
         <div>
-          <small>BETA PWA</small>
-          <h1>Flappy Bird <span>1.3</span></h1>
+          <small>FLAPPY BIRD 1.3</small>
+          <h1>OPTIONS</h1>
         </div>
-        <button id="close-options" aria-label="Fermer">&#215;</button>
+        <button id="close-options" class="close-options" aria-label="Fermer">X</button>
       </header>
 
-      <p class="version">Beta 0.2.4b &middot; mises à jour automatiques</p>
-      <p id="offline-status">Préparation du mode hors ligne...</p>
+      <p class="version">BETA 0.2.5b</p>
+      <p id="offline-status" class="status-card">Préparation du mode hors ligne...</p>
 
-      <button id="install" hidden>Installer l'application</button>
-      <button id="refresh-cache" disabled>Rechercher une mise à jour</button>
-      <p id="update-status" class="hint">Les mises à jour sont vérifiées automatiquement.</p>
+      <section class="menu-card" aria-labelledby="game-settings-title">
+        <h2 id="game-settings-title">JEU</h2>
 
-      <div class="settings">
-        <label>
-          <span>Son</span>
-          <input id="sound" type="checkbox" checked>
-        </label>
+        <div class="settings">
+          <label>
+            <span>SON</span>
+            <input id="sound" type="checkbox" checked>
+          </label>
 
-        <label>
-          <span>Ratio d'aspect</span>
-          <select id="aspect">
-            <option value="adapted">Adapté (écran complété)</option>
-            <option value="original">Original (288:512)</option>
-          </select>
-        </label>
+          <label>
+            <span>AFFICHAGE</span>
+            <select id="aspect">
+              <option value="adapted">Adapté</option>
+              <option value="original">Original 288:512</option>
+            </select>
+          </label>
 
-        <label>
-          <span>
-            Mode Performance
-            <small>upscale max ×2</small>
-          </span>
-          <input id="performance-mode" type="checkbox">
-        </label>
+          <label>
+            <span>
+              PERFORMANCE
+              <small>Rendu interne max ×2</small>
+            </span>
+            <input id="performance-mode" type="checkbox">
+          </label>
+        </div>
+      </section>
 
-        <label>
-          <span>Hitboxes et diagnostic</span>
-          <input id="debug" type="checkbox">
-        </label>
-      </div>
+      <section class="menu-card" aria-labelledby="app-settings-title">
+        <h2 id="app-settings-title">APPLICATION</h2>
 
-      <p>Record local : <strong id="best-score">0</strong></p>
-      <p id="scores-message" hidden>
-        Le classement Google est remplacé par le record local. Aucun compte ni accès Internet
-        requis pour jouer.
+        <div class="stacked-actions">
+          <button id="install" hidden>INSTALLER L'APPLICATION</button>
+          <button id="refresh-cache" disabled>RECHERCHER UNE MISE À JOUR</button>
+        </div>
+        <p id="update-status" class="hint">Les mises à jour se font automatiquement.</p>
+      </section>
+
+      <section class="menu-card score-card" aria-label="Record local">
+        <span>RECORD LOCAL</span>
+        <strong id="best-score">0</strong>
+      </section>
+
+      <p id="scores-message" class="info-note" hidden>
+        Votre meilleur score est conservé sur cet appareil. Aucun compte n'est nécessaire pour jouer.
       </p>
-      <p class="hint">
-        Clic, toucher ou Espace : voler. Les boutons du jeu réagissent au relâchement.
-        Echap : options. Aucun rattrapage après une mise en arrière-plan.
+
+      <p class="controls-note">
+        CLIC / TOUCHER / ESPACE : VOLER<br>
+        ECHAP : OPTIONS
       </p>
 
       <footer>
-        <p>
-          <strong>Installer la PWA :</strong>
-          Windows : Edge/Chrome &rarr; menu de l'application &rarr; Installer.
-          iPhone/iPad : Safari &rarr; Partager &rarr; Ajouter à l'écran d'accueil, puis lancer
-          le jeu depuis son icône. Android : Chrome &rarr; menu &vellip; &rarr; Installer
-          l'application / Ajouter à l'écran d'accueil.
+        <details>
+          <summary>INSTALLER LA PWA</summary>
+          <p>
+            Windows : Edge/Chrome &rarr; Installer l'application.<br>
+            iPhone/iPad : Safari &rarr; Partager &rarr; Ajouter à l'écran d'accueil.<br>
+            Android : Chrome &rarr; Installer l'application.
+          </p>
+        </details>
+
+        <p class="credits">
+          Projet non officiel basé sur la version 1.3 publiée de Flappy Bird.<br>
+          Crédits du jeu original : .GEARS Studios.
         </p>
-        <p>
-          Projet non officiel basé sur le code et les ressources de la version 1.3 publiée de
-          Flappy Bird. Tous les crédits du jeu original reviennent à .GEARS Studios.
-        </p>
+
+        <button id="debug-access" class="debug-access" type="button">Outils de diagnostic</button>
       </footer>
     </dialog>
 
@@ -142,7 +155,7 @@
         <button id="copy-audio">Copier audio</button>
         <button id="export-audio">Exporter audio</button>
       </div>
-      <p>H : hitboxes &middot; P : pause &middot; N : tick suivant</p>
+      <p>P : pause &middot; N : tick suivant</p>
     </section>
 
     <noscript>

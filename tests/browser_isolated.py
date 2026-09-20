@@ -158,6 +158,7 @@ def main() -> None:
 
         page.evaluate('flappy.pause(); for (let i = 0; i < 60; i++) flappy.step();')
         assert page.evaluate('flappy.snapshot().state') == 'MENU'
+        assert not page.is_hidden('#open-options')
         page.screenshot(path=str(output / 'menu.png'))
 
         page.evaluate(
@@ -166,6 +167,7 @@ def main() -> None:
             'for (let i = 0; i < 65; i++) flappy.step();'
         )
         assert page.evaluate('flappy.snapshot().state') == 'READY'
+        assert page.is_hidden('#open-options')
         page.screenshot(path=str(output / 'ready.png'))
 
         page.evaluate(
@@ -173,13 +175,18 @@ def main() -> None:
             'for (let i = 0; i < 4; i++) flappy.step();'
         )
         assert page.evaluate('flappy.snapshot().state') == 'PLAYING'
+        assert page.is_hidden('#open-options')
         page.screenshot(path=str(output / 'playing.png'))
 
         page.evaluate('for (let i = 0; i < 236; i++) flappy.step();')
         assert page.evaluate('flappy.snapshot().state') == 'GAME_OVER'
+        assert page.is_hidden('#open-options')
         page.screenshot(path=str(output / 'gameover.png'))
 
-        page.click('#open-options')
+        page.keyboard.press('Escape')
+        page.wait_for_selector('#options', state='visible')
+        assert page.locator('#debug').count() == 0
+        assert page.locator('#debug-access').count() == 1
         page.screenshot(path=str(output / 'options.png'))
         page.click('#close-options')
         page.wait_for_timeout(100)

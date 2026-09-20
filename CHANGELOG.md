@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.2.5b - Flappy-like UI
+
+- Refonte de l'interface HTML/PWA dans un style plus proche du jeu : panneaux carrés, palette jaune pâle, bordures franches et typographie monospace/pixel-like.
+- Le bouton Options adopte un look pixel et n'est visible que sur le menu principal ; il disparaît pendant une partie, l'écran READY et le Game Over.
+- Suppression de l'accès debug des réglages principaux et du raccourci H.
+- Les outils de diagnostic restent inchangés et sont accessibles uniquement par un lien discret tout en bas des options.
+- Réorganisation des options en blocs Jeu / Application / Record, avec textes plus courts et plus lisibles.
+- Toasts, écran de chargement et garde-fou portrait harmonisés avec la nouvelle identité visuelle.
+- Conservation intégrale du moteur de jeu, de la physique, de l'audio instrumenté et du système de mise à jour automatique de v0.2.4b.
+
 ## v0.2.4b - Automatic PWA updates
 
 - Remplacement de la purge manuelle du cache par un cycle de mise à jour PWA standard et non destructif.
