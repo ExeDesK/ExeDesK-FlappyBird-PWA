@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { readFile } from 'node:fs/promises';
 
 import { AuthClient, profileFromUser } from '../site/src/auth.js';
 
@@ -96,6 +97,7 @@ test('OAuth fragment is consumed, validated, profiled and removed from the visib
         username: 'birdplayer',
         display_name: 'Bird Player',
         avatar_url: 'https://cdn.example/avatar.png',
+        best_score: 17,
       }]), { status: 200, headers: { 'Content-Type': 'application/json' } });
     }
     throw new Error(`Unexpected fetch: ${url}`);
@@ -107,6 +109,7 @@ test('OAuth fragment is consumed, validated, profiled and removed from the visib
     assert.equal(state.status, 'signed_in');
     assert.equal(state.user.id, 'user-1');
     assert.equal(state.profile.username, 'birdplayer');
+    assert.equal(state.profile.best_score, 17);
     assert.equal(state.callbackResult, 'signed_in');
     assert.equal(browser.replaced, '/FlappyBird-PWA/');
     assert.equal('session' in state, false, 'public snapshot must not expose tokens');
@@ -128,12 +131,13 @@ test('offline startup keeps a cached Discord profile usable without blocking the
         expiresAt: Date.now() + 3600000,
       },
       user: { id: 'user-1' },
-      profile: { id: 'user-1', username: 'birdplayer', display_name: 'Bird Player', avatar_url: null },
+      profile: { id: 'user-1', username: 'birdplayer', display_name: 'Bird Player', avatar_url: null, best_score: 17 },
     }));
     const auth = new AuthClient({ ...config, storage });
     const state = await auth.init();
     assert.equal(state.status, 'offline');
     assert.equal(state.profile.username, 'birdplayer');
+    assert.equal(state.profile.best_score, 17);
   } finally {
     browser.restore();
   }
@@ -153,5 +157,48 @@ test('Discord user metadata provides a profile fallback if the profile table is 
     username: 'flappyfan',
     display_name: 'Flappy Fan',
     avatar_url: 'https://cdn.example/fan.png',
+    best_score: 0,
   });
 });
+
+test('personal best sync calls the atomic Supabase RPC and accepts the higher remote score', async () => {
+  const browser = installBrowser();
+  const previousFetch = globalThis.fetch;
+  let request = null;
+  globalThis.fetch = async (input, init = {}) => {
+    request = { url: String(input), init };
+    return new Response('42', { status: 200, headers: { 'Content-Type': 'application/json' } });
+  };
+
+  try {
+    const auth = new AuthClient({ ...config, storage: new MemoryStorage() });
+    auth.session = {
+      accessToken: 'access',
+      refreshToken: 'refresh',
+      tokenType: 'bearer',
+      expiresAt: Date.now() + 3600000,
+    };
+    auth.user = { id: 'user-1', user_metadata: { user_name: 'birdplayer' } };
+    auth.profile = { id: 'user-1', username: 'birdplayer', display_name: 'Bird Player', avatar_url: null, best_score: 12 };
+
+    const merged = await auth.syncBestScore(12);
+    assert.equal(merged, 42);
+    assert.equal(auth.profile.best_score, 42);
+    assert.equal(request.url, 'https://project-ref.supabase.co/rest/v1/rpc/sync_best_score');
+    assert.equal(request.init.method, 'POST');
+    assert.deepEqual(JSON.parse(request.init.body), { candidate_score: 12 });
+    assert.equal(request.init.headers.Authorization, 'Bearer access');
+  } finally {
+    globalThis.fetch = previousFetch;
+    browser.restore();
+  }
+});
+
+test('best score migration performs an atomic max merge and prevents direct browser writes', async () => {
+  const sql = await readFile(new URL('../supabase/002_best_score_sync.sql', import.meta.url), 'utf8');
+  assert.match(sql, /best_score integer not null default 0/i);
+  assert.match(sql, /greatest\(public\.profiles\.best_score, excluded\.best_score\)/i);
+  assert.match(sql, /revoke update on public\.profiles from authenticated/i);
+  assert.match(sql, /grant execute on function public\.sync_best_score\(integer\) to authenticated/i);
+});
+

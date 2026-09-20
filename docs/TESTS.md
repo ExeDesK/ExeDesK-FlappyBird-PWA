@@ -1,12 +1,12 @@
-# Rapport de tests - v0.2.7b
+# Rapport de tests - v0.2.7.1b
 
 ## Résultat
 
-- **65/65 tests Node passent** avec `npm test`.
+- **73/73 tests Node passent** avec `npm test`.
 - Le smoke test Chromium isolé passe sans erreur JavaScript.
 - Les 5 sons sont décodés dans le test navigateur.
 - Le garde-fou paysage est visible dans un contexte mobile tactile simulé.
-- Le cache PWA contient **28 ressources** et refuse de se déclarer complet si une ressource de précache manque.
+- Le cache PWA contient **29 ressources** et refuse de se déclarer complet si une ressource de précache manque.
 - `version.json` reste volontairement hors du cache du Service Worker afin de servir de sonde réseau réelle pour la mise à jour.
 - Les liens et ressources du site utilisent des chemins relatifs compatibles avec un projet GitHub Pages publié sous `/<repository>/`.
 
@@ -75,7 +75,7 @@ The four golden scenarios are also executed by the GitHub Pages workflow before 
 
 The APK itself is never required in CI; only the previously validated golden traces are used.
 
-## Auth Discord / profils (v0.2.7b)
+## Auth Discord / profils et score sync (v0.2.7.1b)
 
 Tests automatiques dédiés :
 
@@ -86,4 +86,6 @@ Tests automatiques dédiés :
 - démarrage hors ligne avec profil mis en cache ;
 - absence de secret serveur dans le frontend ;
 - présence des politiques RLS et grants Data API dans la migration SQL.
+- appel RPC `sync_best_score()` avec le record local ;
+- migration SQL garantissant un merge atomique `max(local, cloud)` et interdisant l’écriture directe de `best_score`.
 

@@ -1,6 +1,6 @@
 # Authentification Discord / Supabase
 
-La v0.2.7b ajoute une connexion Discord facultative via Supabase Auth.
+La v0.2.7b ajoute une connexion Discord facultative via Supabase Auth. La v0.2.7.1b ajoute la synchronisation cross-device du meilleur score.
 Le jeu reste entièrement jouable sans compte et hors connexion.
 
 ## Configuration runtime
@@ -30,10 +30,11 @@ Copy-Item .\site\config.example.js .\site\config.js
 
 ## Initialiser la table `profiles`
 
-Dans Supabase > SQL Editor, exécuter le fichier :
+Dans Supabase > SQL Editor, exécuter les migrations dans l'ordre :
 
 ```text
 supabase/001_profiles.sql
+supabase/002_best_score_sync.sql
 ```
 
 Le script :
@@ -44,6 +45,8 @@ Le script :
 - limite l'insertion et la modification au propriétaire du profil ;
 - crée automatiquement un profil lors d'un nouvel utilisateur Auth ;
 - accorde explicitement les droits Data API nécessaires aux rôles `anon` et `authenticated`.
+
+La seconde migration ajoute `profiles.best_score` et la fonction RPC `sync_best_score()`. Le RPC effectue un `max(local, cloud)` atomique : un appareil avec un record inférieur récupère le record cloud, tandis qu'un appareil avec un record supérieur fait monter la valeur cloud. La valeur cloud ne peut jamais être diminuée par ce flux.
 
 ## Flux navigateur
 
@@ -57,3 +60,17 @@ La PWA utilise directement l'API HTTP Supabase Auth afin de ne pas ajouter de d�
 6. renouvellement via `/auth/v1/token?grant_type=refresh_token`.
 
 Aucun token utilisateur n'est ajouté aux diagnostics du jeu.
+
+
+## Synchronisation du meilleur score
+
+À chaque connexion Discord, retour du réseau et nouveau record local :
+
+1. la PWA envoie son record local à `sync_best_score()` ;
+2. PostgreSQL calcule atomiquement le maximum entre le record local et `profiles.best_score` ;
+3. la valeur maximale est renvoyée au navigateur ;
+4. la PWA met aussi à jour son stockage local avec cette valeur.
+
+Ainsi, un nouvel appareil récupère automatiquement le meilleur score du compte, et un appareil possédant un meilleur record le pousse automatiquement dans le cloud.
+
+Ce champ est un **record personnel synchronisé non vérifié**. Il ne servira pas d'autorité au futur leaderboard : les classements utiliseront exclusivement les Verified Runs validés côté serveur.

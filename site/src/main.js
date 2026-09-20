@@ -11,7 +11,7 @@ import {
 import { Game } from './game.js';
 import { PerfProfiler } from './perf.js';
 
-const VERSION = '0.2.7b';
+const VERSION = '0.2.7.1b';
 const BEST_SCORE_KEY = 'flappy13-personal-best-v1';
 const SETTINGS_KEY = 'flappy13-settings-v1';
 const LAST_VERSION_KEY = 'flappy13-last-version-v1';
@@ -69,6 +69,10 @@ let lastInputSignature = '';
 let droppedReplay = false;
 let toastTimer = null;
 let lastUtilityVisibility = null;
+let scoreSyncState = 'local';
+let scoreSyncError = null;
+let scoreSyncPromise = null;
+let scoreSyncDirty = false;
 
 const touchRecords = new Map();
 const trace = [];
@@ -158,8 +162,14 @@ function saveSettings() {
   }
 }
 
-function saveBest(value) {
-  best = Math.max(best, value);
+function applyBest(value) {
+  const candidate = Number(value);
+  if (!Number.isInteger(candidate) || candidate < 0 || candidate > 2147483647) {
+    return false;
+  }
+
+  const previous = best;
+  best = Math.max(best, candidate);
 
   try {
     localStorage.setItem(BEST_SCORE_KEY, String(best));
@@ -167,7 +177,85 @@ function saveBest(value) {
     toast('Record conservé pour cette session uniquement.');
   }
 
+  if (game) {
+    game.best = Math.max(game.best, best);
+  }
+
   $('best-score').textContent = best;
+  return best !== previous;
+}
+
+function saveBest(value) {
+  const changed = applyBest(value);
+  if (changed) {
+    syncBestWithCloud({ reason: 'new-record' });
+  }
+}
+
+function scoreSyncAvailable(state = auth.snapshot()) {
+  return Boolean(state.user || state.profile)
+    && state.status === 'signed_in'
+    && navigator.onLine;
+}
+
+async function syncBestWithCloud({ reason = 'manual', notify = false } = {}) {
+  const state = auth.snapshot();
+
+  if (!scoreSyncAvailable(state)) {
+    scoreSyncState = state.status === 'offline' || !navigator.onLine ? 'offline' : 'local';
+    scoreSyncError = null;
+    renderAccount(state);
+    return best;
+  }
+
+  // A new record can arrive while an RPC is already in flight. Mark the
+  // current operation dirty and let it perform one more atomic max merge.
+  if (scoreSyncPromise) {
+    scoreSyncDirty = true;
+    return scoreSyncPromise;
+  }
+
+  const beforeSync = best;
+  scoreSyncState = 'syncing';
+  scoreSyncError = null;
+  renderAccount(state);
+
+  scoreSyncPromise = (async () => {
+    try {
+      let merged = best;
+      do {
+        scoreSyncDirty = false;
+        merged = await auth.syncBestScore(best);
+        applyBest(merged);
+        if (best > merged) {
+          scoreSyncDirty = true;
+        }
+      } while (scoreSyncDirty);
+
+      scoreSyncState = 'synced';
+      scoreSyncError = null;
+      renderAccount(auth.snapshot());
+
+      if (notify) {
+        if (best > beforeSync) {
+          toast(`Record récupéré : ${best}`);
+        } else {
+          toast(`Record synchronisé : ${best}`);
+        }
+      }
+
+      return best;
+    } catch (error) {
+      scoreSyncState = navigator.onLine ? 'error' : 'offline';
+      scoreSyncError = String(error?.message || error);
+      renderAccount(auth.snapshot());
+      return best;
+    } finally {
+      scoreSyncPromise = null;
+    }
+  })();
+
+  return scoreSyncPromise;
 }
 
 function accountDisplayName(state) {
@@ -218,13 +306,15 @@ function renderAccount(state = auth.snapshot()) {
     fallback.textContent = accountDisplayName(state).slice(0, 1).toUpperCase() || '?';
   }
 
-  $('account-status').textContent = state.status === 'offline'
-    ? 'Profil disponible hors connexion · synchronisation automatique au retour du réseau.'
-    : state.status === 'loading'
-      ? 'Synchronisation du profil…'
-      : state.error
-        ? 'Connecté à Discord · profil local disponible, synchronisation Supabase à vérifier.'
-        : 'Connecté avec Discord · profil synchronisé.';
+  $('account-status').textContent = state.status === 'offline' || scoreSyncState === 'offline'
+    ? `Profil disponible hors connexion · record local ${best}, synchronisation au retour du réseau.`
+    : state.status === 'loading' || scoreSyncState === 'syncing'
+      ? 'Synchronisation du profil et du record…'
+      : state.error || scoreSyncState === 'error'
+        ? `Connecté à Discord · record local ${best} · synchronisation à réessayer.`
+        : scoreSyncState === 'synced'
+          ? `Connecté à Discord · record synchronisé : ${best}.`
+          : 'Connecté avec Discord · profil synchronisé.';
 }
 
 $('account-avatar').addEventListener('error', () => {
@@ -246,6 +336,9 @@ $('discord-login').onclick = () => {
 $('discord-logout').onclick = async () => {
   $('discord-logout').disabled = true;
   await auth.signOut();
+  scoreSyncState = 'local';
+  scoreSyncError = null;
+  renderAccount(auth.snapshot());
   toast('Déconnecté de Discord.');
 };
 
@@ -1243,12 +1336,17 @@ $('refresh-cache').onclick = updateAction;
 
 window.addEventListener('online', () => {
   audio.note('NETWORK_ONLINE');
-  auth.sync({ reason: 'online' });
+  auth.sync({ reason: 'online' }).then(state => {
+    if (state.status === 'signed_in') {
+      syncBestWithCloud({ reason: 'online' });
+    }
+  });
   checkForUpdates({ silent: true, reason: 'online' });
 });
 
 window.addEventListener('offline', () => {
   audio.note('NETWORK_OFFLINE');
+  scoreSyncState = auth.session ? 'offline' : 'local';
   renderAccount({ ...auth.snapshot(), status: auth.session ? 'offline' : 'signed_out' });
   $('update-status').textContent =
     'Hors connexion \u00b7 les mises \u00e0 jour reprendront automatiquement.';
@@ -1357,10 +1455,19 @@ async function boot() {
     tryLockPortrait();
     requestAnimationFrame(animate);
 
-    authInit.then(state => {
+    authInit.then(async state => {
       renderAccount(auth.snapshot());
+      if (state.status === 'signed_in') {
+        await syncBestWithCloud({
+          reason: auth.callbackResult === 'signed_in' ? 'discord-login' : 'startup',
+          notify: auth.callbackResult === 'signed_in',
+        });
+      }
+
       if (auth.callbackResult === 'signed_in') {
-        toast('Connexion Discord réussie.');
+        if (scoreSyncState !== 'synced') {
+          toast('Connexion Discord réussie · record en attente de synchronisation.');
+        }
         openOptions();
       } else if (auth.callbackResult === 'error') {
         toast(`Connexion Discord impossible : ${auth.error || 'erreur OAuth'}`);

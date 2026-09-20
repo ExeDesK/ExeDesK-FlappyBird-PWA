@@ -30,6 +30,7 @@ function profileFromUser(user) {
     username,
     display_name: displayName,
     avatar_url: avatarUrl,
+    best_score: 0,
   };
 }
 
@@ -294,7 +295,7 @@ export class AuthClient {
   async _fetchProfile(accessToken, user) {
     const endpoint = new URL(`${this.url}/rest/v1/profiles`);
     endpoint.searchParams.set('id', `eq.${user.id}`);
-    endpoint.searchParams.set('select', 'id,username,display_name,avatar_url,created_at,updated_at');
+    endpoint.searchParams.set('select', 'id,username,display_name,avatar_url,best_score,created_at,updated_at');
 
     const response = await fetch(endpoint, {
       headers: this._authHeaders(accessToken),
@@ -335,6 +336,61 @@ export class AuthClient {
 
     const rows = await response.json();
     return rows[0] || fallback;
+  }
+
+  async syncBestScore(candidateScore) {
+    if (!this.session) {
+      throw new Error('Connexion requise pour synchroniser le record.');
+    }
+
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      throw new Error('Synchronisation du record indisponible hors connexion.');
+    }
+
+    const candidate = Number(candidateScore);
+    if (!Number.isInteger(candidate) || candidate < 0 || candidate > 2147483647) {
+      throw new Error('Record local invalide.');
+    }
+
+    const accessToken = await this._validAccessToken();
+    const response = await fetch(`${this.url}/rest/v1/rpc/sync_best_score`, {
+      method: 'POST',
+      headers: {
+        ...this._authHeaders(accessToken),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ candidate_score: candidate }),
+    });
+
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({}));
+      throw new Error(
+        body?.message || body?.hint || body?.details || `Synchronisation du record HTTP ${response.status}`,
+      );
+    }
+
+    const payload = await response.json();
+    const remoteBest = Number(
+      typeof payload === 'number'
+        ? payload
+        : Array.isArray(payload)
+          ? payload[0]
+          : payload?.best_score ?? payload?.sync_best_score,
+    );
+
+    if (!Number.isInteger(remoteBest) || remoteBest < 0 || remoteBest > 2147483647) {
+      throw new Error('Réponse de synchronisation du record invalide.');
+    }
+
+    if (this.profile) {
+      this.profile.best_score = remoteBest;
+    } else if (this.user) {
+      this.profile = { ...profileFromUser(this.user), best_score: remoteBest };
+    }
+
+    this._save();
+    this._emit();
+    return remoteBest;
   }
 
   async sync({ reason = 'manual' } = {}) {

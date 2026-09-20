@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.2.7.1b - Cross-device Score Sync
+
+- Synchronisation du meilleur score entre appareils dès qu'un compte Discord est connecté.
+- À la connexion, au retour du réseau et après un nouveau record, la PWA conserve automatiquement `max(record local, record cloud)`.
+- Ajout de `profiles.best_score` et de la RPC PostgreSQL atomique `sync_best_score()` ; le record cloud ne peut jamais être diminué par la synchronisation.
+- Le record cloud récupéré devient aussi le record local de l'appareil, donc il reste disponible hors ligne ensuite.
+- Ce record personnel reste non vérifié et ne sera pas utilisé comme source d'autorité par le futur leaderboard.
+- Ajout de `supabase/002_best_score_sync.sql`.
+
 ## v0.2.7b - Discord Auth & Profiles
 
 - Connexion Discord facultative via Supabase Auth.
