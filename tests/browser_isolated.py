@@ -26,6 +26,7 @@ MODULE_ORDER = [
     'perf.js',
     'game.js',
     'verified-runs.js',
+    'verified-run-client.js',
     'atlas.js',
     'audio.js',
     'auth.js',

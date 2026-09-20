@@ -75,6 +75,7 @@ body {
 #loading,
 #orientation-lock > div,
 #toast,
+#unranked-warning,
 #options {
   font-family: var(--pixel-font);
   font-weight: 700;
@@ -196,6 +197,76 @@ body {
   line-height: 1.45;
   text-align: center;
   pointer-events: none;
+}
+
+#unranked-warning {
+  width: min(430px, 92vw);
+  padding: 18px;
+  border: 4px solid var(--flappy-brown-dark);
+  border-radius: 0;
+  background: var(--flappy-cream);
+  box-shadow:
+    inset 0 0 0 3px var(--flappy-cream-light),
+    7px 7px 0 #0009;
+  color: var(--flappy-brown-dark);
+  line-height: 1.5;
+  text-align: center;
+}
+
+#unranked-warning::backdrop {
+  background: #000b;
+}
+
+#unranked-warning h1 {
+  margin: 0 0 12px;
+  color: #9a3c25;
+  font-size: clamp(18px, 6vw, 25px);
+  line-height: 1.15;
+}
+
+#unranked-warning p {
+  margin: 0 0 17px;
+  font-size: 10px;
+}
+
+.warning-actions {
+  display: grid;
+  gap: 10px;
+}
+
+#unranked-warning button {
+  padding: 10px 12px;
+  border: 3px solid var(--flappy-brown-dark);
+  border-radius: 0;
+  background: var(--flappy-yellow);
+  box-shadow:
+    inset 0 3px 0 #ffeaa0,
+    inset 0 -3px 0 var(--flappy-yellow-dark),
+    3px 3px 0 #6f4b22;
+  color: var(--flappy-brown-dark);
+  font-family: var(--pixel-font);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+#unranked-warning button:hover,
+#unranked-warning button:focus-visible {
+  background: #f7d36f;
+}
+
+#unranked-warning button:active {
+  transform: translate(2px, 2px);
+  box-shadow:
+    inset 0 3px 0 #ffeaa0,
+    inset 0 -3px 0 var(--flappy-yellow-dark),
+    1px 1px 0 #6f4b22;
+}
+
+#unranked-warning button:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 3px;
 }
 
 #options {

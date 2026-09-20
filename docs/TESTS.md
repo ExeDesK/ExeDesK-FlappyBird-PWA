@@ -1,11 +1,11 @@
-# Rapport de tests - v0.2.7.2b-dev1
+# Rapport de tests - v0.2.7.2b-dev2
 
 ## Résultat
 
-- **83/83 tests Node passent** avec `npm test`.
+- **89/89 tests Node passent** avec `npm test`.
 - Le bundle concaténé utilisé par le smoke test passe le contrôle de syntaxe JavaScript.
 - Le smoke test Chromium n’a pas été relancé dans cet environnement, où Playwright Python et Chromium ne sont pas installés.
-- Le cache PWA contient **30 ressources** et refuse de se déclarer complet si une ressource de précache manque.
+- Le cache PWA contient **31 ressources** et refuse de se déclarer complet si une ressource de précache manque.
 - `version.json` reste volontairement hors du cache du Service Worker afin de servir de sonde réseau réelle pour la mise à jour.
 - Les liens et ressources du site utilisent des chemins relatifs compatibles avec un projet GitHub Pages publié sous `/<repository>/`.
 
@@ -99,6 +99,14 @@ Des contrôles statiques vérifient également que :
 
 - `public.verified_runs` a `run_id` comme clé primaire ;
 - RLS est active et les rôles navigateur n’ont aucun droit direct ;
+- `service_role` possède les droits serveur nécessaires sur `public.verified_runs` ;
+- la migration demande le rechargement du cache de schéma PostgREST ;
 - `run-start` exige un utilisateur authentifié ;
 - la seed vient de `crypto.getRandomValues()` côté serveur ;
 - la version de physique est identique entre le client et l’Edge Function.
+
+## Intégration PLAY classé (v0.2.7.2b-dev2)
+
+Les tests client vérifient les trois décisions de départ : jeu local sans session, ticket en ligne avec session Discord et avertissement hors ligne. Ils couvrent aussi l’interception exacte du relâchement de PLAY, le tick `0` indépendant du temps passé sur READY, la capture jusqu’à la collision et la file locale dédupliquée/bornée.
+
+Un contrôle statique garantit que l’interface appelle bien `run-start`, construit le moteur canonique, attache l’enregistreur et exige une confirmation explicite avant le fallback non classé.

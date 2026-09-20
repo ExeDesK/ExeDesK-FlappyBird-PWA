@@ -54,6 +54,20 @@ test('Settings expose parity statement and GitHub link', () => {
   assert.match(html, /https:\/\/github\.com\/ExeDesK\/FlappyBird-PWA/);
 });
 
+test('authenticated PLAY requests a verified ticket and offers an explicit unranked fallback', () => {
+  const main = read('site/src/main.js');
+  const html = read('site/index.html');
+
+  assert.match(main, /auth\.startVerifiedRun\(\)/);
+  assert.match(main, /createCanonicalRunGame/);
+  assert.match(main, /new VerifiedRunRecorder\(ticket\)/);
+  assert.match(main, /enqueueVerifiedRun\(submission\)/);
+  assert.match(main, /hasSession: Boolean\(auth\.session\)/);
+  assert.match(html, /id="unranked-warning"/);
+  assert.match(html, /id="unranked-continue"/);
+  assert.match(html, /JOUER QUAND MÊME/);
+});
+
 test('Discord community auth uses deploy-time runtime config and ships no server secret', () => {
   const auth = read('site/src/auth.js');
   const main = read('site/src/main.js');

@@ -64,6 +64,15 @@
 
     <p id="toast" role="status" hidden></p>
 
+    <dialog id="unranked-warning" aria-labelledby="unranked-warning-title">
+      <h1 id="unranked-warning-title">PARTIE NON CLASSÉE</h1>
+      <p id="unranked-warning-message"></p>
+      <div class="warning-actions">
+        <button id="unranked-continue" type="button">JOUER QUAND MÊME</button>
+        <button id="unranked-cancel" type="button">ANNULER</button>
+      </div>
+    </dialog>
+
     <dialog id="options">
       <header class="options-header">
         <div>
@@ -73,7 +82,7 @@
         <button id="close-options" class="close-options" aria-label="Fermer">X</button>
       </header>
 
-      <p class="version">BETA 0.2.7.2b-dev1</p>
+      <p class="version">BETA 0.2.7.2b-dev2</p>
       <p id="offline-status" class="status-card">Préparation du mode hors ligne...</p>
 
       <section class="menu-card account-card" aria-labelledby="account-title">

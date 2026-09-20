@@ -10,8 +10,16 @@ import {
 } from './display.js';
 import { Game } from './game.js';
 import { PerfProfiler } from './perf.js';
+import {
+  VerifiedRunRecorder,
+  enqueueVerifiedRun,
+  isPlayRelease,
+  pendingVerifiedRuns as readPendingVerifiedRuns,
+  verifiedRunStartMode,
+} from './verified-run-client.js';
+import { createCanonicalRunGame } from './verified-runs.js';
 
-const VERSION = '0.2.7.2b-dev1';
+const VERSION = '0.2.7.2b-dev2';
 const BEST_SCORE_KEY = 'flappy13-personal-best-v1';
 const SETTINGS_KEY = 'flappy13-settings-v1';
 const LAST_VERSION_KEY = 'flappy13-last-version-v1';
@@ -34,6 +42,7 @@ const query = new URLSearchParams(location.search);
 const canvas = $('game');
 const stage = $('stage');
 const options = $('options');
+const unrankedWarning = $('unranked-warning');
 const audio = new Audio({ version: VERSION });
 const auth = new AuthClient({
   url: SUPABASE_URL,
@@ -73,6 +82,11 @@ let scoreSyncState = 'local';
 let scoreSyncError = null;
 let scoreSyncPromise = null;
 let scoreSyncDirty = false;
+let verifiedStartPending = false;
+let allowUnrankedPlayOnce = false;
+let verifiedRunRecorder = null;
+let lastVerifiedRun = null;
+let unrankedWarningResolver = null;
 
 const touchRecords = new Map();
 const trace = [];
@@ -189,6 +203,166 @@ function saveBest(value) {
   const changed = applyBest(value);
   if (changed) {
     syncBestWithCloud({ reason: 'new-record' });
+  }
+}
+
+function handleGameEvent({ type, value }) {
+  if (type === 'sound') {
+    audio.play(value);
+  } else if (type === 'record') {
+    saveBest(value);
+  } else if (type === 'local-scores') {
+    openOptions(true);
+  } else if (type === 'about') {
+    openOptions(false);
+  }
+}
+
+function settleUnrankedWarning(continueLocally) {
+  const resolve = unrankedWarningResolver;
+  unrankedWarningResolver = null;
+
+  if (unrankedWarning.open) {
+    unrankedWarning.close();
+  }
+
+  resolve?.(continueLocally);
+}
+
+function askToPlayUnranked(message) {
+  if (unrankedWarningResolver) {
+    settleUnrankedWarning(false);
+  }
+
+  $('unranked-warning-message').textContent = message;
+  clearInput();
+  clock.reset();
+
+  return new Promise(resolve => {
+    unrankedWarningResolver = resolve;
+    unrankedWarning.showModal();
+    $('unranked-continue').focus();
+  });
+}
+
+$('unranked-continue').onclick = () => settleUnrankedWarning(true);
+$('unranked-cancel').onclick = () => settleUnrankedWarning(false);
+unrankedWarning.addEventListener('cancel', event => {
+  event.preventDefault();
+  settleUnrankedWarning(false);
+});
+
+function installVerifiedGame(ticket) {
+  const prepared = createCanonicalRunGame({
+    seed: ticket.seed,
+    best,
+    onEvent: handleGameEvent,
+  });
+
+  game = prepared.game;
+  verifiedRunRecorder = new VerifiedRunRecorder(ticket);
+  lastVerifiedRun = {
+    status: 'ready',
+    run_id: ticket.run_id,
+    physics_version: ticket.physics_version,
+    warmup_frames: prepared.warmupFrames,
+  };
+
+  clearInput();
+  trace.length = 0;
+  droppedReplay = false;
+  lastInputSignature = '';
+  previousCommands = cloneCommands(game.commands);
+  currentCommands = cloneCommands(game.commands);
+  cachedDebugState = debug ? game.snapshot() : null;
+  lastUtilityVisibility = null;
+  clock.reset();
+  syncUtilityVisibility();
+  render(1);
+
+  audio.play('swooshing');
+  console.info('[Verified Runs] Partie classée prête.', {
+    run_id: ticket.run_id,
+    physics_version: ticket.physics_version,
+  });
+  toast('Partie classée prête · touchez pour commencer.');
+}
+
+function queueVerifiedSubmission(submission) {
+  try {
+    const pending = enqueueVerifiedRun(submission);
+    lastVerifiedRun = {
+      status: 'queued',
+      run_id: submission.run_id,
+      terminal_tick: submission.terminal_tick,
+      tap_count: submission.taps.length,
+      pending,
+    };
+    console.info('[Verified Runs] Replay enregistré pour soumission.', lastVerifiedRun);
+    toast(
+      navigator.onLine
+        ? 'Run classé conservé localement · en attente de soumission.'
+        : 'Run classé conservé hors ligne · en attente de soumission.',
+      6000,
+    );
+  } catch (error) {
+    lastVerifiedRun = {
+      status: 'queue-error',
+      run_id: submission.run_id,
+      error: String(error?.message || error),
+    };
+    console.error('[Verified Runs] Enregistrement local impossible.', error);
+    toast('Impossible d’enregistrer ce run classé sur cet appareil.', 6000);
+  }
+}
+
+async function beginAuthenticatedPlay(originGame, mode) {
+  if (verifiedStartPending) {
+    return;
+  }
+
+  verifiedStartPending = true;
+
+  try {
+    if (mode === 'warn-offline') {
+      const proceed = await askToPlayUnranked(
+        'Vous êtes connecté à Discord, mais l’application est hors ligne. '
+        + 'Cette partie ne pourra pas être comptabilisée dans le classement.',
+      );
+
+      if (proceed && game === originGame && originGame.play.active) {
+        verifiedRunRecorder = null;
+        allowUnrankedPlayOnce = true;
+        originGame.play.pressed = true;
+        toast('Partie locale · non classée.');
+      }
+      return;
+    }
+
+    toast('Préparation de la partie classée…');
+
+    try {
+      const ticket = await auth.startVerifiedRun();
+      if (game === originGame && originGame.play.active) {
+        installVerifiedGame(ticket);
+      }
+    } catch (error) {
+      console.warn('[Verified Runs] Ticket indisponible.', error);
+      const proceed = await askToPlayUnranked(
+        `Impossible de préparer la partie classée : ${error?.message || error}. `
+        + 'Vous pouvez continuer, mais cette partie ne sera pas comptabilisée.',
+      );
+
+      if (proceed && game === originGame && originGame.play.active) {
+        verifiedRunRecorder = null;
+        allowUnrankedPlayOnce = true;
+        originGame.play.pressed = true;
+        toast('Partie locale · non classée.');
+      }
+    }
+  } finally {
+    verifiedStartPending = false;
+    clock.reset();
   }
 }
 
@@ -465,6 +639,14 @@ function returnToHome() {
     return;
   }
 
+  if (verifiedRunRecorder && !verifiedRunRecorder.finished) {
+    lastVerifiedRun = {
+      status: 'abandoned',
+      ...verifiedRunRecorder.snapshot(),
+    };
+  }
+  verifiedRunRecorder = null;
+
   audio.note('HOME_NAVIGATION', { from: state });
   clearInput();
   game.transition(true, 6, 0.25);
@@ -519,7 +701,7 @@ function pointerPosition(event) {
 }
 
 function press(id, point) {
-  if (!game || options.open) {
+  if (!game || options.open || unrankedWarning.open || verifiedStartPending) {
     return;
   }
 
@@ -572,7 +754,7 @@ canvas.addEventListener('contextmenu', event => {
 });
 
 window.addEventListener('keydown', event => {
-  if (options.open) {
+  if (options.open || unrankedWarning.open || verifiedStartPending) {
     return;
   }
 
@@ -772,10 +954,42 @@ function cloneCommands(commands) {
   return commands.map(command => ({ ...command }));
 }
 
+function interceptAuthenticatedPlay(input) {
+  if (!isPlayRelease(game, input)) {
+    return false;
+  }
+
+  if (allowUnrankedPlayOnce) {
+    allowUnrankedPlayOnce = false;
+    return false;
+  }
+
+  const mode = verifiedRunStartMode({
+    hasSession: Boolean(auth.session),
+    online: navigator.onLine,
+  });
+
+  if (mode === 'local') {
+    verifiedRunRecorder = null;
+    return false;
+  }
+
+  // Neutralize the native button release while the ticket request or warning
+  // is pending. A confirmed local fallback re-arms one ordinary release.
+  game.play.pressed = false;
+  game.play.released = false;
+  beginAuthenticatedPlay(game, mode);
+  return true;
+}
+
 function tick(input = nextInput()) {
   if (currentCommands) {
     previousCommands = cloneCommands(currentCommands);
   }
+
+  interceptAuthenticatedPlay(input);
+
+  verifiedRunRecorder?.beforeTick(game, input);
 
   const signature = JSON.stringify(input);
 
@@ -793,6 +1007,12 @@ function tick(input = nextInput()) {
   }
 
   game.tick(input);
+
+  const verifiedSubmission = verifiedRunRecorder?.afterTick(game);
+  if (verifiedSubmission) {
+    queueVerifiedSubmission(verifiedSubmission);
+  }
+
   syncUtilityVisibility();
   currentCommands = cloneCommands(game.commands);
 
@@ -982,7 +1202,7 @@ function replayData() {
   return {
     schema: 'flappy13-replay-v1',
     version: VERSION,
-    seed,
+    seed: game.seed,
     bestAtBoot: bootBest,
     totalFrames: game.frame,
     truncated: droppedReplay,
@@ -993,7 +1213,7 @@ function replayData() {
 
 function exportReplay() {
   downloadJson(
-    `flappy13-${seed}-${game.frame}.json`,
+    `flappy13-${game.seed}-${game.frame}.json`,
     replayData(),
   );
 }
@@ -1434,17 +1654,7 @@ async function boot() {
     game = new Game({
       seed,
       best,
-      onEvent: ({ type, value }) => {
-        if (type === 'sound') {
-          audio.play(value);
-        } else if (type === 'record') {
-          saveBest(value);
-        } else if (type === 'local-scores') {
-          openOptions(true);
-        } else if (type === 'about') {
-          openOptions(false);
-        }
-      },
+      onEvent: handleGameEvent,
     });
 
     $('loading').hidden = true;
@@ -1486,6 +1696,14 @@ async function boot() {
         return audio;
       },
       auth: () => auth.snapshot(),
+      verifiedRun: () => verifiedRunRecorder?.snapshot() ?? structuredClone(lastVerifiedRun),
+      pendingVerifiedRuns() {
+        try {
+          return readPendingVerifiedRuns();
+        } catch {
+          return [];
+        }
+      },
       snapshot: () => game.snapshot(),
       pause(value = true) {
         paused = value;

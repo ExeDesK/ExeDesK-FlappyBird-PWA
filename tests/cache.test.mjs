@@ -187,13 +187,13 @@ function harness(scope = 'https://example.invalid/lab/flappy/') {
   };
 }
 
-test('All 30 runtime resources are cached together, including sounds and icons', async () => {
+test('All 31 runtime resources are cached together, including sounds and icons', async () => {
   const h = harness();
   await h.event('install');
 
   const result = await h.verify();
   assert.equal(result.complete, true);
-  assert.equal(result.count, 30);
+  assert.equal(result.count, 31);
   assert.equal(h.skipped, false);
 
   await h.event('activate');
@@ -278,7 +278,7 @@ test('Waiting workers expose their build number to the page', async () => {
     }],
   });
 
-  assert.equal(result.build, '0.2.7.2b-dev1');
+  assert.equal(result.build, '0.2.7.2b-dev2');
 });
 
 test('Activation of a waiting update requires an explicit message', async () => {

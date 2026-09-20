@@ -156,6 +156,12 @@ test('verified-runs migration is private and reserves one authoritative result p
   assert.match(sql, /terminal_tick between 0 and 216000/i);
   assert.match(sql, /enable row level security/i);
   assert.match(sql, /revoke all on table public\.verified_runs from public, anon, authenticated/i);
+  assert.match(sql, /grant usage on schema public to service_role/i);
+  assert.match(
+    sql,
+    /grant select, insert, update on table public\.verified_runs to service_role/i,
+  );
+  assert.match(sql, /notify pgrst, 'reload schema'/i);
   assert.doesNotMatch(sql, /grant (select|insert|update|delete).*verified_runs.*authenticated/i);
 });
 

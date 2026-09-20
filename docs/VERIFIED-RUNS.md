@@ -2,7 +2,7 @@
 
 ## État de l’implémentation
 
-La phase 1 est versionnée sous `v0.2.7.2b-dev1`. Elle pose la fondation commune au client et au futur vérificateur serveur :
+La phase 1, versionnée sous `v0.2.7.2b-dev1`, pose la fondation commune au client et au futur vérificateur serveur :
 
 - `physics_version` indépendante de la version de l’application ;
 - ticket authentifié avec `run_id` et seed choisis côté serveur ;
@@ -11,7 +11,16 @@ La phase 1 est versionnée sous `v0.2.7.2b-dev1`. Elle pose la fondation commune
 - relecture déterministe qui recalcule le score, le tick terminal et la collision ;
 - table Supabase privée réservée aux Edge Functions.
 
-Le mode classé n’est pas encore activé dans l’interface. La persistance IndexedDB, la soumission différée et l’Edge Function `run-submit` appartiennent aux prochaines phases de `v0.2.7.2b`.
+La phase 2, versionnée sous `v0.2.7.2b-dev2`, raccorde cette fondation à l’interface :
+
+- une session Discord en ligne demande un ticket à chaque clic sur PLAY ;
+- le jeu actif est remplacé par le départ READY canonique construit depuis la seed serveur ;
+- le premier tap efficace devient le tick `0` et les suivants sont enregistrés jusqu’à la collision ;
+- la soumission minimale terminée est conservée dans une file locale bornée à 50 runs ;
+- une session Discord hors ligne, ou une erreur de ticket, affiche un avertissement avant toute partie locale non classée ;
+- un joueur sans session Discord conserve le chemin local historique sans avertissement.
+
+La file locale n’est pas encore envoyée : l’Edge Function `run-submit` et sa vidange automatique appartiennent à la phase suivante. Un run `dev2` est donc préparé et enregistré comme candidat classé, mais pas encore validé dans un leaderboard.
 
 ## Versions du contrat
 
@@ -92,6 +101,8 @@ La migration [`supabase/003_verified_runs.sql`](../supabase/003_verified_runs.sq
 - les champs de résultat sont cohérents avec l’état via une contrainte SQL ;
 - RLS est activée ;
 - tous les droits directs sont retirés à `public`, `anon` et `authenticated`.
+- seul `service_role`, utilisé côté serveur par les Edge Functions, reçoit les droits `select`, `insert` et `update`.
+- le cache de schéma PostgREST est rechargé en fin de migration.
 
 Le futur leaderboard passera par une vue ou une RPC dédiée et n’exposera jamais directement les tickets, seeds ou rejets.
 

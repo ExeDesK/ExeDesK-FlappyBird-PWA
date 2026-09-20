@@ -78,6 +78,16 @@ Ainsi, un nouvel appareil récupère automatiquement le meilleur score du compte
 
 Ce champ est un **record personnel synchronisé non vérifié**. Il ne servira pas d'autorité au futur leaderboard : les classements utiliseront exclusivement les Verified Runs validés côté serveur.
 
+## PLAY et Verified Runs (v0.2.7.2b-dev2)
+
+- sans session Discord, PLAY lance immédiatement le jeu local historique ;
+- avec une session Discord et du réseau, PLAY appelle `run-start`, puis ouvre un READY canonique construit depuis la seed serveur ;
+- avec une session Discord hors ligne, un avertissement impose de confirmer une partie locale non classée ;
+- si `run-start` échoue, le fallback local exige la même confirmation et n’est jamais silencieux ;
+- une fois le ticket obtenu, la capture du run continue même si la connexion disparaît.
+
+La phase `dev2` conserve les soumissions terminées dans une file locale. Elle ne les envoie pas encore : `run-submit` sera ajouté dans la phase suivante.
+
 
 ## v0.2.7.1n-hotfix1
 

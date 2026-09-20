@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.2.7.2b-dev2 - Ranked PLAY integration
+
+- Le bouton PLAY demande désormais un ticket `run-start` pour chaque joueur disposant d’une session Discord et encore connecté au réseau.
+- Le moteur local est remplacé par un départ canonique construit avec la seed serveur avant l’affichage de READY.
+- Les taps efficaces sont enregistrés à partir du tick `0`, puis la soumission minimale est conservée dans une file locale bornée à la collision.
+- Un joueur Discord hors ligne reçoit un avertissement explicite avant de pouvoir continuer en partie locale non classée.
+- Un échec de création du ticket ne bascule jamais silencieusement en local : le joueur doit confirmer « Jouer quand même ».
+- Les joueurs sans compte Discord conservent le chemin local historique, en ligne comme hors ligne.
+- `run-submit` et la vidange serveur de la file locale restent à implémenter avant qu’un résultat apparaisse dans le leaderboard.
+
 ## v0.2.7.2b-dev1 - Verified Runs foundation
 
 - Ajout du contrat indépendant `flappy13-physics-v1` et des schémas `flappy13-run-ticket-v1` / `flappy13-verified-run-v1`.
