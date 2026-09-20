@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.2.7.2b-dev1 - Verified Runs foundation
+
+- Ajout du contrat indépendant `flappy13-physics-v1` et des schémas `flappy13-run-ticket-v1` / `flappy13-verified-run-v1`.
+- Ajout d’un départ canonique qui reconstruit un moteur neuf depuis la seed serveur, traverse le cycle original MENU → PLAY → READY et ne modifie pas les retries locaux historiques.
+- Ajout du cœur de relecture autoritaire : taps strictement croissants par tick, score et collision recalculés, rejet des collisions précoces et faux ticks terminaux.
+- Validation du départ et de la relecture sur les quatre scénarios golden APK 1.3 : sol, score 10, tuyau supérieur et partie longue score 20.
+- Ajout de `public.verified_runs`, table privée avec RLS et aucun accès direct pour `anon`/`authenticated`.
+- Ajout de l’Edge Function authentifiée `run-start`, seule autorisée à créer un `run_id` et une seed int32 cryptographiquement aléatoire.
+- Ajout de `AuthClient.startVerifiedRun()` et validation stricte du ticket retourné.
+- Cette étape n’active pas encore le mode classé dans l’interface, la file hors ligne ni `run-submit` ; ces éléments arrivent dans les phases suivantes de v0.2.7.2b.
+
 ## v0.2.7.1n-hotfix1 - Score sync status hotfix
 
 - Correction du message « synchronisation à réessayer » qui pouvait rester affiché après une synchronisation de record réussie.

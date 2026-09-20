@@ -1,12 +1,11 @@
-# Rapport de tests - v0.2.7.1n-hotfix1
+# Rapport de tests - v0.2.7.2b-dev1
 
 ## Résultat
 
-- **73/73 tests Node passent** avec `npm test`.
-- Le smoke test Chromium isolé passe sans erreur JavaScript.
-- Les 5 sons sont décodés dans le test navigateur.
-- Le garde-fou paysage est visible dans un contexte mobile tactile simulé.
-- Le cache PWA contient **29 ressources** et refuse de se déclarer complet si une ressource de précache manque.
+- **83/83 tests Node passent** avec `npm test`.
+- Le bundle concaténé utilisé par le smoke test passe le contrôle de syntaxe JavaScript.
+- Le smoke test Chromium n’a pas été relancé dans cet environnement, où Playwright Python et Chromium ne sont pas installés.
+- Le cache PWA contient **30 ressources** et refuse de se déclarer complet si une ressource de précache manque.
 - `version.json` reste volontairement hors du cache du Service Worker afin de servir de sonde réseau réelle pour la mise à jour.
 - Les liens et ressources du site utilisent des chemins relatifs compatibles avec un projet GitHub Pages publié sous `/<repository>/`.
 
@@ -32,6 +31,7 @@
 | Service Worker | Installation atomique, lecture offline, mise à jour en attente, activation contrôlée et purge des anciens caches de la même portée. |
 | GitHub Pages | Chemins relatifs vérifiés ; `version.json` reste network-only. |
 | Audio iOS | `interrupted` et `suspended` bloqués, timeout de `resume()`, hard recovery et impulsion silencieuse couverts par des tests dédiés. |
+| Verified Runs | Contrat versionné, ticket serveur, état READY canonique et quatre replays golden vérifiés jusqu’au score/collision/tick terminal. |
 
 ## Smoke test navigateur
 
@@ -89,3 +89,16 @@ Tests automatiques dédiés :
 - appel RPC `sync_best_score()` avec le record local ;
 - migration SQL garantissant un merge atomique `max(local, cloud)` et interdisant l’écriture directe de `best_score`.
 
+## Fondation Verified Runs (v0.2.7.2b-dev1)
+
+Les tests dédiés couvrent le contrat `flappy13-physics-v1`, la validation des tickets, le format de soumission minimal et les limites de ticks/taps.
+
+Le constructeur canonique est comparé aux quatre états START du harness APK. La relecture autoritaire reproduit ensuite exactement leurs scores, collisions et ticks terminaux. Les replays annonçant une collision trop tard ou un tick terminal sans collision sont rejetés.
+
+Des contrôles statiques vérifient également que :
+
+- `public.verified_runs` a `run_id` comme clé primaire ;
+- RLS est active et les rôles navigateur n’ont aucun droit direct ;
+- `run-start` exige un utilisateur authentifié ;
+- la seed vient de `crypto.getRandomValues()` côté serveur ;
+- la version de physique est identique entre le client et l’Edge Function.

@@ -8,7 +8,7 @@ L'objectif n'est pas de produire un simple clone « inspiré de » Flappy Bird, 
 
 Le gameplay fonctionne entièrement côté client, sans framework, et peut être installé comme une application sur Windows, iPhone/iPad et Android. Les fonctions communautaires utilisent un backend Supabase facultatif : aucun compte n'est nécessaire pour jouer.
 
-> **État du projet : bêta — v0.2.7.1n-hotfix1**
+> **État du projet : bêta — v0.2.7.2b-dev1**
 
 ---
 
@@ -23,6 +23,7 @@ Le gameplay fonctionne entièrement côté client, sans framework, et peut être
 - Sauvegarde locale du meilleur score.
 - Connexion Discord facultative via Supabase Auth et profil joueur cross-platform.
 - Synchronisation du meilleur score entre appareils en conservant toujours la valeur la plus élevée.
+- Fondation Verified Runs : tickets et seeds serveur, physique versionnée et relecture autoritaire déterministe (mode classé encore en développement).
 - Affichage **Original** ou **Adapté** selon l'appareil.
 - Extension dynamique du ciel et du sol sur les écrans plus hauts que le format original.
 - Mode Performance pour limiter le supersampling sur les appareils à fort DPR.
@@ -69,6 +70,7 @@ Les notes détaillées sont disponibles dans :
 - [`docs/REVERSE-ENGINEERING.md`](./docs/REVERSE-ENGINEERING.md)
 - [`docs/TESTS.md`](./docs/TESTS.md)
 - [`docs/AUTH-DISCORD.md`](./docs/AUTH-DISCORD.md)
+- [`docs/VERIFIED-RUNS.md`](./docs/VERIFIED-RUNS.md)
 
 ---
 
@@ -110,7 +112,8 @@ site/
 │   ├── game.js             Gameplay et machine d'états
 │   ├── main.js             Entrées, PWA, options et cycle principal
 │   ├── math.js             Maths, RNG, animations et tweens
-│   └── perf.js             Profiler de performances
+│   ├── perf.js             Profiler de performances
+│   └── verified-runs.js    Contrat et simulation des runs vérifiés
 ├── config.example.js      Modèle de configuration runtime (Supabase)
 ├── index.html
 ├── manifest.webmanifest
@@ -122,7 +125,7 @@ tests/
 ├── replay.mjs              Relecture déterministe des exports
 └── …                       Tests du moteur, du cache et de l’affichage
 docs/                       Documentation technique et preuves d'analyse
-supabase/                   SQL versionné pour profils et RLS
+supabase/                   SQL et Edge Functions Supabase versionnés
 .github/                     Automatisation GitHub du projet
 CHANGELOG.md                 Historique des versions
 README.md                    Documentation française

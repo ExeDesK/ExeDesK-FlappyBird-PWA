@@ -194,6 +194,45 @@ test('personal best sync calls the atomic Supabase RPC and accepts the higher re
   }
 });
 
+test('verified run start sends the user JWT and validates the server ticket', async () => {
+  const browser = installBrowser();
+  const previousFetch = globalThis.fetch;
+  let request = null;
+  globalThis.fetch = async (input, init = {}) => {
+    request = { url: String(input), init };
+    return new Response(JSON.stringify({
+      schema: 'flappy13-run-ticket-v1',
+      run_id: '123e4567-e89b-12d3-a456-426614174000',
+      seed: -123456789,
+      physics_version: 'flappy13-physics-v1',
+      issued_at: '2026-09-20T18:00:00.000Z',
+    }), { status: 201, headers: { 'Content-Type': 'application/json' } });
+  };
+
+  try {
+    const auth = new AuthClient({ ...config, storage: new MemoryStorage() });
+    auth.session = {
+      accessToken: 'access',
+      refreshToken: 'refresh',
+      tokenType: 'bearer',
+      expiresAt: Date.now() + 3600000,
+    };
+
+    const ticket = await auth.startVerifiedRun();
+
+    assert.equal(ticket.seed, -123456789);
+    assert.equal(ticket.physics_version, 'flappy13-physics-v1');
+    assert.equal(request.url, 'https://project-ref.supabase.co/functions/v1/run-start');
+    assert.equal(request.init.method, 'POST');
+    assert.equal(request.init.headers.Authorization, 'Bearer access');
+    assert.equal(request.init.headers.apikey, config.publishableKey);
+    assert.equal(request.init.body, '{}');
+  } finally {
+    globalThis.fetch = previousFetch;
+    browser.restore();
+  }
+});
+
 test('best score migration performs an atomic max merge and prevents direct browser writes', async () => {
   const sql = await readFile(new URL('../supabase/002_best_score_sync.sql', import.meta.url), 'utf8');
   assert.match(sql, /best_score integer not null default 0/i);

@@ -1,0 +1,127 @@
+# Verified Runs — contrat v0.2.7.2b
+
+## État de l’implémentation
+
+La phase 1 est versionnée sous `v0.2.7.2b-dev1`. Elle pose la fondation commune au client et au futur vérificateur serveur :
+
+- `physics_version` indépendante de la version de l’application ;
+- ticket authentifié avec `run_id` et seed choisis côté serveur ;
+- état initial canonique reconstruit uniquement depuis cette seed ;
+- format minimal de soumission ;
+- relecture déterministe qui recalcule le score, le tick terminal et la collision ;
+- table Supabase privée réservée aux Edge Functions.
+
+Le mode classé n’est pas encore activé dans l’interface. La persistance IndexedDB, la soumission différée et l’Edge Function `run-submit` appartiennent aux prochaines phases de `v0.2.7.2b`.
+
+## Versions du contrat
+
+```text
+physics_version : flappy13-physics-v1
+ticket schema   : flappy13-run-ticket-v1
+replay schema   : flappy13-verified-run-v1
+```
+
+`physics_version` ne suit pas `VERSION`. Un correctif d’interface, d’audio ou de PWA ne doit pas invalider les replays. Elle ne change que si une modification affecte la simulation autoritaire.
+
+## Ticket de départ
+
+`POST /functions/v1/run-start` exige le JWT Supabase du joueur. L’Edge Function génère une seed int32 avec `crypto.getRandomValues()`, crée le ticket via le client serveur puis répond :
+
+```json
+{
+  "schema": "flappy13-run-ticket-v1",
+  "run_id": "123e4567-e89b-12d3-a456-426614174000",
+  "seed": -123456789,
+  "physics_version": "flappy13-physics-v1",
+  "issued_at": "2026-09-20T18:00:00.000Z"
+}
+```
+
+L’identité du joueur reste attachée au ticket en base et n’est jamais fournie par le navigateur.
+
+## Départ canonique
+
+Les parties locales conservent volontairement le comportement APK : le RNG et les positions des tuyaux survivent aux retries. Ce chemin historique n’est pas modifié.
+
+Un run vérifié utilise au contraire un nouveau `Game` :
+
+1. construction avec la seed du ticket ;
+2. stabilisation du menu original ;
+3. injection du clic PLAY original ;
+4. stabilisation de l’écran READY ;
+5. début du run au premier tap.
+
+La convention est celle du harness APK :
+
+```text
+input du tick N
+→ simulation du tick N
+→ état N après simulation
+```
+
+Le premier tap vaut toujours `0`. Le temps passé par le joueur sur READY n’entre donc pas dans le replay.
+
+## Soumission minimale
+
+```json
+{
+  "schema": "flappy13-verified-run-v1",
+  "run_id": "123e4567-e89b-12d3-a456-426614174000",
+  "physics_version": "flappy13-physics-v1",
+  "terminal_tick": 953,
+  "taps": [0, 35, 70, 105]
+}
+```
+
+La seed, l’identité et la date d’émission proviennent du ticket stocké côté serveur. Le score et la collision ne figurent pas dans le contrat client : ils sont recalculés.
+
+Les bornes v1 sont :
+
+- `terminal_tick` de `0` à `216000` inclus, soit une heure à 60 Hz ;
+- un seul tap par tick ;
+- ticks strictement croissants ;
+- aucun tap après `terminal_tick`.
+
+## Modèle Supabase
+
+La migration [`supabase/003_verified_runs.sql`](../supabase/003_verified_runs.sql) crée `public.verified_runs`.
+
+- `run_id` est la clé primaire ;
+- `player_id` référence `auth.users` ;
+- les états possibles sont `issued`, `verified` et `rejected` ;
+- les champs de résultat sont cohérents avec l’état via une contrainte SQL ;
+- RLS est activée ;
+- tous les droits directs sont retirés à `public`, `anon` et `authenticated`.
+
+Le futur leaderboard passera par une vue ou une RPC dédiée et n’exposera jamais directement les tickets, seeds ou rejets.
+
+## Déploiement de la phase 1
+
+Exécuter les migrations dans l’ordre :
+
+```text
+supabase/001_profiles.sql
+supabase/002_best_score_sync.sql
+supabase/003_verified_runs.sql
+```
+
+Puis déployer la fonction :
+
+```bash
+supabase functions deploy run-start
+```
+
+`run-start` conserve la vérification JWT par défaut. Les variables Supabase nécessaires au wrapper serveur sont fournies automatiquement par la plateforme.
+
+## Garanties testées
+
+`npm test` vérifie notamment :
+
+- les seeds int32 et tickets invalides ;
+- l’absence de `seed` et de `score` dans la soumission normalisée ;
+- l’état READY canonique et l’état RNG exact pour les quatre seeds golden ;
+- les scores `0`, `10`, `0`, `20` ;
+- les collisions `ground`, `lower-pipe`, `upper-pipe`, `lower-pipe` ;
+- les ticks terminaux `53`, `953`, `224`, `1733` ;
+- le rejet d’une collision antérieure ou d’un faux tick terminal ;
+- l’isolation RLS de la table et la génération serveur de la seed.

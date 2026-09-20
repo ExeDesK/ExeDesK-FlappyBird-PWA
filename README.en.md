@@ -8,7 +8,7 @@ The goal is not to create another Flappy Bird-inspired clone, but to **reproduce
 
 Gameplay runs entirely client-side without a framework and can be installed as an application on Windows, iPhone/iPad and Android. Optional community features use Supabase; no account is required to play.
 
-> **Project status: beta — v0.2.7.1n-hotfix1**
+> **Project status: beta — v0.2.7.2b-dev1**
 
 ---
 
@@ -23,6 +23,7 @@ Gameplay runs entirely client-side without a framework and can be installed as a
 - Local high-score persistence.
 - Optional Discord sign-in through Supabase Auth with a cross-platform player profile.
 - Cross-device best-score sync that always keeps the highest value.
+- Verified Runs foundation: server-issued tickets/seeds, versioned physics and deterministic authoritative replay (ranked UI still in development).
 - **Original** and **Adapted** display modes.
 - Dynamic sky and ground extensions for displays taller than the original aspect ratio.
 - Performance mode to limit supersampling on high-DPR devices.
@@ -69,6 +70,7 @@ Detailed notes are available in:
 - [`docs/REVERSE-ENGINEERING.md`](./docs/REVERSE-ENGINEERING.md)
 - [`docs/TESTS.md`](./docs/TESTS.md)
 - [`docs/AUTH-DISCORD.md`](./docs/AUTH-DISCORD.md)
+- [`docs/VERIFIED-RUNS.md`](./docs/VERIFIED-RUNS.md) (French)
 
 ---
 
@@ -110,7 +112,8 @@ site/
 │   ├── game.js             Gameplay and state machine
 │   ├── main.js             Input, PWA, options and main loop
 │   ├── math.js             Math, RNG, animation and tweens
-│   └── perf.js             Performance profiler
+│   ├── perf.js             Performance profiler
+│   └── verified-runs.js    Verified-run contract and simulation
 ├── config.example.js      Runtime configuration template (Supabase)
 ├── index.html
 ├── manifest.webmanifest
@@ -122,7 +125,7 @@ tests/
 ├── replay.mjs              Deterministic replay runner
 └── …                       Engine, cache and display tests
 docs/                       Technical notes and analysis evidence
-supabase/                   Versioned profile/RLS SQL
+supabase/                   Versioned Supabase SQL and Edge Functions
 .github/                     GitHub project automation
 CHANGELOG.md                 Version history
 README.md                    French documentation

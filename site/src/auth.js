@@ -1,3 +1,5 @@
+import { parseRunTicket } from './verified-runs.js';
+
 const AUTH_STORAGE_KEY = 'flappy13-auth-v1';
 const SESSION_SKEW_MS = 60 * 1000;
 
@@ -393,6 +395,35 @@ export class AuthClient {
     this._save();
     this._emit();
     return remoteBest;
+  }
+
+  async startVerifiedRun() {
+    if (!this.session) {
+      throw new Error('Connexion requise pour démarrer une partie classée.');
+    }
+
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      throw new Error('Une connexion Internet est nécessaire au démarrage d’une partie classée.');
+    }
+
+    const accessToken = await this._validAccessToken();
+    const response = await fetch(`${this.url}/functions/v1/run-start`, {
+      method: 'POST',
+      headers: {
+        ...this._authHeaders(accessToken),
+        'Content-Type': 'application/json',
+      },
+      body: '{}',
+    });
+    const payload = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      throw new Error(
+        payload?.message || payload?.error || `Création du run classé HTTP ${response.status}`,
+      );
+    }
+
+    return parseRunTicket(payload);
   }
 
   async sync({ reason = 'manual' } = {}) {

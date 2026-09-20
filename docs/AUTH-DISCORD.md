@@ -35,6 +35,7 @@ Dans Supabase > SQL Editor, exécuter les migrations dans l'ordre :
 ```text
 supabase/001_profiles.sql
 supabase/002_best_score_sync.sql
+supabase/003_verified_runs.sql
 ```
 
 Le script :
@@ -47,6 +48,8 @@ Le script :
 - accorde explicitement les droits Data API nécessaires aux rôles `anon` et `authenticated`.
 
 La seconde migration ajoute `profiles.best_score` et la fonction RPC `sync_best_score()`. Le RPC effectue un `max(local, cloud)` atomique : un appareil avec un record inférieur récupère le record cloud, tandis qu'un appareil avec un record supérieur fait monter la valeur cloud. La valeur cloud ne peut jamais être diminuée par ce flux.
+
+La troisième migration crée la table serveur privée des Verified Runs. Elle ne donne aucun droit direct aux rôles navigateur `anon` et `authenticated` : les tickets passent exclusivement par les Edge Functions. Voir [`VERIFIED-RUNS.md`](./VERIFIED-RUNS.md).
 
 ## Flux navigateur
 
