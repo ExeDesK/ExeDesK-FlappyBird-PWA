@@ -10,7 +10,7 @@ import {
 import { Game } from './game.js';
 import { PerfProfiler } from './perf.js';
 
-const VERSION = '0.2.5b';
+const VERSION = '0.2.5.1b';
 const BEST_SCORE_KEY = 'flappy13-personal-best-v1';
 const SETTINGS_KEY = 'flappy13-settings-v1';
 const LAST_VERSION_KEY = 'flappy13-last-version-v1';
@@ -243,14 +243,43 @@ function updateOrientationGuard() {
 
 function syncUtilityVisibility() {
   const button = $('open-options');
-  const visible = !game || (game.state === 'MENU' && game.fadeEvent !== 5);
+  const state = game?.state ?? 'MENU';
+  const mode = state === 'MENU'
+    ? 'options'
+    : state === 'READY'
+      ? 'home'
+      : 'hidden';
+  const signature = `${mode}:${game?.fadeEvent ?? 0}:${game?.fade?.done ?? true}`;
 
-  if (visible === lastUtilityVisibility) {
+  if (signature === lastUtilityVisibility) {
     return;
   }
 
-  lastUtilityVisibility = visible;
+  lastUtilityVisibility = signature;
+  const visible = mode !== 'hidden'
+    && (game?.fade?.done ?? true)
+    && (mode !== 'options' || game?.fadeEvent !== 5);
   button.hidden = !visible;
+  button.dataset.mode = mode;
+  button.title = mode === 'home' ? 'Retour à l’accueil' : 'Options (Echap)';
+  button.setAttribute(
+    'aria-label',
+    mode === 'home' ? 'Retourner à l’écran d’accueil' : 'Ouvrir les options',
+  );
+  $('utility-menu-icon').hidden = mode !== 'options';
+  $('utility-home-icon').hidden = mode !== 'home';
+}
+
+function returnToHome() {
+  if (!game || game.state !== 'READY' || !game.fade.done) {
+    return;
+  }
+
+  audio.note('READY_HOME');
+  clearInput();
+  game.transition(true, 6, 0.25);
+  syncUtilityVisibility();
+  clock.reset();
 }
 
 function openOptions(showScores = false) {
@@ -359,7 +388,13 @@ window.addEventListener('keydown', event => {
 
   if (event.code === 'Escape') {
     event.preventDefault();
-    openOptions();
+
+    if (game?.state === 'MENU' || game?.state === 'GAME_OVER') {
+      openOptions();
+    } else if (game?.state === 'READY') {
+      returnToHome();
+    }
+
     return;
   }
 
@@ -439,7 +474,13 @@ window.visualViewport?.addEventListener('resize', scheduleResize);
 window.addEventListener('orientationchange', updateOrientationGuard);
 screen.orientation?.addEventListener?.('change', updateOrientationGuard);
 
-$('open-options').onclick = () => openOptions();
+$('open-options').onclick = () => {
+  if (game?.state === 'READY') {
+    returnToHome();
+  } else {
+    openOptions();
+  }
+};
 $('close-options').onclick = closeOptions;
 
 options.addEventListener('close', () => {

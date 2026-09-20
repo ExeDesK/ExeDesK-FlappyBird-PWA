@@ -1,9 +1,17 @@
 # Changelog
 
+## v0.2.5.1b - READY home navigation
+
+- Ajout d’un bouton Maison pendant la phase READY pour revenir proprement à l’écran d’accueil sans recharger la PWA.
+- Le bouton Réglages reste disponible uniquement sur l’écran d’accueil ; aucun bouton n’est affiché pendant la partie.
+- Adaptation de la navigation clavier : Échap revient à l’accueil depuis READY.
+- Prépare une navigation cohérente pour les futurs lobbies et modes multijoueur.
+- Aucun changement du moteur de jeu, de la physique, de l’audio ou du système de mise à jour.
+
 ## v0.2.5b - Flappy-like UI
 
 - Refonte de l'interface HTML/PWA dans un style plus proche du jeu : panneaux carrés, palette jaune pâle, bordures franches et typographie monospace/pixel-like.
-- Le bouton Options adopte un look pixel et n'est visible que sur le menu principal ; il disparaît pendant une partie, l'écran READY et le Game Over.
+- Le bouton Options adopte un look pixel sur le menu principal et disparaît hors de cet écran.
 - Suppression de l'accès debug des réglages principaux et du raccourci H.
 - Les outils de diagnostic restent inchangés et sont accessibles uniquement par un lien discret tout en bas des options.
 - Réorganisation des options en blocs Jeu / Application / Record, avec textes plus courts et plus lisibles.

@@ -153,6 +153,33 @@ body {
   top: 7px;
 }
 
+.pixel-home-icon {
+  position: absolute;
+  top: 12px;
+  left: 10px;
+  width: 4px;
+  height: 4px;
+  background: currentColor;
+  box-shadow:
+    4px -4px 0 currentColor,
+    8px -8px 0 currentColor,
+    12px -4px 0 currentColor,
+    16px 0 0 currentColor,
+    0 4px 0 currentColor,
+    4px 4px 0 currentColor,
+    8px 4px 0 currentColor,
+    12px 4px 0 currentColor,
+    16px 4px 0 currentColor,
+    0 8px 0 currentColor,
+    4px 8px 0 currentColor,
+    12px 8px 0 currentColor,
+    16px 8px 0 currentColor,
+    0 12px 0 currentColor,
+    4px 12px 0 currentColor,
+    12px 12px 0 currentColor,
+    16px 12px 0 currentColor;
+}
+
 #toast {
   position: fixed;
   z-index: 4;

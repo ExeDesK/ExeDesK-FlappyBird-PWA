@@ -167,10 +167,23 @@ def main() -> None:
             'for (let i = 0; i < 65; i++) flappy.step();'
         )
         assert page.evaluate('flappy.snapshot().state') == 'READY'
-        assert page.is_hidden('#open-options')
+        assert not page.is_hidden('#open-options')
+        assert page.get_attribute('#open-options', 'data-mode') == 'home'
         page.screenshot(path=str(output / 'ready.png'))
 
+        # READY exposes a Home control, not Settings. It returns to the title
+        # screen so future lobby/multiplayer flows have a clean escape route.
+        page.evaluate('flappy.pause(false)')
+        page.click('#open-options')
+        page.wait_for_function("flappy.snapshot().state === 'MENU' && flappy.snapshot().fade === 0", timeout=10000)
+        assert page.get_attribute('#open-options', 'data-mode') == 'options'
+
+        # Start a fresh run after validating READY -> Home.
+        page.evaluate('flappy.pause(true)')
         page.evaluate(
+            'flappy.step({ touches: [{ x: 78, y: 375 }] });'
+            'flappy.step();'
+            'for (let i = 0; i < 65; i++) flappy.step();'
             'flappy.step({ tap: { x: 144, y: 256 } });'
             'for (let i = 0; i < 4; i++) flappy.step();'
         )
