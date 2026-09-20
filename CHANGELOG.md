@@ -1,5 +1,14 @@
 # Changelog
 
+## v0.2.6b - Continuous APK 1.3 parity
+
+- Ajout d'une validation 1:1 APK 1.3 ↔ PWA exécutée automatiquement sur chaque push et chaque pull request.
+- Comparaison des quatre scénarios golden : mort au sol, score 10, collision tuyau supérieur et partie longue score 20.
+- Validation tick par tick, avec comparaison float32 bit à bit des champs flottants via le harness v3.2.2.
+- Le workflow GitHub Pages exécute la parité avant déploiement : une divergence bloque la publication de `main`.
+- Aucun APK n'est stocké ou téléchargé par le dépôt PWA ou sa CI.
+- Aucun changement volontaire du moteur de jeu : cette version fige et protège la conformité déterministe déjà mesurée.
+
 ## v0.2.5.1b - READY home navigation
 
 - Ajout d’un bouton Maison pendant la phase READY pour revenir proprement à l’écran d’accueil sans recharger la PWA.

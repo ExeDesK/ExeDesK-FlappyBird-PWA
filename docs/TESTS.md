@@ -62,3 +62,11 @@ Le déploiement GitHub Pages lui-même sera validé par GitHub lors du premier p
 - Safari/iOS ne permet pas à une page web de masquer de façon fiable la barre d'état système.
 - `screen.orientation.lock()` a un support limité ; le manifeste et le garde-fou paysage assurent un comportement propre quand le verrouillage natif n'est pas disponible.
 - Le smoke test Chromium isolé ne valide pas le Service Worker dans une vraie origine HTTPS.
+
+## Continuous APK 1.3 parity (v0.2.6b)
+
+The GitHub Actions workflow `.github/workflows/apk-parity.yml` checks the deterministic PWA engine against the pinned `v3.2.2` release of `ExeDesK/Flappy13-APK-TestHarness` on every push and pull request.
+
+The four golden scenarios are also executed by the GitHub Pages workflow before deployment, so a deterministic divergence blocks publication from `main`.
+
+The APK itself is never required in CI; only the previously validated golden traces are used.

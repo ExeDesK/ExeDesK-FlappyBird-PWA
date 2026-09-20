@@ -1,18 +1,15 @@
-name: Deploy GitHub Pages
+name: APK 1.3 Parity
 
 on:
   push:
-    branches:
-      - main
+  pull_request:
   workflow_dispatch:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 concurrency:
-  group: github-pages
+  group: apk-parity-${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
@@ -20,11 +17,9 @@ env:
   HARNESS_REF: v3.2.2
 
 jobs:
-  deploy:
+  parity:
+    name: Deterministic APK parity
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
 
     steps:
       - name: Checkout PWA
@@ -50,19 +45,7 @@ jobs:
         working-directory: .ci/flappy13-apk-harness
         run: npm test
 
-      - name: Verify APK 1.3 parity
+      - name: Compare PWA against APK 1.3 golden traces
         run: |
           chmod +x .ci/flappy13-apk-harness/*.sh
           ./.ci/flappy13-apk-harness/compare-suite.sh "$GITHUB_WORKSPACE"
-
-      - name: Configure GitHub Pages
-        uses: actions/configure-pages@v5
-
-      - name: Upload site
-        uses: actions/upload-pages-artifact@v4
-        with:
-          path: ./site
-
-      - name: Deploy
-        id: deployment
-        uses: actions/deploy-pages@v4

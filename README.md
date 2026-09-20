@@ -8,7 +8,7 @@ L'objectif n'est pas de produire un simple clone « inspiré de » Flappy Bird, 
 
 Le jeu fonctionne entièrement côté client, sans framework ni backend, et peut être installé comme une application sur Windows, iPhone/iPad et Android.
 
-> **État du projet : bêta — v0.2.5.1b**
+> **État du projet : bêta — v0.2.6b**
 
 ---
 
@@ -345,3 +345,7 @@ Il est basé sur l'étude de la version Android **1.3** de Flappy Bird fournie a
 **Flappy Bird**, son identité visuelle, ses graphismes, ses sons et les autres éléments provenant du jeu original restent la propriété de leurs ayants droit respectifs. Tous les crédits relatifs au jeu original reviennent à **.GEARS Studios** et à ses créateurs.
 
 Ce dépôt ne prétend accorder aucun droit sur les ressources originales. Avant de republier ou redistribuer publiquement un fork contenant ces ressources, il appartient à chacun de vérifier les droits applicables.
+
+## Validation 1:1 continue
+
+Depuis la v0.2.6b, chaque push et chaque pull request compare automatiquement le moteur PWA aux golden traces issues de l'APK Android 1.3 via le harness dédié. Le déploiement GitHub Pages est également bloqué si cette parité diverge. Voir [`docs/APK-PARITY.md`](docs/APK-PARITY.md).
