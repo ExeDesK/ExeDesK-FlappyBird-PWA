@@ -193,13 +193,22 @@ def main() -> None:
 
         page.evaluate('for (let i = 0; i < 236; i++) flappy.step();')
         assert page.evaluate('flappy.snapshot().state') == 'GAME_OVER'
-        assert page.is_hidden('#open-options')
+        assert not page.is_hidden('#open-options')
+        assert page.get_attribute('#open-options', 'data-mode') == 'home'
         page.screenshot(path=str(output / 'gameover.png'))
 
-        page.keyboard.press('Escape')
+        # GAME OVER exposes the same Home control as READY.
+        page.evaluate('flappy.pause(false)')
+        page.click('#open-options')
+        page.wait_for_function("flappy.snapshot().state === 'MENU' && flappy.snapshot().fade === 0", timeout=10000)
+        assert page.get_attribute('#open-options', 'data-mode') == 'options'
+
+        page.click('#open-options')
         page.wait_for_selector('#options', state='visible')
         assert page.locator('#debug').count() == 0
         assert page.locator('#debug-access').count() == 1
+        assert page.locator('a.footer-link').get_attribute('href') == 'https://github.com/ExeDesK/FlappyBird-PWA'
+        assert 'Flappy Bird 1.3' in page.locator('.parity-note').inner_text()
         page.screenshot(path=str(output / 'options.png'))
         page.click('#close-options')
         page.wait_for_timeout(100)

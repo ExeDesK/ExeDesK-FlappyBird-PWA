@@ -39,3 +39,17 @@ test('PWA repository contains no APK payload', () => {
   const forbidden = walk('.').filter((file) => /\.(apk|aab|apks)$/i.test(file));
   assert.deepEqual(forbidden, []);
 });
+
+
+test('Home navigation is exposed on READY and GAME OVER but not during gameplay', () => {
+  const source = read('site/src/main.js');
+  assert.match(source, /state === 'READY' \|\| state === 'GAME_OVER'/);
+  assert.match(source, /\['READY', 'GAME_OVER'\]\.includes\(state\)/);
+});
+
+test('Settings expose parity statement and GitHub link', () => {
+  const html = read('site/index.html');
+  assert.match(html, /COMPORTEMENT 1:1/);
+  assert.match(html, /dernière version originale[\s\S]*Flappy Bird 1\.3/);
+  assert.match(html, /https:\/\/github\.com\/ExeDesK\/FlappyBird-PWA/);
+});

@@ -155,8 +155,8 @@ body {
 
 .pixel-home-icon {
   position: absolute;
-  top: 12px;
-  left: 10px;
+  top: 17px;
+  left: 11px;
   width: 4px;
   height: 4px;
   background: currentColor;
@@ -470,6 +470,22 @@ body {
   line-height: 1.5;
 }
 
+.parity-note {
+  margin: 10px 0 0;
+  padding: 9px;
+  border: 2px dashed #b39555;
+  background: #f0dea0;
+  color: #614a28;
+  font-size: 9px;
+  line-height: 1.55;
+  text-align: center;
+}
+
+.parity-note strong {
+  color: var(--flappy-brown-dark);
+  font-size: 10px;
+}
+
 .controls-note {
   margin: 14px 0 10px;
   color: #654b27;
@@ -508,24 +524,40 @@ body {
   text-align: center;
 }
 
-#options .debug-access {
-  display: block;
+#options .footer-tools {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  margin-top: 10px;
+  color: #7c6846;
+  font-size: 8px;
+  font-weight: 700;
+}
+
+#options .debug-access,
+#options .footer-link {
   width: auto;
-  margin: 10px auto 0;
+  margin: 0;
   padding: 2px 4px;
   border: 0;
   background: transparent;
   box-shadow: none;
   color: #7c6846;
-  font-size: 8px;
-  font-weight: 700;
+  font: inherit;
   text-decoration: underline;
   text-transform: none;
   opacity: 0.72;
 }
 
+#options .footer-link {
+  display: inline-block;
+}
+
 #options .debug-access:hover,
-#options .debug-access:focus-visible {
+#options .debug-access:focus-visible,
+#options .footer-link:hover,
+#options .footer-link:focus-visible {
   background: transparent;
   color: var(--flappy-brown-dark);
   opacity: 1;

@@ -1,8 +1,8 @@
-# Rapport de tests - v0.2.4b
+# Rapport de tests - v0.2.6.1b
 
 ## Résultat
 
-- **53/53 tests Node passent** avec `npm test`.
+- **58/58 tests Node passent** avec `npm test`.
 - Le smoke test Chromium isolé passe sans erreur JavaScript.
 - Les 5 sons sont décodés dans le test navigateur.
 - Le garde-fou paysage est visible dans un contexte mobile tactile simulé.
@@ -16,7 +16,7 @@
 | --- | --- |
 | PRNG | Comparaison avec 6 graines Java, 500 sorties par graine. |
 | Physique de l'oiseau | 2000 updates comparées bit-à-bit avec la référence JVM. |
-| États | Menu → Ready → Playing → Game Over → replay. |
+| États | Menu → Ready → Playing → Game Over → retour accueil / replay. |
 | Déterminisme | Deux simulations identiques produisent exactement le même snapshot. |
 | Cadence | 60 updates/s validées pour 30, 60, 90, 120, 144 et 240 Hz de présentation. |
 | iOS pacing | Rattrapage borné et profiler rAF. |
@@ -40,6 +40,8 @@
 - ratio Original par défaut sur desktop ;
 - backing canvas ×2 sur DPR 1 ;
 - progression Menu / Ready / Playing / Game Over ;
+- bouton Maison sur Ready et Game Over, masqué pendant le gameplay ;
+- mention de parité 1:1 et lien GitHub dans les réglages ;
 - audio WebAudio avec 5 buffers ;
 - passage en mode Adapté et Canvas occupant toute la hauteur du viewport portrait ;
 - garde-fou paysage sur contexte mobile tactile ;
@@ -49,10 +51,11 @@ Ce test embarque les ressources dans une page Chromium isolée. Il ne remplace p
 
 ## GitHub Actions
 
-Deux workflows sont présents :
+Trois workflows sont présents :
 
 - `.github/workflows/tests.yml` lance `npm test` sur les pull requests et à la demande ;
-- `.github/workflows/pages.yml` lance les tests sur `main`, puis publie `site/` avec GitHub Pages uniquement si les tests réussissent.
+- `.github/workflows/apk-parity.yml` compare la PWA aux golden traces APK 1.3 sur chaque push et pull request ;
+- `.github/workflows/pages.yml` lance les tests et la parité sur `main`, puis publie `site/` avec GitHub Pages uniquement si tout réussit.
 
 Le déploiement GitHub Pages lui-même sera validé par GitHub lors du premier push après activation de **Settings → Pages → Source → GitHub Actions**.
 

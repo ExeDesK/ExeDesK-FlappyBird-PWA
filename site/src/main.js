@@ -10,7 +10,7 @@ import {
 import { Game } from './game.js';
 import { PerfProfiler } from './perf.js';
 
-const VERSION = '0.2.6b';
+const VERSION = '0.2.6.1b';
 const BEST_SCORE_KEY = 'flappy13-personal-best-v1';
 const SETTINGS_KEY = 'flappy13-settings-v1';
 const LAST_VERSION_KEY = 'flappy13-last-version-v1';
@@ -246,7 +246,7 @@ function syncUtilityVisibility() {
   const state = game?.state ?? 'MENU';
   const mode = state === 'MENU'
     ? 'options'
-    : state === 'READY'
+    : state === 'READY' || state === 'GAME_OVER'
       ? 'home'
       : 'hidden';
   const signature = `${mode}:${game?.fadeEvent ?? 0}:${game?.fade?.done ?? true}`;
@@ -271,11 +271,13 @@ function syncUtilityVisibility() {
 }
 
 function returnToHome() {
-  if (!game || game.state !== 'READY' || !game.fade.done) {
+  const state = game?.state;
+
+  if (!game || !['READY', 'GAME_OVER'].includes(state) || !game.fade.done) {
     return;
   }
 
-  audio.note('READY_HOME');
+  audio.note('HOME_NAVIGATION', { from: state });
   clearInput();
   game.transition(true, 6, 0.25);
   syncUtilityVisibility();
@@ -389,9 +391,9 @@ window.addEventListener('keydown', event => {
   if (event.code === 'Escape') {
     event.preventDefault();
 
-    if (game?.state === 'MENU' || game?.state === 'GAME_OVER') {
+    if (game?.state === 'MENU') {
       openOptions();
-    } else if (game?.state === 'READY') {
+    } else if (game?.state === 'READY' || game?.state === 'GAME_OVER') {
       returnToHome();
     }
 
@@ -475,7 +477,7 @@ window.addEventListener('orientationchange', updateOrientationGuard);
 screen.orientation?.addEventListener?.('change', updateOrientationGuard);
 
 $('open-options').onclick = () => {
-  if (game?.state === 'READY') {
+  if (game?.state === 'READY' || game?.state === 'GAME_OVER') {
     returnToHome();
   } else {
     openOptions();

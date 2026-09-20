@@ -1,5 +1,13 @@
 # Changelog
 
+## v0.2.6.1b - Navigation & settings polish
+
+- Le bouton Maison est désormais disponible sur READY et GAME OVER ; il reste masqué uniquement pendant le gameplay et la phase de mort.
+- Correction du centrage pixel-perfect de l’icône Maison dans son bouton.
+- Ajout dans les options d’une mention claire de la conformité 1:1 au comportement de la dernière version originale publiée, Flappy Bird 1.3.
+- Ajout d’un lien vers le dépôt GitHub en bas des réglages.
+- Aucun changement du moteur déterministe : la parité APK 1.3 reste protégée par la CI.
+
 ## v0.2.6b - Continuous APK 1.3 parity
 
 - Ajout d'une validation 1:1 APK 1.3 ↔ PWA exécutée automatiquement sur chaque push et chaque pull request.

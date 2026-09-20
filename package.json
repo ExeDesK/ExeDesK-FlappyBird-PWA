@@ -1,6 +1,6 @@
 {
   "name": "flappy-bird-1-3-pwa",
-  "version": "0.2.6-beta",
+  "version": "0.2.6-beta.1",
   "private": true,
   "type": "module",
   "description": "Unofficial Flappy Bird 1.3 PWA recreation with offline support",
