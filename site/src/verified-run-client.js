@@ -107,7 +107,7 @@ export class VerifiedRunRecorder {
   }
 }
 
-function readQueue(storage) {
+function readStoredQueue(storage) {
   if (!storage) {
     return [];
   }
@@ -120,8 +120,73 @@ function readQueue(storage) {
   }
 }
 
+function writeQueue(storage, queue) {
+  if (storage) {
+    storage.setItem(VERIFIED_RUN_QUEUE_KEY, JSON.stringify(queue));
+  }
+
+  return queue;
+}
+
+function normalizeQueueItem(item) {
+  if (!item || typeof item !== 'object' || Array.isArray(item)) {
+    return null;
+  }
+
+  try {
+    const playerId = parseRunId(item.player_id);
+    const submission = createVerifiedRunSubmission(item.submission);
+    const queuedAt = String(item.queued_at || '');
+
+    if (!queuedAt || !Number.isFinite(Date.parse(queuedAt))) {
+      return null;
+    }
+
+    return {
+      queued_at: queuedAt,
+      player_id: playerId,
+      submission: normalizedSubmission(submission),
+    };
+  } catch {
+    return null;
+  }
+}
+
+function normalizedSubmission(submission) {
+  return {
+    schema: submission.schema,
+    run_id: submission.run_id,
+    physics_version: submission.physics_version,
+    terminal_tick: submission.terminal_tick,
+    taps: [...submission.taps],
+  };
+}
+
+export function repairPendingVerifiedRunQueue(
+  storage = globalThis.localStorage,
+) {
+  const repairedByRun = new Map();
+
+  for (const item of readStoredQueue(storage)) {
+    const normalized = normalizeQueueItem(item);
+    if (!normalized) {
+      continue;
+    }
+
+    const runId = normalized.submission.run_id;
+    if (repairedByRun.has(runId)) {
+      repairedByRun.delete(runId);
+    }
+    repairedByRun.set(runId, normalized);
+  }
+
+  const repaired = [...repairedByRun.values()].slice(-MAX_PENDING_VERIFIED_RUNS);
+  writeQueue(storage, repaired);
+  return repaired;
+}
+
 export function pendingVerifiedRuns(storage = globalThis.localStorage) {
-  return structuredClone(readQueue(storage));
+  return structuredClone(repairPendingVerifiedRunQueue(storage));
 }
 
 export function pendingVerifiedRunsForPlayer(
@@ -129,8 +194,8 @@ export function pendingVerifiedRunsForPlayer(
   storage = globalThis.localStorage,
 ) {
   const normalizedPlayerId = parseRunId(playerId);
-  return pendingVerifiedRuns(storage).filter(item =>
-    !item?.player_id || item.player_id === normalizedPlayerId
+  return pendingVerifiedRuns(storage).filter(
+    item => item.player_id === normalizedPlayerId,
   );
 }
 
@@ -139,11 +204,19 @@ export function removePendingVerifiedRun(
   { storage = globalThis.localStorage } = {},
 ) {
   const normalizedRunId = parseRunId(runId);
-  const queue = readQueue(storage)
-    .filter(item => item?.submission?.run_id !== normalizedRunId);
+  const queue = repairPendingVerifiedRunQueue(storage)
+    .filter(item => item.submission.run_id !== normalizedRunId);
 
-  storage.setItem(VERIFIED_RUN_QUEUE_KEY, JSON.stringify(queue));
+  writeQueue(storage, queue);
   return queue.length;
+}
+
+export function shouldDiscardVerifiedRunSubmission(error) {
+  if ([400, 409, 413, 422].includes(error?.status)) {
+    return true;
+  }
+
+  return error?.status === 404 && error?.code === 'run_not_found';
 }
 
 export function enqueueVerifiedRun(
@@ -155,17 +228,32 @@ export function enqueueVerifiedRun(
   } = {},
 ) {
   const normalized = createVerifiedRunSubmission(submission);
-  const normalizedPlayerId = playerId === null ? null : parseRunId(playerId);
-  const queue = readQueue(storage)
-    .filter(item => item?.submission?.run_id !== normalized.run_id);
+  if (playerId === null || playerId === undefined) {
+    throw new TypeError('player_id requis pour une soumission de run vérifié.');
+  }
+
+  let normalizedPlayerId;
+  try {
+    normalizedPlayerId = parseRunId(playerId);
+  } catch {
+    throw new TypeError('player_id invalide.');
+  }
+
+  const queuedAtValue = String(queuedAt || '');
+  if (!queuedAtValue || !Number.isFinite(Date.parse(queuedAtValue))) {
+    throw new TypeError('queued_at invalide.');
+  }
+
+  const queue = repairPendingVerifiedRunQueue(storage)
+    .filter(item => item.submission.run_id !== normalized.run_id);
 
   queue.push({
-    queued_at: queuedAt,
+    queued_at: queuedAtValue,
     player_id: normalizedPlayerId,
-    submission: normalized,
+    submission: normalizedSubmission(normalized),
   });
 
   const bounded = queue.slice(-MAX_PENDING_VERIFIED_RUNS);
-  storage.setItem(VERIFIED_RUN_QUEUE_KEY, JSON.stringify(bounded));
+  writeQueue(storage, bounded);
   return bounded.length;
 }

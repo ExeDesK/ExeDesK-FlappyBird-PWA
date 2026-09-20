@@ -71,6 +71,7 @@ test('authenticated PLAY requests a verified ticket and offers an explicit unran
 test('completed verified runs flush automatically without trusting a client score', () => {
   const main = read('site/src/main.js');
   const auth = read('site/src/auth.js');
+  const verifiedClient = read('site/src/verified-run-client.js');
   const submitMethod = auth.slice(
     auth.indexOf('async submitVerifiedRun(submission)'),
     auth.indexOf('\n  async sync(', auth.indexOf('async submitVerifiedRun(submission)')),
@@ -81,7 +82,9 @@ test('completed verified runs flush automatically without trusting a client scor
   assert.match(main, /flushVerifiedRunQueue\(\{ reason: 'online', notify: true \}\)/);
   assert.match(main, /type === 'record' && !verifiedRunRecorder/);
   assert.match(main, /highestVerifiedScore >= 0[\s\S]*saveBest\(highestVerifiedScore\)/);
-  assert.match(main, /error\?\.code === 'run_not_found'/);
+  assert.match(main, /shouldDiscardVerifiedRunSubmission\(error\)/);
+  assert.match(main, /shouldDiscardVerifiedRunSubmission\(error\)[\s\S]*continue;/);
+  assert.match(verifiedClient, /error\?\.code === 'run_not_found'/);
   assert.match(auth, /functions\/v1\/run-submit/);
   assert.match(submitMethod, /createVerifiedRunSubmission\(submission\)/);
   assert.match(submitMethod, /body: JSON\.stringify\(normalized\)/);

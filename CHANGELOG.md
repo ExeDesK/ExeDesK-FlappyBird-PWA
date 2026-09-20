@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.2.7.2b-dev4 - Verified Runs queue hardening
+
+- Correction du blocage de la file locale causé par d’anciens runs sans `player_id`, qui pouvaient être renvoyés indéfiniment après un `404 run_not_found`.
+- Réparation automatique de la file Verified Runs : suppression des entrées sans propriétaire, malformées ou dupliquées, tout en conservant les runs valides des autres comptes.
+- Toute nouvelle entrée de la file exige désormais un `player_id` valide ; un run ne peut plus devenir « ownerless ».
+- `404 run_not_found` est désormais une erreur terminale : l’entrée locale est retirée et le flush continue avec les runs suivants au lieu de rester bloqué sur un poison pill.
+- Les erreurs transitoires (`429`, `5xx`, réseau) restent différées sans perte du replay local.
+- Ajout de tests de non-régression pour la réparation de file, l’isolation multi-compte, les doublons et la classification des erreurs terminales/transitoires.
+- Aucun changement du moteur déterministe, de `flappy13-physics-v1`, du schéma SQL Supabase ni des Edge Functions.
+
 ## v0.2.7.2b-dev3 - Authoritative run submission
 
 - Ajout de l’Edge Function authentifiée `run-submit`, qui recharge le ticket et sa seed directement depuis `public.verified_runs`.

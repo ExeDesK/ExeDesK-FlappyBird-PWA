@@ -29,6 +29,14 @@ La phase 3, versionnée sous `v0.2.7.2b-dev3`, ferme la boucle de vérification 
 - la PWA vide automatiquement la file après la partie, au démarrage connecté et au retour du réseau ;
 - les erreurs transitoires conservent le replay localement pour une tentative ultérieure.
 
+La phase 4, versionnée sous `v0.2.7.2b-dev4`, durcit la file locale avant le leaderboard :
+
+- chaque entrée doit appartenir à un `player_id` UUID valide ; les anciennes entrées ownerless sont retirées ;
+- la file se répare à la lecture en supprimant les entrées malformées et en gardant uniquement la version la plus récente d’un `run_id` dupliqué ;
+- les runs valides d’autres comptes restent stockés sur l’appareil mais ne sont jamais soumis sous le compte actif ;
+- `404 run_not_found` est terminal et ne peut plus bloquer les soumissions placées derrière lui ;
+- les erreurs réseau, `429` et `5xx` restent différables.
+
 Les runs vérifiés sont désormais persistés comme source d’autorité. La vue et l’interface du leaderboard restent une étape distincte.
 
 ## Versions du contrat

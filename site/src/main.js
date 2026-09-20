@@ -17,11 +17,12 @@ import {
   pendingVerifiedRuns as readPendingVerifiedRuns,
   pendingVerifiedRunsForPlayer,
   removePendingVerifiedRun,
+  shouldDiscardVerifiedRunSubmission,
   verifiedRunStartMode,
 } from './verified-run-client.js';
 import { createCanonicalRunGame } from './verified-runs.js';
 
-const VERSION = '0.2.7.2b-dev3';
+const VERSION = '0.2.7.2b-dev4';
 const BEST_SCORE_KEY = 'flappy13-personal-best-v1';
 const SETTINGS_KEY = 'flappy13-settings-v1';
 const LAST_VERSION_KEY = 'flappy13-last-version-v1';
@@ -323,16 +324,6 @@ function queueVerifiedSubmission(submission) {
   }
 }
 
-function discardableSubmissionError(error, item) {
-  if ([400, 409, 413, 422].includes(error?.status)) {
-    return true;
-  }
-
-  return error?.status === 404
-    && error?.code === 'run_not_found'
-    && Boolean(item?.player_id);
-}
-
 async function flushVerifiedRunQueue({ reason = 'manual', notify = false } = {}) {
   if (verifiedQueueFlushPromise) {
     return verifiedQueueFlushPromise;
@@ -370,7 +361,7 @@ async function flushVerifiedRunQueue({ reason = 'manual', notify = false } = {})
           rejected++;
         }
       } catch (error) {
-        if (discardableSubmissionError(error, item)) {
+        if (shouldDiscardVerifiedRunSubmission(error)) {
           removePendingVerifiedRun(submission.run_id);
           discarded++;
           console.warn('[Verified Runs] Soumission locale abandonnée.', {

@@ -1,8 +1,8 @@
-# Rapport de tests - v0.2.7.2b-dev3
+# Rapport de tests - v0.2.7.2b-dev4
 
 ## Résultat
 
-- **98/98 tests Node passent** avec `npm test`.
+- **101/101 tests Node passent** avec `npm test`.
 - Le bundle concaténé utilisé par le smoke test passe le contrôle de syntaxe JavaScript.
 - Le smoke test Chromium n’a pas été relancé dans cet environnement, où Playwright Python et Chromium ne sont pas installés.
 - Le cache PWA contient **31 ressources** et refuse de se déclarer complet si une ressource de précache manque.
@@ -116,3 +116,9 @@ Un contrôle statique garantit que l’interface appelle bien `run-start`, const
 Les tests vérifient le contrat de résultat, la suppression des champs réservés au serveur, le hash SHA-256 canonique, un replay accepté et plusieurs motifs de rejet. `run-submit` doit authentifier l’utilisateur, filtrer simultanément `run_id`, `player_id` et `status = issued`, puis accepter uniquement les retries possédant le même hash.
 
 La copie Edge de `math.js`, `game.js` et `verified-runs.js` est comparée octet par octet aux sources PWA avant chaque suite de tests. Les contrôles client couvrent également la séparation de la file par compte, sa vidange automatique et la suppression d’un run seulement après une réponse définitive.
+
+## Durcissement de la file Verified Runs (v0.2.7.2b-dev4)
+
+Les tests client couvrent désormais la migration automatique des anciennes files : les entrées sans `player_id`, les entrées malformées et les doublons sont supprimés, tandis que les runs valides d’un autre compte restent stockés mais isolés.
+
+Ils vérifient aussi qu’une nouvelle soumission ne peut pas être mise en file sans propriétaire valide et qu’un `404 run_not_found` est terminal, alors que les erreurs réseau, `429`, `5xx` et les `404` non liés à un run absent restent différables. Cette protection empêche une entrée irrécupérable en tête de file de bloquer les runs suivants.

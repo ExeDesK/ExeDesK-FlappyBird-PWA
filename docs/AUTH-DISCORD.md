@@ -88,6 +88,8 @@ Ce champ est un **record personnel synchronisé non vérifié**. Il ne servira p
 
 Depuis `v0.2.7.2b-dev3`, la file est envoyée automatiquement à `run-submit` après la collision, au démarrage connecté et au retour du réseau. Seules les entrées appartenant au compte Discord actif sont traitées. Une erreur réseau ou serveur conserve le run pour une nouvelle tentative ; un résultat `verified` ou `rejected` retire définitivement l’entrée locale.
 
+Depuis `v0.2.7.2b-dev4`, la file est auto-réparante : les anciennes entrées sans `player_id`, les entrées malformées et les doublons sont nettoyés. Un `404 run_not_found` est considéré comme terminal et retiré afin de ne jamais bloquer les runs suivants ; les erreurs réseau, `429` et `5xx` restent conservées pour retry.
+
 
 ## v0.2.7.1n-hotfix1
 
