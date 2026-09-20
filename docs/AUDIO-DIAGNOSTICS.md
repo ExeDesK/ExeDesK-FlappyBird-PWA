@@ -32,7 +32,7 @@ Le journal garde les 250 derniers événements et enregistre notamment :
 
 Si le son disparaît, le JSON produit par **Copier audio** est le diagnostic à conserver.
 
-## Bug reproduit et corrigé en v0.2.6.2b
+## Bug reproduit et corrigé en v0.2.6.3b
 
 Une capture réelle sur iPhone/iOS 18.7 a montré que Safari peut placer le `AudioContext` dans l'état WebKit non standard `interrupted`. Lors d'un retour au premier plan, cet état peut persister alors que la page est `visible` et focalisée. L'ancienne logique ne relançait `resume()` que pour `suspended`, ce qui laissait ensuite tous les SFX ignorés avec `context-interrupted`.
 

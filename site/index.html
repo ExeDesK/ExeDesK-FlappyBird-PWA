@@ -48,7 +48,17 @@
       aria-label="Ouvrir les options"
     >
       <span id="utility-menu-icon" class="pixel-menu-icon" aria-hidden="true"></span>
-      <span id="utility-home-icon" class="pixel-home-icon" aria-hidden="true" hidden></span>
+      <span id="utility-home-icon" class="pixel-home-icon" aria-hidden="true" hidden>
+        <svg viewBox="0 0 24 24" shape-rendering="crispEdges" focusable="false">
+          <g fill="currentColor">
+            <rect x="10" y="2" width="4" height="4"/>
+            <rect x="6" y="6" width="12" height="4"/>
+            <rect x="2" y="10" width="20" height="4"/>
+            <rect x="4" y="14" width="16" height="8"/>
+          </g>
+          <rect class="pixel-home-door" x="10" y="16" width="4" height="6"/>
+        </svg>
+      </span>
     </button>
 
     <p id="toast" role="status" hidden></p>
@@ -62,7 +72,7 @@
         <button id="close-options" class="close-options" aria-label="Fermer">X</button>
       </header>
 
-      <p class="version">BETA 0.2.6.2b</p>
+      <p class="version">BETA 0.2.6.3b</p>
       <p id="offline-status" class="status-card">Préparation du mode hors ligne...</p>
 
       <section class="menu-card" aria-labelledby="game-settings-title">

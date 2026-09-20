@@ -1,6 +1,11 @@
 # Changelog
 
-## v0.2.6.2b - iOS audio interruption recovery
+## v0.2.6.3b - Home icon alignment
+
+- Remplacement du pictogramme Maison en `box-shadow` par une icône SVG pixel-art centrée géométriquement dans le bouton.
+- Aucun changement du moteur déterministe ni du correctif audio iOS.
+
+## v0.2.6.3b - iOS audio interruption recovery
 
 - Correction du bug audio reproduit sur iOS/Safari : un `AudioContext` pouvait rester dans l’état WebKit `interrupted` après un retour au premier plan.
 - `interrupted` est désormais traité comme un état récupérable, au même titre que `suspended`, et déclenche `AudioContext.resume()`.
