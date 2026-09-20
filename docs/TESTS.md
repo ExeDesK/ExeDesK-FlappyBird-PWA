@@ -1,8 +1,8 @@
-# Rapport de tests - v0.2.7.2b-dev2
+# Rapport de tests - v0.2.7.2b-dev3
 
 ## Résultat
 
-- **89/89 tests Node passent** avec `npm test`.
+- **98/98 tests Node passent** avec `npm test`.
 - Le bundle concaténé utilisé par le smoke test passe le contrôle de syntaxe JavaScript.
 - Le smoke test Chromium n’a pas été relancé dans cet environnement, où Playwright Python et Chromium ne sont pas installés.
 - Le cache PWA contient **31 ressources** et refuse de se déclarer complet si une ressource de précache manque.
@@ -31,7 +31,7 @@
 | Service Worker | Installation atomique, lecture offline, mise à jour en attente, activation contrôlée et purge des anciens caches de la même portée. |
 | GitHub Pages | Chemins relatifs vérifiés ; `version.json` reste network-only. |
 | Audio iOS | `interrupted` et `suspended` bloqués, timeout de `resume()`, hard recovery et impulsion silencieuse couverts par des tests dédiés. |
-| Verified Runs | Contrat versionné, ticket serveur, état READY canonique et quatre replays golden vérifiés jusqu’au score/collision/tick terminal. |
+| Verified Runs | Ticket serveur, capture différée, moteur Edge synchronisé, relecture autoritaire et résolution atomique `verified/rejected`. |
 
 ## Smoke test navigateur
 
@@ -110,3 +110,9 @@ Des contrôles statiques vérifient également que :
 Les tests client vérifient les trois décisions de départ : jeu local sans session, ticket en ligne avec session Discord et avertissement hors ligne. Ils couvrent aussi l’interception exacte du relâchement de PLAY, le tick `0` indépendant du temps passé sur READY, la capture jusqu’à la collision et la file locale dédupliquée/bornée.
 
 Un contrôle statique garantit que l’interface appelle bien `run-start`, construit le moteur canonique, attache l’enregistreur et exige une confirmation explicite avant le fallback non classé.
+
+## Soumission autoritaire (v0.2.7.2b-dev3)
+
+Les tests vérifient le contrat de résultat, la suppression des champs réservés au serveur, le hash SHA-256 canonique, un replay accepté et plusieurs motifs de rejet. `run-submit` doit authentifier l’utilisateur, filtrer simultanément `run_id`, `player_id` et `status = issued`, puis accepter uniquement les retries possédant le même hash.
+
+La copie Edge de `math.js`, `game.js` et `verified-runs.js` est comparée octet par octet aux sources PWA avant chaque suite de tests. Les contrôles client couvrent également la séparation de la file par compte, sa vidange automatique et la suppression d’un run seulement après une réponse définitive.

@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.2.7.2b-dev3 - Authoritative run submission
+
+- Ajout de l’Edge Function authentifiée `run-submit`, qui recharge le ticket et sa seed directement depuis `public.verified_runs`.
+- Relecture autoritaire du replay côté serveur : le navigateur n’envoie ni seed, ni score, ni collision, ni identité joueur.
+- Résolution atomique d’un ticket `issued` vers `verified` ou `rejected`, avec score/collision recalculés, hash SHA-256 et code de rejet.
+- Les retries strictement identiques sont idempotents ; toute seconde soumission différente pour le même `run_id` reçoit un conflit.
+- Le moteur `flappy13-physics-v1` de l’Edge Function est généré depuis les sources PWA et sa synchronisation est imposée par `npm test`.
+- Ajout d’un mode de simulation headless côté vérificateur, sans modifier la physique ni les traces APK.
+- Vidange automatique de la file locale après une partie, au démarrage connecté et au retour du réseau.
+- Les files sont séparées par identifiant de compte Discord ; un run reste conservé sur l’appareil après une erreur transitoire.
+- Le meilleur score local/cross-device est mis à jour depuis le score autoritaire retourné par le serveur.
+
 ## v0.2.7.2b-dev2 - Ranked PLAY integration
 
 - Le bouton PLAY demande désormais un ticket `run-start` pour chaque joueur disposant d’une session Discord et encore connecté au réseau.

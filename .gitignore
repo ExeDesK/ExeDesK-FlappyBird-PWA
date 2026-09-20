@@ -6,6 +6,7 @@ Thumbs.db
 
 # Temporary CI dependencies / local parity harness
 .ci/
+supabase/.temp/
 
 # Local environment / secrets
 .env

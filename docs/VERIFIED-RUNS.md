@@ -20,7 +20,16 @@ La phase 2, versionnée sous `v0.2.7.2b-dev2`, raccorde cette fondation à l’i
 - une session Discord hors ligne, ou une erreur de ticket, affiche un avertissement avant toute partie locale non classée ;
 - un joueur sans session Discord conserve le chemin local historique sans avertissement.
 
-La file locale n’est pas encore envoyée : l’Edge Function `run-submit` et sa vidange automatique appartiennent à la phase suivante. Un run `dev2` est donc préparé et enregistré comme candidat classé, mais pas encore validé dans un leaderboard.
+La phase 3, versionnée sous `v0.2.7.2b-dev3`, ferme la boucle de vérification :
+
+- `run-submit` recharge le ticket, la seed et le propriétaire depuis la base privée ;
+- le replay est normalisé, hashé en SHA-256 et rejoué sans faire confiance au score client ;
+- la ligne passe atomiquement de `issued` à `verified` ou `rejected` ;
+- un retry strictement identique renvoie le résultat existant, tandis qu’une seconde soumission différente est refusée ;
+- la PWA vide automatiquement la file après la partie, au démarrage connecté et au retour du réseau ;
+- les erreurs transitoires conservent le replay localement pour une tentative ultérieure.
+
+Les runs vérifiés sont désormais persistés comme source d’autorité. La vue et l’interface du leaderboard restent une étape distincte.
 
 ## Versions du contrat
 
@@ -28,6 +37,7 @@ La file locale n’est pas encore envoyée : l’Edge Function `run-submit` et s
 physics_version : flappy13-physics-v1
 ticket schema   : flappy13-run-ticket-v1
 replay schema   : flappy13-verified-run-v1
+result schema   : flappy13-run-result-v1
 ```
 
 `physics_version` ne suit pas `VERSION`. Un correctif d’interface, d’audio ou de PWA ne doit pas invalider les replays. Elle ne change que si une modification affecte la simulation autoritaire.
@@ -91,6 +101,31 @@ Les bornes v1 sont :
 - ticks strictement croissants ;
 - aucun tap après `terminal_tick`.
 
+## Vérification et résultat
+
+`POST /functions/v1/run-submit` exige le JWT du même joueur que le ticket. Le serveur refuse tout champ réservé (`seed`, `score`, `collision`, `player_id`), recharge la seed en base puis simule chaque tick jusqu’à la collision annoncée.
+
+Une réponse vérifiée contient uniquement le résultat recalculé :
+
+```json
+{
+  "schema": "flappy13-run-result-v1",
+  "run_id": "123e4567-e89b-12d3-a456-426614174000",
+  "physics_version": "flappy13-physics-v1",
+  "status": "verified",
+  "terminal_tick": 953,
+  "score": 10,
+  "collision": "lower-pipe",
+  "rejection_code": null,
+  "resolved_at": "2026-09-20T20:00:00.000Z",
+  "idempotent": false
+}
+```
+
+Un replay incohérent est persisté avec `status = rejected`, sans score ni collision. Une mise à jour conditionnelle sur `status = issued` garantit qu’un seul payload peut résoudre le ticket. Le même payload peut néanmoins être renvoyé après une coupure réseau : son hash identique rend l’opération idempotente.
+
+Le code serveur utilise une copie générée du moteur dans `supabase/functions/_shared/physics-v1`. `npm run sync:edge-physics` la régénère et `npm test` échoue si elle diverge des sources de `site/src`.
+
 ## Modèle Supabase
 
 La migration [`supabase/003_verified_runs.sql`](../supabase/003_verified_runs.sql) crée `public.verified_runs`.
@@ -106,7 +141,7 @@ La migration [`supabase/003_verified_runs.sql`](../supabase/003_verified_runs.sq
 
 Le futur leaderboard passera par une vue ou une RPC dédiée et n’exposera jamais directement les tickets, seeds ou rejets.
 
-## Déploiement de la phase 1
+## Déploiement
 
 Exécuter les migrations dans l’ordre :
 
@@ -116,13 +151,15 @@ supabase/002_best_score_sync.sql
 supabase/003_verified_runs.sql
 ```
 
-Puis déployer la fonction :
+Vérifier ensuite la copie serveur du moteur et déployer les fonctions :
 
 ```bash
-supabase functions deploy run-start
+npm run check:edge-physics
+npx supabase@latest functions deploy run-start --project-ref TON_PROJECT_REF
+npx supabase@latest functions deploy run-submit --project-ref TON_PROJECT_REF
 ```
 
-`run-start` conserve la vérification JWT par défaut. Les variables Supabase nécessaires au wrapper serveur sont fournies automatiquement par la plateforme.
+Les deux fonctions conservent la vérification JWT par défaut : ne pas utiliser `--no-verify-jwt`. Les variables Supabase nécessaires au wrapper serveur sont fournies automatiquement par la plateforme.
 
 ## Garanties testées
 
@@ -135,4 +172,6 @@ supabase functions deploy run-start
 - les collisions `ground`, `lower-pipe`, `upper-pipe`, `lower-pipe` ;
 - les ticks terminaux `53`, `953`, `224`, `1733` ;
 - le rejet d’une collision antérieure ou d’un faux tick terminal ;
+- la résolution `verified/rejected`, le hash canonique et les retries idempotents ;
+- la synchronisation exacte du moteur partagé avec l’Edge Function ;
 - l’isolation RLS de la table et la génération serveur de la seed.

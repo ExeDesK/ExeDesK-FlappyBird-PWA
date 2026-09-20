@@ -8,6 +8,8 @@ import {
   enqueueVerifiedRun,
   isPlayRelease,
   pendingVerifiedRuns,
+  pendingVerifiedRunsForPlayer,
+  removePendingVerifiedRun,
   verifiedRunStartMode,
 } from '../site/src/verified-run-client.js';
 import {
@@ -132,4 +134,33 @@ test('completed submissions are deduplicated and bounded in the offline queue', 
   assert.equal(deduplicated.length, MAX_PENDING_VERIFIED_RUNS);
   assert.equal(deduplicated.at(-1).queued_at, '2026-09-20T19:00:00.000Z');
   assert.ok(storage.getItem(VERIFIED_RUN_QUEUE_KEY));
+});
+
+test('offline queue keeps account ownership local and removes one resolved run', () => {
+  const storage = new MemoryStorage();
+  const playerOne = 'aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa';
+  const playerTwo = 'bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb';
+  const runOne = RUN_ID;
+  const runTwo = '223e4567-e89b-12d3-a456-426614174000';
+  const submission = runId => ({
+    schema: 'flappy13-verified-run-v1',
+    run_id: runId,
+    physics_version: PHYSICS_VERSION,
+    terminal_tick: 53,
+    taps: [0],
+  });
+
+  enqueueVerifiedRun(submission(runOne), { storage, playerId: playerOne });
+  enqueueVerifiedRun(submission(runTwo), { storage, playerId: playerTwo });
+
+  assert.deepEqual(
+    pendingVerifiedRunsForPlayer(playerOne, storage)
+      .map(item => item.submission.run_id),
+    [runOne],
+  );
+  assert.equal(removePendingVerifiedRun(runOne, { storage }), 1);
+  assert.deepEqual(
+    pendingVerifiedRuns(storage).map(item => item.submission.run_id),
+    [runTwo],
+  );
 });

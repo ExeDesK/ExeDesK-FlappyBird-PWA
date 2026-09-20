@@ -86,7 +86,7 @@ Ce champ est un **record personnel synchronisé non vérifié**. Il ne servira p
 - si `run-start` échoue, le fallback local exige la même confirmation et n’est jamais silencieux ;
 - une fois le ticket obtenu, la capture du run continue même si la connexion disparaît.
 
-La phase `dev2` conserve les soumissions terminées dans une file locale. Elle ne les envoie pas encore : `run-submit` sera ajouté dans la phase suivante.
+Depuis `v0.2.7.2b-dev3`, la file est envoyée automatiquement à `run-submit` après la collision, au démarrage connecté et au retour du réseau. Seules les entrées appartenant au compte Discord actif sont traitées. Une erreur réseau ou serveur conserve le run pour une nouvelle tentative ; un résultat `verified` ou `rejected` retire définitivement l’entrée locale.
 
 
 ## v0.2.7.1n-hotfix1

@@ -61,11 +61,31 @@ test('authenticated PLAY requests a verified ticket and offers an explicit unran
   assert.match(main, /auth\.startVerifiedRun\(\)/);
   assert.match(main, /createCanonicalRunGame/);
   assert.match(main, /new VerifiedRunRecorder\(ticket\)/);
-  assert.match(main, /enqueueVerifiedRun\(submission\)/);
+  assert.match(main, /enqueueVerifiedRun\(submission, \{ playerId \}\)/);
   assert.match(main, /hasSession: Boolean\(auth\.session\)/);
   assert.match(html, /id="unranked-warning"/);
   assert.match(html, /id="unranked-continue"/);
   assert.match(html, /JOUER QUAND MÊME/);
+});
+
+test('completed verified runs flush automatically without trusting a client score', () => {
+  const main = read('site/src/main.js');
+  const auth = read('site/src/auth.js');
+  const submitMethod = auth.slice(
+    auth.indexOf('async submitVerifiedRun(submission)'),
+    auth.indexOf('\n  async sync(', auth.indexOf('async submitVerifiedRun(submission)')),
+  );
+
+  assert.match(main, /auth\.submitVerifiedRun\(submission\)/);
+  assert.match(main, /removePendingVerifiedRun\(submission\.run_id\)/);
+  assert.match(main, /flushVerifiedRunQueue\(\{ reason: 'online', notify: true \}\)/);
+  assert.match(main, /type === 'record' && !verifiedRunRecorder/);
+  assert.match(main, /highestVerifiedScore >= 0[\s\S]*saveBest\(highestVerifiedScore\)/);
+  assert.match(main, /error\?\.code === 'run_not_found'/);
+  assert.match(auth, /functions\/v1\/run-submit/);
+  assert.match(submitMethod, /createVerifiedRunSubmission\(submission\)/);
+  assert.match(submitMethod, /body: JSON\.stringify\(normalized\)/);
+  assert.doesNotMatch(submitMethod, /JSON\.stringify\([^)]*(seed|score)/);
 });
 
 test('Discord community auth uses deploy-time runtime config and ships no server secret', () => {

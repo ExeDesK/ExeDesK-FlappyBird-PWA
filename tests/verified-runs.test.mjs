@@ -5,11 +5,14 @@ import test from 'node:test';
 import {
   MAX_VERIFIED_RUN_TICK,
   PHYSICS_VERSION,
+  RUN_RESULT_SCHEMA,
   RUN_TICKET_SCHEMA,
   VERIFIED_RUN_SCHEMA,
   createCanonicalRunGame,
   createVerifiedRunSubmission,
   parseRunTicket,
+  parseVerifiedRunResult,
+  parseVerifiedRunSubmission,
   simulateVerifiedRun,
 } from '../site/src/verified-runs.js';
 
@@ -106,6 +109,43 @@ test('verified submission contract contains no client-owned seed or score', () =
   assert.throws(
     () => createVerifiedRunSubmission({ ...submission, terminal_tick: MAX_VERIFIED_RUN_TICK + 1 }),
     /doit être compris/,
+  );
+
+  assert.deepEqual(parseVerifiedRunSubmission(submission), submission);
+  assert.throws(
+    () => parseVerifiedRunSubmission({ ...submission, score: 999999 }),
+    /champ réservé au serveur/,
+  );
+});
+
+test('verified run results accept coherent verified and rejected outcomes only', () => {
+  const verified = parseVerifiedRunResult({
+    schema: RUN_RESULT_SCHEMA,
+    run_id: RUN_ID,
+    physics_version: PHYSICS_VERSION,
+    status: 'verified',
+    terminal_tick: 53,
+    score: 0,
+    collision: 'ground',
+    rejection_code: null,
+    resolved_at: '2026-09-20T20:00:00.000Z',
+    idempotent: false,
+  });
+  assert.equal(verified.status, 'verified');
+  assert.equal(verified.score, 0);
+
+  const rejected = parseVerifiedRunResult({
+    ...verified,
+    status: 'rejected',
+    score: null,
+    collision: null,
+    rejection_code: 'early_collision',
+  });
+  assert.equal(rejected.status, 'rejected');
+
+  assert.throws(
+    () => parseVerifiedRunResult({ ...verified, score: 999, collision: null }),
+    /incohérent/,
   );
 });
 

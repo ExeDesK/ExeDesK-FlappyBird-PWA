@@ -15,11 +15,13 @@ import {
   enqueueVerifiedRun,
   isPlayRelease,
   pendingVerifiedRuns as readPendingVerifiedRuns,
+  pendingVerifiedRunsForPlayer,
+  removePendingVerifiedRun,
   verifiedRunStartMode,
 } from './verified-run-client.js';
 import { createCanonicalRunGame } from './verified-runs.js';
 
-const VERSION = '0.2.7.2b-dev2';
+const VERSION = '0.2.7.2b-dev3';
 const BEST_SCORE_KEY = 'flappy13-personal-best-v1';
 const SETTINGS_KEY = 'flappy13-settings-v1';
 const LAST_VERSION_KEY = 'flappy13-last-version-v1';
@@ -87,6 +89,7 @@ let allowUnrankedPlayOnce = false;
 let verifiedRunRecorder = null;
 let lastVerifiedRun = null;
 let unrankedWarningResolver = null;
+let verifiedQueueFlushPromise = null;
 
 const touchRecords = new Map();
 const trace = [];
@@ -209,7 +212,9 @@ function saveBest(value) {
 function handleGameEvent({ type, value }) {
   if (type === 'sound') {
     audio.play(value);
-  } else if (type === 'record') {
+  } else if (type === 'record' && !verifiedRunRecorder) {
+    // Ranked runs update persistent scores only after run-submit has replayed
+    // them authoritatively. The Game may still render its in-run panel value.
     saveBest(value);
   } else if (type === 'local-scores') {
     openOptions(true);
@@ -290,7 +295,8 @@ function installVerifiedGame(ticket) {
 
 function queueVerifiedSubmission(submission) {
   try {
-    const pending = enqueueVerifiedRun(submission);
+    const playerId = auth.user?.id || auth.profile?.id || null;
+    const pending = enqueueVerifiedRun(submission, { playerId });
     lastVerifiedRun = {
       status: 'queued',
       run_id: submission.run_id,
@@ -299,12 +305,13 @@ function queueVerifiedSubmission(submission) {
       pending,
     };
     console.info('[Verified Runs] Replay enregistré pour soumission.', lastVerifiedRun);
-    toast(
-      navigator.onLine
-        ? 'Run classé conservé localement · en attente de soumission.'
-        : 'Run classé conservé hors ligne · en attente de soumission.',
-      6000,
-    );
+
+    if (navigator.onLine && auth.session) {
+      toast('Run terminé · vérification serveur…');
+      void flushVerifiedRunQueue({ reason: 'run-finished', notify: true });
+    } else {
+      toast('Run classé conservé hors ligne · soumission automatique au retour du réseau.', 6000);
+    }
   } catch (error) {
     lastVerifiedRun = {
       status: 'queue-error',
@@ -314,6 +321,130 @@ function queueVerifiedSubmission(submission) {
     console.error('[Verified Runs] Enregistrement local impossible.', error);
     toast('Impossible d’enregistrer ce run classé sur cet appareil.', 6000);
   }
+}
+
+function discardableSubmissionError(error, item) {
+  if ([400, 409, 413, 422].includes(error?.status)) {
+    return true;
+  }
+
+  return error?.status === 404
+    && error?.code === 'run_not_found'
+    && Boolean(item?.player_id);
+}
+
+async function flushVerifiedRunQueue({ reason = 'manual', notify = false } = {}) {
+  if (verifiedQueueFlushPromise) {
+    return verifiedQueueFlushPromise;
+  }
+
+  const playerId = auth.user?.id || auth.profile?.id;
+  if (!auth.session || !playerId || !navigator.onLine) {
+    return { verified: 0, rejected: 0, discarded: 0, deferred: true };
+  }
+
+  verifiedQueueFlushPromise = (async () => {
+    let verified = 0;
+    let rejected = 0;
+    let discarded = 0;
+    let deferred = false;
+    let highestVerifiedScore = -1;
+    let lastResult = null;
+    const queue = pendingVerifiedRunsForPlayer(playerId);
+
+    for (const item of queue) {
+      const submission = item?.submission;
+      if (!submission?.run_id) {
+        continue;
+      }
+
+      try {
+        const result = await auth.submitVerifiedRun(submission);
+        removePendingVerifiedRun(submission.run_id);
+        lastResult = result;
+
+        if (result.status === 'verified') {
+          verified++;
+          highestVerifiedScore = Math.max(highestVerifiedScore, result.score);
+        } else {
+          rejected++;
+        }
+      } catch (error) {
+        if (discardableSubmissionError(error, item)) {
+          removePendingVerifiedRun(submission.run_id);
+          discarded++;
+          console.warn('[Verified Runs] Soumission locale abandonnée.', {
+            run_id: submission.run_id,
+            status: error?.status,
+            code: error?.code,
+          });
+          continue;
+        }
+
+        deferred = true;
+        console.warn('[Verified Runs] Soumission différée.', {
+          run_id: submission.run_id,
+          reason,
+          status: error?.status,
+          code: error?.code,
+          message: error?.message,
+        });
+        break;
+      }
+    }
+
+    if (highestVerifiedScore >= 0) {
+      saveBest(highestVerifiedScore);
+    }
+
+    if (lastResult) {
+      lastVerifiedRun = {
+        status: lastResult.status,
+        run_id: lastResult.run_id,
+        score: lastResult.score,
+        collision: lastResult.collision,
+        rejection_code: lastResult.rejection_code,
+        resolved_at: lastResult.resolved_at,
+        idempotent: lastResult.idempotent,
+      };
+    }
+
+    console.info('[Verified Runs] File de soumission traitée.', {
+      reason,
+      verified,
+      rejected,
+      discarded,
+      deferred,
+    });
+
+    if (notify) {
+      if (verified > 0) {
+        toast(
+          verified === 1
+            ? `Run vérifié · score ${highestVerifiedScore}.`
+            : `${verified} runs vérifiés · meilleur score ${highestVerifiedScore}.`,
+          6000,
+        );
+      } else if (rejected > 0) {
+        toast(
+          rejected === 1
+            ? 'Run rejeté par la vérification serveur.'
+            : `${rejected} runs rejetés par la vérification serveur.`,
+          6000,
+        );
+      } else if (discarded > 0) {
+        toast('Une ancienne soumission incompatible a été retirée.', 6000);
+      } else if (deferred) {
+        toast('Soumission reportée · le run reste conservé sur cet appareil.', 6000);
+      }
+    }
+
+    return { verified, rejected, discarded, deferred };
+  })().finally(() => {
+    verifiedQueueFlushPromise = null;
+  });
+
+  return verifiedQueueFlushPromise;
 }
 
 async function beginAuthenticatedPlay(originGame, mode) {
@@ -1558,9 +1689,10 @@ $('refresh-cache').onclick = updateAction;
 
 window.addEventListener('online', () => {
   audio.note('NETWORK_ONLINE');
-  auth.sync({ reason: 'online' }).then(state => {
+  auth.sync({ reason: 'online' }).then(async state => {
     if (state.status === 'signed_in') {
-      syncBestWithCloud({ reason: 'online' });
+      await syncBestWithCloud({ reason: 'online' });
+      await flushVerifiedRunQueue({ reason: 'online', notify: true });
     }
   });
   checkForUpdates({ silent: true, reason: 'online' });
@@ -1674,6 +1806,10 @@ async function boot() {
           reason: auth.callbackResult === 'signed_in' ? 'discord-login' : 'startup',
           notify: auth.callbackResult === 'signed_in',
         });
+        await flushVerifiedRunQueue({
+          reason: auth.callbackResult === 'signed_in' ? 'discord-login' : 'startup',
+          notify: true,
+        });
       }
 
       if (auth.callbackResult === 'signed_in') {
@@ -1704,6 +1840,7 @@ async function boot() {
           return [];
         }
       },
+      flushVerifiedRuns: () => flushVerifiedRunQueue({ reason: 'diagnostic', notify: true }),
       snapshot: () => game.snapshot(),
       pause(value = true) {
         paused = value;

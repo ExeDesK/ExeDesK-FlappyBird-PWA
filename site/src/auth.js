@@ -1,4 +1,8 @@
-import { parseRunTicket } from './verified-runs.js';
+import {
+  createVerifiedRunSubmission,
+  parseRunTicket,
+  parseVerifiedRunResult,
+} from './verified-runs.js';
 
 const AUTH_STORAGE_KEY = 'flappy13-auth-v1';
 const SESSION_SKEW_MS = 60 * 1000;
@@ -424,6 +428,52 @@ export class AuthClient {
     }
 
     return parseRunTicket(payload);
+  }
+
+  async submitVerifiedRun(submission) {
+    if (!this.session) {
+      throw new Error('Connexion requise pour soumettre une partie classée.');
+    }
+
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      const error = new Error('Soumission du run indisponible hors connexion.');
+      error.code = 'offline';
+      error.retryable = true;
+      throw error;
+    }
+
+    let normalized;
+    try {
+      normalized = createVerifiedRunSubmission(submission);
+    } catch (cause) {
+      const error = new Error(cause?.message || 'Soumission locale invalide.');
+      error.status = 400;
+      error.code = 'invalid_submission';
+      error.retryable = false;
+      throw error;
+    }
+    const accessToken = await this._validAccessToken();
+    const response = await fetch(`${this.url}/functions/v1/run-submit`, {
+      method: 'POST',
+      headers: {
+        ...this._authHeaders(accessToken),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(normalized),
+    });
+    const payload = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      const error = new Error(
+        payload?.message || payload?.error || `Soumission du run HTTP ${response.status}`,
+      );
+      error.status = response.status;
+      error.code = payload?.error || null;
+      error.retryable = response.status === 429 || response.status >= 500;
+      throw error;
+    }
+
+    return parseVerifiedRunResult(payload);
   }
 
   async sync({ reason = 'manual' } = {}) {

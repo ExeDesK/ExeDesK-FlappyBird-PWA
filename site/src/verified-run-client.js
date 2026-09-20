@@ -1,6 +1,7 @@
 import {
   createVerifiedRunSubmission,
   isVerifiedRunTerminal,
+  parseRunId,
 } from './verified-runs.js';
 
 export const VERIFIED_RUN_QUEUE_KEY = 'flappy13-verified-run-queue-v1';
@@ -123,16 +124,44 @@ export function pendingVerifiedRuns(storage = globalThis.localStorage) {
   return structuredClone(readQueue(storage));
 }
 
+export function pendingVerifiedRunsForPlayer(
+  playerId,
+  storage = globalThis.localStorage,
+) {
+  const normalizedPlayerId = parseRunId(playerId);
+  return pendingVerifiedRuns(storage).filter(item =>
+    !item?.player_id || item.player_id === normalizedPlayerId
+  );
+}
+
+export function removePendingVerifiedRun(
+  runId,
+  { storage = globalThis.localStorage } = {},
+) {
+  const normalizedRunId = parseRunId(runId);
+  const queue = readQueue(storage)
+    .filter(item => item?.submission?.run_id !== normalizedRunId);
+
+  storage.setItem(VERIFIED_RUN_QUEUE_KEY, JSON.stringify(queue));
+  return queue.length;
+}
+
 export function enqueueVerifiedRun(
   submission,
-  { storage = globalThis.localStorage, queuedAt = new Date().toISOString() } = {},
+  {
+    storage = globalThis.localStorage,
+    queuedAt = new Date().toISOString(),
+    playerId = null,
+  } = {},
 ) {
   const normalized = createVerifiedRunSubmission(submission);
+  const normalizedPlayerId = playerId === null ? null : parseRunId(playerId);
   const queue = readQueue(storage)
     .filter(item => item?.submission?.run_id !== normalized.run_id);
 
   queue.push({
     queued_at: queuedAt,
+    player_id: normalizedPlayerId,
     submission: normalized,
   });
 

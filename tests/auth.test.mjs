@@ -233,6 +233,60 @@ test('verified run start sends the user JWT and validates the server ticket', as
   }
 });
 
+test('verified run submission sends only replay inputs and validates the server result', async () => {
+  const browser = installBrowser();
+  const previousFetch = globalThis.fetch;
+  let request = null;
+  globalThis.fetch = async (input, init = {}) => {
+    request = { url: String(input), init };
+    return new Response(JSON.stringify({
+      schema: 'flappy13-run-result-v1',
+      run_id: '123e4567-e89b-12d3-a456-426614174000',
+      physics_version: 'flappy13-physics-v1',
+      status: 'verified',
+      terminal_tick: 53,
+      score: 0,
+      collision: 'ground',
+      rejection_code: null,
+      resolved_at: '2026-09-20T20:00:00.000Z',
+      idempotent: false,
+    }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+  };
+
+  try {
+    const auth = new AuthClient({ ...config, storage: new MemoryStorage() });
+    auth.session = {
+      accessToken: 'access',
+      refreshToken: 'refresh',
+      tokenType: 'bearer',
+      expiresAt: Date.now() + 3600000,
+    };
+
+    const result = await auth.submitVerifiedRun({
+      schema: 'flappy13-verified-run-v1',
+      run_id: '123e4567-e89b-12d3-a456-426614174000',
+      physics_version: 'flappy13-physics-v1',
+      terminal_tick: 53,
+      taps: [0],
+      seed: 42,
+      score: 999,
+    });
+
+    const body = JSON.parse(request.init.body);
+    assert.equal(result.status, 'verified');
+    assert.equal(result.score, 0);
+    assert.equal(request.url, 'https://project-ref.supabase.co/functions/v1/run-submit');
+    assert.equal(request.init.method, 'POST');
+    assert.equal(request.init.headers.Authorization, 'Bearer access');
+    assert.deepEqual(body.taps, [0]);
+    assert.equal('seed' in body, false);
+    assert.equal('score' in body, false);
+  } finally {
+    globalThis.fetch = previousFetch;
+    browser.restore();
+  }
+});
+
 test('best score migration performs an atomic max merge and prevents direct browser writes', async () => {
   const sql = await readFile(new URL('../supabase/002_best_score_sync.sql', import.meta.url), 'utf8');
   assert.match(sql, /best_score integer not null default 0/i);
