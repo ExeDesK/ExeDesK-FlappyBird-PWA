@@ -10,9 +10,12 @@ import {
 import { Game } from './game.js';
 import { PerfProfiler } from './perf.js';
 
-const VERSION = '0.2.3b-dev1';
+const VERSION = '0.2.4b';
 const BEST_SCORE_KEY = 'flappy13-personal-best-v1';
 const SETTINGS_KEY = 'flappy13-settings-v1';
+const LAST_VERSION_KEY = 'flappy13-last-version-v1';
+const UPDATE_CHECK_INTERVAL_MS = 15 * 60 * 1000;
+const UPDATE_PROBE_TIMEOUT_MS = 3500;
 const MAX_REPLAY_INPUTS = 30000;
 
 const $ = id => document.getElementById(id);
@@ -32,7 +35,12 @@ let debug = query.has('debug');
 let installPrompt = null;
 let cacheInfo = null;
 let remoteVersion = null;
+let pendingUpdateVersion = null;
+let swRegistration = null;
 let updateCheckTimer = null;
+let updateChecking = false;
+let reloadOnControllerChange = false;
+let lastUpdateToastVersion = null;
 let lastPerfResult = null;
 let cachedDebugState = null;
 let rafCount = 0;
@@ -248,7 +256,7 @@ function openOptions(showScores = false) {
 
   clearInput();
   clock.reset();
-  startUpdateChecks();
+  checkForUpdates({ silent: true, reason: 'options-open' });
 }
 
 function closeOptions() {
@@ -256,7 +264,6 @@ function closeOptions() {
   options.close();
   clearInput();
   clock.reset();
-  stopUpdateChecks();
   canvas.focus({ preventScroll: true });
 }
 
@@ -389,6 +396,10 @@ window.addEventListener('focus', () => {
 
 window.addEventListener('pageshow', event => {
   audio.note('PAGE_SHOW', { persisted: event.persisted });
+
+  if (swRegistration && navigator.onLine) {
+    checkForUpdates({ silent: true, reason: 'pageshow' });
+  }
 });
 
 window.addEventListener('pagehide', event => {
@@ -403,6 +414,10 @@ document.addEventListener('visibilitychange', () => {
   if (!document.hidden) {
     tryLockPortrait();
     updateOrientationGuard();
+
+    if (swRegistration && navigator.onLine) {
+      checkForUpdates({ silent: true, reason: 'foreground' });
+    }
   }
 });
 
@@ -417,7 +432,6 @@ $('close-options').onclick = closeOptions;
 options.addEventListener('close', () => {
   audio.note('SETTINGS_DIALOG_CLOSED');
   clock.reset();
-  stopUpdateChecks();
 });
 
 $('aspect').onchange = () => {
@@ -785,27 +799,43 @@ async function checkOffline() {
   cacheInfo = status;
 
   if (status?.complete) {
-    $('offline-status').textContent =
-      `Hors ligne prêt - ${status.count} ressources en cache.`;
+    $('offline-status').textContent = 'Disponible hors connexion.';
     return true;
   }
 
   $('offline-status').textContent =
-    'Cache incomplet : garder la connexion et recharger le jeu.';
+    'Le mode hors connexion se pr\u00e9pare encore. Gardez la connexion quelques instants.';
   return false;
 }
 
-async function checkUpdateSource({ silent = false } = {}) {
+function updateButton({ text, disabled }) {
   const button = $('refresh-cache');
-  const status = $('update-status');
+  button.textContent = text;
+  button.disabled = disabled;
+}
+
+function rememberVersion() {
+  let previous = null;
+
+  try {
+    previous = localStorage.getItem(LAST_VERSION_KEY);
+    localStorage.setItem(LAST_VERSION_KEY, VERSION);
+  } catch {
+    // Version notices are cosmetic only.
+  }
+
+  return previous && previous !== VERSION ? previous : null;
+}
+
+async function publishedVersion() {
+  if (!navigator.onLine) {
+    return null;
+  }
+
   const controller = new AbortController();
-  const timeout = setTimeout(() => controller.abort(), 2200);
+  const timeout = setTimeout(() => controller.abort(), UPDATE_PROBE_TIMEOUT_MS);
   const versionUrl = new URL('./version.json', location.href);
-
   versionUrl.searchParams.set('_check', String(Date.now()));
-
-  let reachable = false;
-  remoteVersion = null;
 
   try {
     const response = await fetch(versionUrl, {
@@ -814,32 +844,183 @@ async function checkUpdateSource({ silent = false } = {}) {
       headers: { Accept: 'application/json' },
     });
 
-    if (response.ok) {
-      const body = await response.json();
-      reachable = typeof body?.version === 'string';
-      remoteVersion = reachable ? body.version : null;
+    if (!response.ok) {
+      return null;
     }
+
+    const body = await response.json();
+    return typeof body?.version === 'string' ? body.version : null;
   } catch {
-    // Offline, captive portal, timeout, or host unavailable.
+    return null;
   } finally {
     clearTimeout(timeout);
   }
+}
 
-  button.disabled = !reachable;
-
-  if (reachable) {
-    status.textContent =
-      `Hébergement joignable · version ${remoteVersion} : mise à jour manuelle disponible.`;
-  } else {
-    status.textContent =
-      'Hébergement non joignable : mise à jour désactivée.';
+async function workerBuild(worker) {
+  if (!worker) {
+    return null;
   }
 
-  if (!silent && !reachable) {
-    toast('Hébergement introuvable : impossible de vider le cache en sécurité.');
+  return new Promise(resolve => {
+    const channel = new MessageChannel();
+    const timeout = setTimeout(() => {
+      channel.port1.close();
+      resolve(null);
+    }, 1500);
+
+    channel.port1.onmessage = event => {
+      clearTimeout(timeout);
+      channel.port1.close();
+      resolve(typeof event.data?.build === 'string' ? event.data.build : null);
+    };
+
+    try {
+      worker.postMessage({ type: 'GET_BUILD' }, [channel.port2]);
+    } catch {
+      clearTimeout(timeout);
+      channel.port1.close();
+      resolve(null);
+    }
+  });
+}
+
+async function markUpdateReady(version = null) {
+  const waiting = swRegistration?.waiting;
+
+  if (!waiting) {
+    return false;
   }
 
-  return reachable;
+  pendingUpdateVersion =
+    version ||
+    await workerBuild(waiting) ||
+    remoteVersion ||
+    'nouvelle version';
+
+  $('update-status').textContent =
+    `Mise \u00e0 jour ${pendingUpdateVersion} pr\u00eate \u00b7 installation automatique au prochain lancement.`;
+  updateButton({ text: 'Installer maintenant', disabled: false });
+
+  if (lastUpdateToastVersion !== pendingUpdateVersion) {
+    lastUpdateToastVersion = pendingUpdateVersion;
+    toast(
+      `Une mise \u00e0 jour ${pendingUpdateVersion} est pr\u00eate. Elle s\u2019installera au prochain lancement.`,
+      6500,
+    );
+  }
+
+  return true;
+}
+
+function watchInstallingWorker(worker) {
+  if (!worker) {
+    return;
+  }
+
+  const onStateChange = async () => {
+    if (worker.state === 'installed' && swRegistration?.waiting) {
+      worker.removeEventListener('statechange', onStateChange);
+      await markUpdateReady(remoteVersion);
+    } else if (worker.state === 'redundant') {
+      worker.removeEventListener('statechange', onStateChange);
+      $('update-status').textContent =
+        'La mise \u00e0 jour n\u2019a pas pu \u00eatre pr\u00e9par\u00e9e. Une nouvelle tentative sera faite automatiquement.';
+      updateButton({
+        text: 'Rechercher une mise \u00e0 jour',
+        disabled: !navigator.onLine,
+      });
+    }
+  };
+
+  worker.addEventListener('statechange', onStateChange);
+}
+
+async function checkForUpdates({ silent = false, reason = 'manual' } = {}) {
+  if (!isSecureContext || !('serviceWorker' in navigator)) {
+    $('update-status').textContent =
+      'Mises \u00e0 jour automatiques indisponibles dans ce navigateur.';
+    updateButton({ text: 'Rechercher une mise \u00e0 jour', disabled: true });
+    return 'unsupported';
+  }
+
+  if (!swRegistration) {
+    return 'not-ready';
+  }
+
+  if (swRegistration.waiting) {
+    await markUpdateReady();
+    return 'ready';
+  }
+
+  if (updateChecking) {
+    return 'checking';
+  }
+
+  updateChecking = true;
+  updateButton({ text: 'Recherche en cours\u2026', disabled: true });
+
+  try {
+    const version = await publishedVersion();
+    remoteVersion = version;
+
+    if (!version) {
+      $('update-status').textContent = navigator.onLine
+        ? 'V\u00e9rification impossible pour le moment. Nouvelle tentative automatique plus tard.'
+        : 'Hors connexion \u00b7 les mises \u00e0 jour reprendront automatiquement.';
+      updateButton({
+        text: 'Rechercher une mise \u00e0 jour',
+        disabled: !navigator.onLine,
+      });
+
+      if (!silent && navigator.onLine) {
+        toast('Impossible de v\u00e9rifier les mises \u00e0 jour pour le moment.');
+      }
+
+      return 'unreachable';
+    }
+
+    if (version === VERSION) {
+      pendingUpdateVersion = null;
+      $('update-status').textContent = `\u00c0 jour \u00b7 version ${VERSION}`;
+      updateButton({ text: 'Rechercher une mise \u00e0 jour', disabled: false });
+
+      if (!silent && reason === 'manual') {
+        toast('Vous utilisez d\u00e9j\u00e0 la derni\u00e8re version.');
+      }
+
+      return 'current';
+    }
+
+    $('update-status').textContent =
+      `Nouvelle version ${version} d\u00e9tect\u00e9e \u00b7 pr\u00e9paration en arri\u00e8re-plan\u2026`;
+
+    try {
+      await swRegistration.update();
+    } catch {
+      $('update-status').textContent =
+        `Version ${version} d\u00e9tect\u00e9e, mais son t\u00e9l\u00e9chargement sera retent\u00e9 automatiquement.`;
+      updateButton({ text: 'Rechercher une mise \u00e0 jour', disabled: false });
+      return 'detected';
+    }
+
+    if (swRegistration.waiting) {
+      await markUpdateReady(version);
+      return 'ready';
+    }
+
+    if (swRegistration.installing) {
+      watchInstallingWorker(swRegistration.installing);
+      return 'installing';
+    }
+
+    $('update-status').textContent =
+      `Version ${version} d\u00e9tect\u00e9e \u00b7 pr\u00e9paration automatique en cours.`;
+    updateButton({ text: 'Rechercher une mise \u00e0 jour', disabled: false });
+    return 'detected';
+  } finally {
+    updateChecking = false;
+  }
 }
 
 function stopUpdateChecks() {
@@ -849,111 +1030,127 @@ function stopUpdateChecks() {
 
 function startUpdateChecks() {
   stopUpdateChecks();
-  $('refresh-cache').disabled = true;
-  $('update-status').textContent = 'Recherche de la version publiée…';
-  checkUpdateSource({ silent: true });
 
-  // Poll only while options are open: no background network work during play.
   updateCheckTimer = setInterval(() => {
-    if (options.open) {
-      checkUpdateSource({ silent: true });
-    } else {
-      stopUpdateChecks();
+    if (!document.hidden && navigator.onLine) {
+      checkForUpdates({ silent: true, reason: 'timer' });
     }
-  }, 5000);
+  }, UPDATE_CHECK_INTERVAL_MS);
 }
 
-async function flushCacheAndUpdate() {
-  const button = $('refresh-cache');
+async function installPendingUpdate({ automatic = false } = {}) {
+  const waiting = swRegistration?.waiting;
 
-  if (!await checkUpdateSource()) {
+  if (!waiting) {
+    if (!automatic) {
+      await checkForUpdates({ silent: false, reason: 'manual' });
+    }
+    return false;
+  }
+
+  reloadOnControllerChange = true;
+  $('update-status').textContent = 'Installation de la mise \u00e0 jour\u2026';
+  updateButton({ text: 'Installation\u2026', disabled: true });
+
+  try {
+    waiting.postMessage({ type: 'ACTIVATE_UPDATE' });
+    return true;
+  } catch (error) {
+    reloadOnControllerChange = false;
+    $('update-status').textContent =
+      'La mise \u00e0 jour reste pr\u00eate et sera retent\u00e9e au prochain lancement.';
+    updateButton({ text: 'Installer maintenant', disabled: false });
+
+    if (!automatic) {
+      toast(`Installation report\u00e9e : ${error.message}`);
+    }
+
+    return false;
+  }
+}
+
+async function updateAction() {
+  if (swRegistration?.waiting) {
+    await installPendingUpdate();
     return;
   }
 
-  const originalText = button.textContent;
-  button.disabled = true;
-  button.textContent = 'Mise à jour…';
-
-  try {
-    // Recheck before destructive work, then purge only this app's caches.
-    if (!await checkUpdateSource()) {
-      throw new Error('L’hébergement ne répond plus.');
-    }
-
-    if ('caches' in window) {
-      const names = await caches.keys();
-      await Promise.all(
-        names
-          .filter(name => name.startsWith('flappy13-'))
-          .map(name => caches.delete(name)),
-      );
-    }
-
-    if ('serviceWorker' in navigator) {
-      const registrations = await navigator.serviceWorker.getRegistrations();
-      const currentScope = new URL('./', location.href).href;
-
-      await Promise.all(
-        registrations
-          .filter(registration => registration.scope === currentScope)
-          .map(registration => registration.unregister()),
-      );
-    }
-
-    const target = new URL(location.href);
-    target.searchParams.set('_update', String(Date.now()));
-    location.replace(target.href);
-  } catch (error) {
-    button.textContent = originalText;
-    await checkUpdateSource({ silent: true });
-    toast(`Mise à jour annulée : ${error.message}`);
-  }
+  await checkForUpdates({ silent: false, reason: 'manual' });
 }
 
-$('refresh-cache').onclick = flushCacheAndUpdate;
+$('refresh-cache').onclick = updateAction;
 
 window.addEventListener('online', () => {
   audio.note('NETWORK_ONLINE');
-  if (options.open) {
-    checkUpdateSource({ silent: true });
-  }
+  checkForUpdates({ silent: true, reason: 'online' });
 });
 
 window.addEventListener('offline', () => {
   audio.note('NETWORK_OFFLINE');
-  $('refresh-cache').disabled = true;
   $('update-status').textContent =
-    'Hébergement non joignable : mise à jour désactivée.';
+    'Hors connexion \u00b7 les mises \u00e0 jour reprendront automatiquement.';
+  updateButton({ text: 'Rechercher une mise \u00e0 jour', disabled: true });
 });
 
 async function setupPWA() {
   if (!isSecureContext || !('serviceWorker' in navigator)) {
     $('offline-status').textContent =
-      'Mode hors ligne PWA indisponible ici. Ouvrir sur localhost ou en HTTPS.';
+      'Le mode hors connexion n\u2019est disponible qu\u2019en HTTPS ou sur localhost.';
+    $('update-status').textContent =
+      'Mises \u00e0 jour automatiques indisponibles ici.';
+    updateButton({ text: 'Rechercher une mise \u00e0 jour', disabled: true });
     return;
   }
 
   navigator.serviceWorker.addEventListener('controllerchange', () => {
+    if (reloadOnControllerChange) {
+      reloadOnControllerChange = false;
+      location.reload();
+      return;
+    }
+
     checkOffline();
   });
 
-  const registration = await navigator.serviceWorker.register(
+  swRegistration = await navigator.serviceWorker.register(
     new URL('../sw.js', import.meta.url),
     { updateViaCache: 'none' },
   );
 
+  swRegistration.addEventListener('updatefound', () => {
+    watchInstallingWorker(swRegistration.installing);
+  });
+
   await navigator.serviceWorker.ready;
 
-  // Ask the browser to check for a newer worker whenever the app starts online.
-  try {
-    await registration.update();
-  } catch {
-    // The cached application remains playable offline.
+  // A worker already waiting when the application starts belongs to an update
+  // prepared during a previous session. Activating it here is safe: the player
+  // has just launched the app, so no in-progress run is interrupted.
+  const waitingAtLaunch = swRegistration.waiting;
+  if (waitingAtLaunch) {
+    const waitingBuild = await workerBuild(waitingAtLaunch);
+
+    if (!waitingBuild || waitingBuild !== VERSION) {
+      await markUpdateReady(waitingBuild);
+      await installPendingUpdate({ automatic: true });
+      return;
+    }
   }
 
-  if (await checkOffline()) {
-    toast('Hors ligne prêt : le jeu et ses sons sont en cache.');
+  const previousVersion = rememberVersion();
+  const offlineReady = await checkOffline();
+
+  if (previousVersion) {
+    toast(`Mise \u00e0 jour termin\u00e9e \u00b7 version ${VERSION}`, 5500);
+  } else if (offlineReady) {
+    toast('Tout est pr\u00eat \u00b7 vous pouvez jouer m\u00eame hors connexion.', 5000);
   }
+
+  // Check once at launch, then periodically and whenever the app comes back to
+  // the foreground. A discovered build is downloaded in the background but is
+  // never activated over an in-progress game.
+  await checkForUpdates({ silent: true, reason: 'startup' });
+  startUpdateChecks();
 }
 
 async function boot() {
@@ -1019,8 +1216,10 @@ async function boot() {
       },
       cache: () => cacheInfo,
       checkOffline,
-      checkUpdateSource,
-      flushCacheAndUpdate,
+      checkForUpdates,
+      installPendingUpdate,
+      checkUpdateSource: checkForUpdates,
+      flushCacheAndUpdate: installPendingUpdate,
       exportReplay,
       replayData,
       startProfiler,

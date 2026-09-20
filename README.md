@@ -8,7 +8,7 @@ L'objectif n'est pas de produire un simple clone « inspiré de » Flappy Bird, 
 
 Le jeu fonctionne entièrement côté client, sans framework ni backend, et peut être installé comme une application sur Windows, iPhone/iPad et Android.
 
-> **État du projet : bêta — v0.2.3b-dev1**
+> **État du projet : bêta — v0.2.4b**
 
 ---
 
@@ -18,6 +18,7 @@ Le jeu fonctionne entièrement côté client, sans framework ni backend, et peut
 - Simulation logique indépendante du taux de rafraîchissement de l'écran.
 - Canvas 2D + JavaScript ES modules, sans framework.
 - Fonctionnement hors ligne via Service Worker.
+- Mises à jour PWA automatiques, téléchargées en arrière-plan sans interrompre une partie.
 - Installation PWA sur Windows, iOS/iPadOS et Android.
 - Sauvegarde locale du meilleur score.
 - Affichage **Original** ou **Adapté** selon l'appareil.
@@ -247,7 +248,9 @@ Tous les chemins de l’application sont relatifs afin de fonctionner correcteme
 
 ### Mise à jour de la PWA
 
-Le fichier [`site/version.json`](./site/version.json) sert de sonde réseau statique au bouton **Vider le cache et mettre à jour**. Il est volontairement exclu du précache du Service Worker : une réponse valide prouve ainsi que l’hébergement est réellement joignable et non qu’une ancienne réponse vient du cache hors ligne.
+La PWA vérifie automatiquement [`site/version.json`](./site/version.json) au lancement, au retour au premier plan, après le retour du réseau et périodiquement. Lorsqu’une nouvelle version est publiée, le nouveau Service Worker et ses ressources sont préparés en arrière-plan sans interrompre la partie en cours. La mise à jour est activée automatiquement au lancement suivant, ou immédiatement via **Installer maintenant** dans les options.
+
+`version.json` reste volontairement hors du cache afin que la vérification reflète bien la version publiée sur GitHub Pages. L’installation du cache reste atomique : si une ressource de la nouvelle build manque, la version actuellement fonctionnelle reste active.
 
 ---
 

@@ -1,8 +1,8 @@
-# Rapport de tests - v0.2.3b-dev1
+# Rapport de tests - v0.2.4b
 
 ## Résultat
 
-- **52/52 tests Node passent** avec `npm test`.
+- **53/53 tests Node passent** avec `npm test`.
 - Le smoke test Chromium isolé passe sans erreur JavaScript.
 - Les 5 sons sont décodés dans le test navigateur.
 - Le garde-fou paysage est visible dans un contexte mobile tactile simulé.
@@ -29,7 +29,7 @@
 | Orientation | `portrait-primary` dans le manifeste + garde-fou paysage. |
 | iOS status bar | `black` opaque ; aucun `black-translucent`. |
 | Supersampling | ×2 minimum, ×3 sur DPR élevé, ×2 en mode Performance. |
-| Service Worker | Installation atomique, lecture offline, activation explicite et purge des anciens caches de la même portée. |
+| Service Worker | Installation atomique, lecture offline, mise à jour en attente, activation contrôlée et purge des anciens caches de la même portée. |
 | GitHub Pages | Chemins relatifs vérifiés ; `version.json` reste network-only. |
 
 ## Smoke test navigateur

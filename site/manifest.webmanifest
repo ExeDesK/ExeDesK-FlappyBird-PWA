@@ -2,7 +2,7 @@
   "id": "./",
   "name": "Flappy Bird 1.3",
   "short_name": "Flappy 1.3",
-  "description": "Flappy Bird 1.3 en PWA, jouable hors ligne après mise en cache.",
+  "description": "Flappy Bird 1.3 en PWA, jouable même sans connexion après le premier chargement.",
   "lang": "fr",
   "start_url": "./",
   "scope": "./",

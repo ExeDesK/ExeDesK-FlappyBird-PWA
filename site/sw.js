@@ -1,4 +1,4 @@
-const BUILD = '0.2.3b-dev1';
+const BUILD = '0.2.4b';
 const PREFIX = `flappy13-${encodeURIComponent(self.registration.scope)}-`;
 const CACHE = `${PREFIX}${BUILD}`;
 const ASSETS = [
@@ -67,8 +67,8 @@ self.addEventListener('fetch', event => {
     return;
   }
   const key = `${url.origin}${url.pathname}`;
-  // version.json intentionally stays network-only so the update button can
-  // distinguish the live GitHub Pages host from the offline application cache.
+  // version.json intentionally stays network-only so automatic update checks can
+  // distinguish the published GitHub Pages build from the offline app cache.
   if (!ALLOWED.has(key)) {
     return;
   }
@@ -94,6 +94,10 @@ self.addEventListener('fetch', event => {
   })());
 });
 self.addEventListener('message', event => {
+  if (event.data?.type === 'GET_BUILD') {
+    event.ports[0]?.postMessage({ build: BUILD });
+  }
+
   if (event.data?.type === 'ACTIVATE_UPDATE') {
     self.skipWaiting();
   }

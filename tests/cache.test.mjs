@@ -265,6 +265,22 @@ test('version.json remains network-only for GitHub Pages reachability checks', a
   assert.equal(await cache.match(`${h.scope}version.json`), undefined);
 });
 
+test('Waiting workers expose their build number to the page', async () => {
+  const h = harness();
+  let result;
+
+  await h.event('message', {
+    data: { type: 'GET_BUILD' },
+    ports: [{
+      postMessage(data) {
+        result = data;
+      },
+    }],
+  });
+
+  assert.equal(result.build, '0.2.4b');
+});
+
 test('Activation of a waiting update requires an explicit message', async () => {
   const h = harness();
   await h.event('install');

@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.2.4b - Automatic PWA updates
+
+- Remplacement de la purge manuelle du cache par un cycle de mise à jour PWA standard et non destructif.
+- Vérification automatique au lancement, au retour au premier plan, au retour du réseau et toutes les 15 minutes.
+- Une nouvelle version est téléchargée et mise en attente sans interrompre une partie en cours.
+- Une mise à jour déjà prête est activée automatiquement au lancement suivant, avec rechargement contrôlé.
+- Le bouton des options devient une action de vérification / installation manuelle de secours.
+- Le Service Worker expose son numéro de build pour fiabiliser l’échange avec la page active.
+- Conservation de l’installation atomique : une build incomplète n’écrase jamais la build fonctionnelle.
+- Toast de démarrage simplifié : « Tout est prêt · vous pouvez jouer même hors connexion. »
+- Les diagnostics audio de v0.2.3b-dev1 restent présents pour continuer à capturer le bug intermittent.
+
 ## v0.2.3b-dev1 - Audio diagnostics
 
 - Ajout d'un journal circulaire des 250 derniers événements audio/lifecycle.

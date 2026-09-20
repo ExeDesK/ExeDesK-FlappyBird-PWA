@@ -8,7 +8,7 @@ The goal is not to create another Flappy Bird-inspired clone, but to **reproduce
 
 The game runs entirely client-side, without a framework or backend, and can be installed as an application on Windows, iPhone/iPad and Android.
 
-> **Project status: beta — v0.2.3b-dev1**
+> **Project status: beta — v0.2.4b**
 
 ---
 
@@ -18,6 +18,7 @@ The game runs entirely client-side, without a framework or backend, and can be i
 - Logical simulation independent from the display refresh rate.
 - Canvas 2D + JavaScript ES modules, with no framework.
 - Offline support through a Service Worker.
+- Automatic PWA updates downloaded in the background without interrupting an active run.
 - Installable PWA on Windows, iOS/iPadOS and Android.
 - Local high-score persistence.
 - **Original** and **Adapted** display modes.
@@ -245,9 +246,11 @@ https://exedesk.github.io/FlappyBird-PWA/
 
 All application paths are relative so the PWA works correctly under the `/FlappyBird-PWA/` project subpath.
 
-### PWA update check
+### PWA updates
 
-[`site/version.json`](./site/version.json) is the static network probe used by the **Clear cache and update** button. It is deliberately excluded from the Service Worker precache: a successful response therefore proves that the host is actually reachable rather than returning a stale offline response.
+The PWA automatically checks [`site/version.json`](./site/version.json) at launch, when returning to the foreground, when connectivity returns, and periodically. When a new release is published, the new Service Worker and its resources are prepared in the background without interrupting the current run. The update is activated automatically on the next launch, or immediately through **Install now** in the options.
+
+`version.json` deliberately stays outside the Service Worker cache so the check reflects the version currently published on GitHub Pages. Cache installation remains atomic: if any resource from the new build is missing, the currently working version remains active.
 
 ---
 

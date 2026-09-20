@@ -1,4 +1,4 @@
-# Diagnostic audio - v0.2.3b-dev1
+# Diagnostic audio - instrumentation v0.2.3b-dev1 (conservée en v0.2.4b)
 
 Cette build instrumente le moteur audio sans modifier volontairement son comportement.
 
