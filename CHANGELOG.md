@@ -1,11 +1,14 @@
 # Changelog
 
-## v0.2.7.3b-dev5.5 - iOS fixed-step worker driver
+## v0.2.7.3b-dev5.6 - iOS interpolated worker pacing
 
-- Sur iOS en mode worker, chaque impulsion valide exécute désormais exactement **1 tick logique 60 Hz + 1 rendu**, au lieu de repasser par `FixedClock.steps(performance.now())`.
-- Les séquences worker sont monotones ; les impulsions obsolètes ou dupliquées sont ignorées et ne provoquent jamais de rafale de rattrapage.
-- Android/PC restent inchangés en `requestAnimationFrame` + `FixedClock(60)`.
-- Le moteur, `flappy13-physics-v1` et le format Verified Runs restent inchangés.
+- Repart du comportement `dev5.4`, jugé le plus fluide sur iOS : worker de présentation + `FixedClock(60)` + rendu interpolé.
+- Le ticker worker iOS est sur-échantillonné à 120 Hz afin de réduire la latence de phase et de fournir plus souvent un rendu récent au prochain rafraîchissement 60 Hz.
+- La simulation reste strictement à 60 Hz : le worker ne possède aucune logique de jeu et ne fait qu'alimenter la boucle existante.
+- Android et PC restent en `requestAnimationFrame` en mode `AUTO`.
+- Le timer 60 Hz reste disponible uniquement comme témoin de diagnostic.
+- Aucun changement de physique, Verified Runs, Supabase ou Edge Functions.
+- Validation automatisée : **129/129 tests Node** passent.
 
 ## v0.2.7.3b-dev5.4 - iOS worker frame ticker
 

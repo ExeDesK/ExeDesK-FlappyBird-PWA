@@ -8,7 +8,7 @@ The goal is not to create another Flappy Bird-inspired clone, but to **reproduce
 
 Gameplay runs entirely client-side without a framework and can be installed as an application on Windows, iPhone/iPad and Android. Optional community features use Supabase; no account is required to play.
 
-> **Project status: beta — v0.2.7.3b-dev5.5**
+> **Project status: beta — v0.2.7.3b-dev5.6**
 
 ---
 
@@ -388,3 +388,7 @@ This repository does not claim to grant any rights to the original assets. Anyon
 ## Continuous 1:1 validation
 
 Since v0.2.6b, every push and pull request automatically compares the PWA engine against golden traces captured from the Android 1.3 APK through the dedicated harness. GitHub Pages deployment is also blocked if parity diverges. See [`docs/APK-PARITY.md`](docs/APK-PARITY.md).
+
+### iOS presentation pacing
+
+Since `v0.2.7.3b-dev5.6`, `AUTO` uses a **120 Hz** oversampled presentation worker on iOS while keeping deterministic simulation at **60 Hz** through `FixedClock(60)`. This works around WebKit touch-event stalls while reducing the phase jitter observed with the 60 Hz worker. Android and PC keep using `requestAnimationFrame`.

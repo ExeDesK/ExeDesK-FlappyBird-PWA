@@ -6,7 +6,6 @@ let timerId = null;
 let running = false;
 let periodMs = 1000 / 60;
 let nextAt = 0;
-let sequence = 0;
 
 function stop() {
   running = false;
@@ -31,8 +30,7 @@ function tick() {
   }
 
   const now = performance.now();
-  sequence += 1;
-  postMessage({ type: 'frame', sequence, scheduledAt: nextAt });
+  postMessage({ type: 'frame' });
 
   nextAt += periodMs;
   // Never build a large callback backlog after a debugger pause or OS stall.
@@ -57,7 +55,6 @@ self.onmessage = event => {
   const hz = Number(event.data.hz);
   const safeHz = Number.isFinite(hz) ? Math.max(30, Math.min(120, hz)) : 60;
   periodMs = 1000 / safeHz;
-  sequence = 0;
   nextAt = performance.now() + periodMs;
   running = true;
   schedule();

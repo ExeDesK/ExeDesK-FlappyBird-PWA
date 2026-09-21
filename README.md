@@ -8,7 +8,7 @@ L'objectif n'est pas de produire un simple clone « inspiré de » Flappy Bird, 
 
 Le gameplay fonctionne entièrement côté client, sans framework, et peut être installé comme une application sur Windows, iPhone/iPad et Android. Les fonctions communautaires utilisent un backend Supabase facultatif : aucun compte n'est nécessaire pour jouer.
 
-> **État du projet : bêta — v0.2.7.3b-dev5.5**
+> **État du projet : bêta — v0.2.7.3b-dev5.6**
 
 ---
 
@@ -32,7 +32,7 @@ Le gameplay fonctionne entièrement côté client, sans framework, et peut être
 - Extension dynamique du ciel et du sol sur les écrans plus hauts que le format original.
 - Mode Performance pour limiter le supersampling sur les appareils à fort DPR.
 - Interpolation visuelle pour réduire les micro-saccades liées au `requestAnimationFrame` des navigateurs mobiles.
-- Sur iOS WebKit, le mode `AUTO` utilise un ticker 60 Hz dans un Web Worker : chaque impulsion fraîche exécute exactement un tick logique puis un rendu, ce qui contourne les hitches tactiles `requestAnimationFrame` et évite la cadence 0/1/2 ticks observée avec un worker horodaté.
+- Sur iOS WebKit, le mode `AUTO` utilise un ticker 60 Hz dans un Web Worker afin de contourner les hitches tactiles `requestAnimationFrame` sans subir la cadence ~50 Hz observée avec les timers du thread principal.
 - Supersampling du rendu pour améliorer notamment la rotation de l'oiseau sur les écrans Retina.
 - Profiler intégré pour diagnostiquer le frame pacing et les performances.
 - Chemin de tap iOS optimisé : canvas non focusable, aucun `preventDefault()` tactile, aucune lecture de layout, focus/capture tactile ou tentative de verrouillage d’orientation à chaque flap ; `touch-action: none` gère les gestes navigateur.
@@ -388,3 +388,7 @@ Ce dépôt ne prétend accorder aucun droit sur les ressources originales. Avant
 ## Validation 1:1 continue
 
 Depuis la v0.2.6b, chaque push et chaque pull request compare automatiquement le moteur PWA aux golden traces issues de l'APK Android 1.3 via le harness dédié. Le déploiement GitHub Pages est également bloqué si cette parité diverge. Voir [`docs/APK-PARITY.md`](docs/APK-PARITY.md).
+
+### iOS — cadence de présentation
+
+Depuis `v0.2.7.3b-dev5.6`, le mode `AUTO` utilise sur iOS un worker de présentation sur-échantillonné à **120 Hz** tout en conservant la simulation déterministe à **60 Hz** via `FixedClock(60)`. Le but est de contourner les stalls WebKit liés aux événements tactiles tout en réduisant le jitter de phase observé avec un worker 60 Hz. Android et PC restent en `requestAnimationFrame`.

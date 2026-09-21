@@ -1,4 +1,4 @@
-# iOS Performance — v0.2.7.3b-dev5.5
+# iOS Performance — v0.2.7.3b-dev5.6
 
 Cette version cible une micro-saccade perceptible sur iOS au moment de chaque flap, absente sur Android et desktop.
 
@@ -88,10 +88,15 @@ Si le worker n'est pas disponible ou échoue à démarrer, le runtime retombe au
 
 Le Service Worker précache également `frame-driver.js` et `frame-ticker.worker.js` afin que ce chemin reste disponible en PWA hors connexion.
 
-## dev5.5 — fixed-step worker driver
+## v0.2.7.3b-dev5.6 — worker sur-échantillonné
 
-Le profil réel `dev5.4` tient environ 60 FPS et supprime les gros hitches au tap, mais montre un motif `0 / 1 / 2 ticks` presque alterné lorsque les impulsions worker irrégulières sont réinterprétées par `FixedClock.steps(performance.now())`.
+Le `dev5.5` a démontré qu'un mapping strict `1 message worker = 1 tick` supprimait le motif `0/1/2`, mais dégradait la sensation au flap. Le `dev5.6` repart donc de l'architecture `dev5.4` : `FixedClock(60)` et interpolation restent propriétaires de la simulation/rendu.
 
-En `dev5.5`, le worker iOS devient la cadence logique de présentation : chaque message de séquence fraîche déclenche exactement **1 `tick()` + 1 `render(1)`**. Le worker reste dépourvu de toute logique de jeu ; il ne choisit ni physique, ni score, ni collision. Android et desktop gardent le chemin `requestAnimationFrame` + `FixedClock(60)`.
+Sur iOS uniquement, le worker de présentation passe de 60 à **120 impulsions par seconde**. La physique reste à 60 Hz ; les callbacks supplémentaires servent uniquement à réduire la latence de phase et à fournir un état interpolé plus récent au prochain rafraîchissement physique de l'écran.
 
-Chaque impulsion transporte un numéro de séquence monotone. Les séquences dupliquées ou obsolètes sont ignorées, afin qu'un stall WebKit ne puisse pas provoquer ensuite une rafale de ticks de rattrapage.
+Objectifs du profil iOS :
+
+- conserver `tapFramesOver25 = 0` ;
+- conserver `render p95 <= 1 ms` ;
+- réduire les drops/jitters perceptibles par rapport au worker 60 Hz ;
+- ne modifier ni `flappy13-physics-v1`, ni le format des Verified Runs.

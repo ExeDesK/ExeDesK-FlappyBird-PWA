@@ -144,12 +144,23 @@ test('main loop offers worker and timer drivers without changing the fixed simul
   assert.match(source, /frame-ticker\.worker\.js/);
   assert.match(source, /setInterval\(\(\) =>/);
   assert.match(source, /FRAME_DRIVER_PERIOD_MS/);
+  assert.match(source, /FRAME_DRIVER_WORKER_HZ = 120/);
+  assert.match(source, /type: 'start', hz: FRAME_DRIVER_WORKER_HZ/);
   assert.match(source, /new FixedClock\(60\)/);
   assert.match(html, /id="frame-driver"/);
-  assert.match(html, /AUTO \(WORKER SUR iOS\)/);
-  assert.match(html, /WORKER 60 Hz/);
+  assert.match(html, /AUTO \(WORKER 120 Hz SUR iOS\)/);
+  assert.match(html, /WORKER 120 Hz/);
 });
 
+
+test('iOS worker presentation is oversampled at 120 Hz while simulation stays fixed at 60 Hz', () => {
+  const source = fs.readFileSync(new URL('../site/src/main.js', import.meta.url), 'utf8');
+
+  assert.match(source, /const FRAME_DRIVER_HZ = 60/);
+  assert.match(source, /const FRAME_DRIVER_WORKER_HZ = 120/);
+  assert.match(source, /new FixedClock\(60\)/);
+  assert.match(source, /worker\.postMessage\(\{ type: 'start', hz: FRAME_DRIVER_WORKER_HZ \}\)/);
+});
 
 test('worker ticker uses drift-corrected scheduling and never owns game physics', () => {
   const worker = fs.readFileSync(new URL('../site/src/frame-ticker.worker.js', import.meta.url), 'utf8');
@@ -157,17 +168,6 @@ test('worker ticker uses drift-corrected scheduling and never owns game physics'
   assert.match(worker, /periodMs = 1000 \/ 60/);
   assert.match(worker, /nextAt \+= periodMs/);
   assert.match(worker, /setTimeout\(tick, delay\)/);
-  assert.match(worker, /postMessage\(\{ type: 'frame', sequence, scheduledAt: nextAt \}\)/);
+  assert.match(worker, /postMessage\(\{ type: 'frame' \}\)/);
   assert.doesNotMatch(worker, /import\s|new\s+Game|new\s+FixedClock|physics_version/);
-});
-
-
-test('worker driver consumes one fresh impulse as exactly one logical tick', () => {
-  const source = fs.readFileSync(new URL('../site/src/main.js', import.meta.url), 'utf8');
-
-  assert.match(source, /animateWorkerFrame\(performance\.now\(\)\)/);
-  assert.match(source, /function animateWorkerFrame\(now\)/);
-  assert.match(source, /tick\(\);[\s\S]*render\(1\);/);
-  assert.match(source, /profiler\.frame\(now, 1, renderMs\)/);
-  assert.match(source, /sequence <= workerLastSequence/);
 });
