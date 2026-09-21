@@ -145,3 +145,28 @@ test('repository does not contain a production Supabase runtime configuration', 
     concreteProjectUrl.lastIndex = 0;
   }
 });
+
+test('error toasts use the top layer and routine success chatter stays silent', () => {
+  const html = read('site/index.html');
+  const main = read('site/src/main.js');
+
+  assert.match(html, /id="toast"[^>]*popover="manual"/);
+  assert.match(main, /node\.showPopover\(\)/);
+  assert.match(main, /Pas d’internet · envoi reporté/);
+  assert.doesNotMatch(main, /Tout est prêt · vous pouvez jouer même hors connexion/);
+  assert.doesNotMatch(main, /Partie classée prête · touchez pour commencer/);
+  assert.doesNotMatch(main, /Run terminé · vérification serveur/);
+  assert.doesNotMatch(main, /Run vérifié · score/);
+  assert.doesNotMatch(main, /Préparation de la partie classée/);
+});
+
+test('verified PLAY hides ticket latency behind the native one-second fade cadence', () => {
+  const main = read('site/src/main.js');
+
+  assert.match(main, /PLAY_FADE_SECONDS = 0\.5/);
+  assert.match(main, /PLAY_FADE_MIN_MS = PLAY_FADE_SECONDS \* 1000/);
+  assert.match(main, /originGame\.transition\(true, 0, PLAY_FADE_SECONDS\)/);
+  assert.match(main, /Promise\.all\(\[ticketPromise, fadePromise\]\)/);
+  assert.match(main, /performance\.now\(\) - startedAt < PLAY_FADE_MIN_MS/);
+  assert.match(main, /game\.transition\(false, 0, PLAY_FADE_SECONDS\)/);
+});

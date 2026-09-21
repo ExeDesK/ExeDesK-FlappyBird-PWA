@@ -173,3 +173,12 @@ Le client valide strictement les deux états autorisés (classé / non classé),
 - Le bloc `VOS STATISTIQUES` utilise `details/summary`, est replié par défaut et expose un chevron d’état.
 - Les tests de version/cache ont été mis à jour vers `dev6.1`.
 - Aucun changement attendu côté Supabase ou moteur physique.
+
+
+## v0.2.7.3b-dev6.2
+
+- Suite Node : **127/127 tests**.
+- Vérifie que le toast utilise le Top Layer (`popover=manual`) et que les notifications de succès/progression Verified Runs ont disparu.
+- Vérifie le message hors-ligne `Pas d’internet · envoi reporté…`.
+- Vérifie que le PLAY classé déclenche un fade noir natif de 0,5 s, attend à la fois le minimum visuel et le ticket serveur, puis révèle READY par un fade retour de 0,5 s.
+- Aucun changement attendu côté Supabase ou moteur physique.

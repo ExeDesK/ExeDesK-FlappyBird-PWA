@@ -1,3 +1,14 @@
+## v0.2.7.3b-dev6.2 - Toast & Verified Run start UX
+
+- Les toasts passent dans le Top Layer via `popover=manual`, afin de rester visibles au-dessus des modales.
+- Suppression des toasts de succès ou de progression (`Tout est prêt`, préparation/création/validation de run, synchronisation réussie, actualisation réussie, etc.).
+- Les toasts sont désormais réservés aux erreurs et états dégradés : hors-ligne/envoi reporté, run rejeté, erreur locale, auth, leaderboard ou mise à jour en échec.
+- Le message hors-ligne devient `Pas d’internet · envoi reporté. Le run reste conservé sur cet appareil.`
+- Réintroduction de la transition PLAY native pour les Verified Runs : fade noir de 0,5 s dès le clic, `run-start` en parallèle, maintien au noir si le serveur tarde, puis fade retour de 0,5 s une fois le ticket reçu.
+- Temps visuel minimum de lancement : 1 seconde, conforme à la cadence de transition originale.
+- En cas d’échec de `run-start`, le choix de continuer localement repart depuis l’écran noir avec le fade original ; annuler restaure le menu par fade.
+- Aucun changement Supabase, physique, replay autoritaire ou contrat Verified Runs.
+
 ## v0.2.7.3b-dev6.1 - UI readability & collapsible stats
 
 - Augmentation modérée des tailles de police des menus, options, cartes et du leaderboard, surtout sur écrans tablette/desktop.

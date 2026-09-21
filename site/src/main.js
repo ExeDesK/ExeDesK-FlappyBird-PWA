@@ -23,7 +23,7 @@ import {
 } from './verified-run-client.js';
 import { createCanonicalRunGame } from './verified-runs.js';
 
-const VERSION = '0.2.7.3b-dev6.1';
+const VERSION = '0.2.7.3b-dev6.2';
 const BEST_SCORE_KEY = 'flappy13-personal-best-v1';
 const SETTINGS_KEY = 'flappy13-settings-v1';
 const LAST_VERSION_KEY = 'flappy13-last-version-v1';
@@ -39,6 +39,8 @@ const SUPABASE_PUBLISHABLE_KEY = typeof runtimeConfig.supabasePublishableKey ===
 const UPDATE_CHECK_INTERVAL_MS = 15 * 60 * 1000;
 const UPDATE_PROBE_TIMEOUT_MS = 3500;
 const MAX_REPLAY_INPUTS = 30000;
+const PLAY_FADE_SECONDS = 0.5;
+const PLAY_FADE_MIN_MS = PLAY_FADE_SECONDS * 1000;
 
 const $ = id => document.getElementById(id);
 const query = new URLSearchParams(location.search);
@@ -240,13 +242,34 @@ async function updateIosPromotionHint() {
 
 updateIosPromotionHint();
 
+function hideToast() {
+  const node = $('toast');
+
+  if (typeof node.hidePopover === 'function' && node.matches(':popover-open')) {
+    node.hidePopover();
+  } else {
+    node.hidden = true;
+  }
+}
+
 function toast(text, ms = 4500) {
-  $('toast').textContent = text;
-  $('toast').hidden = false;
+  const node = $('toast');
+  node.textContent = text;
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => {
-    $('toast').hidden = true;
-  }, ms);
+
+  // Popovers live in the browser top layer, above modal <dialog> elements.
+  if (typeof node.showPopover === 'function') {
+    if (node.matches(':popover-open')) {
+      node.hidePopover();
+    }
+
+    node.hidden = false;
+    node.showPopover();
+  } else {
+    node.hidden = false;
+  }
+
+  toastTimer = setTimeout(hideToast, ms);
 }
 
 function saveSettings() {
@@ -359,16 +382,19 @@ function installVerifiedGame(ticket) {
   currentCommands = cloneCommands(game.commands);
   cachedDebugState = debug ? game.snapshot() : null;
   lastUtilityVisibility = null;
+
+  // The ticket was fetched behind the native black PLAY transition. Reveal
+  // the canonical seeded READY state with the original 0.5 s fade-out.
+  game.transition(false, 0, PLAY_FADE_SECONDS);
+
   clock.reset();
   syncUtilityVisibility();
   render(1);
 
-  audio.play('swooshing');
   console.info('[Verified Runs] Partie classée prête.', {
     run_id: ticket.run_id,
     physics_version: ticket.physics_version,
   });
-  toast('Partie classée prête · touchez pour commencer.');
 }
 
 function queueVerifiedSubmission(submission) {
@@ -385,10 +411,9 @@ function queueVerifiedSubmission(submission) {
     console.info('[Verified Runs] Replay enregistré pour soumission.', lastVerifiedRun);
 
     if (navigator.onLine && auth.session) {
-      toast('Run terminé · vérification serveur…');
       void flushVerifiedRunQueue({ reason: 'run-finished', notify: true });
     } else {
-      toast('Run classé conservé hors ligne · soumission automatique au retour du réseau.', 6000);
+      toast('Pas d’internet · envoi reporté. Le run reste conservé sur cet appareil.', 6000);
     }
   } catch (error) {
     lastVerifiedRun = {
@@ -494,14 +519,7 @@ async function flushVerifiedRunQueue({ reason = 'manual', notify = false } = {})
     });
 
     if (notify) {
-      if (verified > 0) {
-        toast(
-          verified === 1
-            ? `Run vérifié · score ${highestVerifiedScore}.`
-            : `${verified} runs vérifiés · meilleur score ${highestVerifiedScore}.`,
-          6000,
-        );
-      } else if (rejected > 0) {
+      if (rejected > 0) {
         toast(
           rejected === 1
             ? 'Run rejeté par la vérification serveur.'
@@ -511,7 +529,7 @@ async function flushVerifiedRunQueue({ reason = 'manual', notify = false } = {})
       } else if (discarded > 0) {
         toast('Une ancienne soumission incompatible a été retirée.', 6000);
       } else if (deferred) {
-        toast('Soumission reportée · le run reste conservé sur cet appareil.', 6000);
+        toast('Pas d’internet · envoi reporté. Le run reste conservé sur cet appareil.', 6000);
       }
     }
 
@@ -523,7 +541,63 @@ async function flushVerifiedRunQueue({ reason = 'manual', notify = false } = {})
   return verifiedQueueFlushPromise;
 }
 
-async function beginAuthenticatedPlay(originGame, mode) {
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+async function waitForPlayFadeToBlack(originGame, startedAt) {
+  while (
+    game === originGame
+    && (
+      performance.now() - startedAt < PLAY_FADE_MIN_MS
+      || !originGame.fade.done
+      || originGame.fade.value < 1
+    )
+  ) {
+    await sleep(16);
+  }
+
+  return game === originGame;
+}
+
+function startVerifiedPlayFade(originGame) {
+  if (!originGame?.fade?.done) {
+    return null;
+  }
+
+  const startedAt = performance.now();
+  originGame.transition(true, 0, PLAY_FADE_SECONDS);
+  audio.play('swooshing');
+  syncUtilityVisibility();
+  clock.reset();
+  return startedAt;
+}
+
+function restoreMenuFromBlack(originGame) {
+  if (game !== originGame) {
+    return;
+  }
+
+  if (originGame.fade.done && originGame.fade.value > 0) {
+    originGame.transition(false, 0, PLAY_FADE_SECONDS);
+  }
+
+  syncUtilityVisibility();
+  clock.reset();
+}
+
+function startUnrankedFromBlack(originGame) {
+  if (game !== originGame) {
+    return;
+  }
+
+  verifiedRunRecorder = null;
+  originGame.event(5);
+  syncUtilityVisibility();
+  clock.reset();
+}
+
+async function beginAuthenticatedPlay(originGame, mode, fadeStartedAt = null) {
   if (verifiedStartPending) {
     return;
   }
@@ -541,30 +615,34 @@ async function beginAuthenticatedPlay(originGame, mode) {
         verifiedRunRecorder = null;
         allowUnrankedPlayOnce = true;
         originGame.play.pressed = true;
-        toast('Partie locale · non classée.');
       }
       return;
     }
 
-    toast('Préparation de la partie classée…');
-
     try {
-      const ticket = await auth.startVerifiedRun();
-      if (game === originGame && originGame.play.active) {
+      const ticketPromise = auth.startVerifiedRun();
+      const fadePromise = waitForPlayFadeToBlack(originGame, fadeStartedAt ?? performance.now());
+      const [ticket, stillCurrent] = await Promise.all([ticketPromise, fadePromise]);
+
+      if (stillCurrent && game === originGame && originGame.play.active) {
         installVerifiedGame(ticket);
       }
     } catch (error) {
       console.warn('[Verified Runs] Ticket indisponible.', error);
+
+      if (fadeStartedAt != null) {
+        await waitForPlayFadeToBlack(originGame, fadeStartedAt);
+      }
+
       const proceed = await askToPlayUnranked(
         `Impossible de préparer la partie classée : ${error?.message || error}. `
         + 'Vous pouvez continuer, mais cette partie ne sera pas comptabilisée.',
       );
 
       if (proceed && game === originGame && originGame.play.active) {
-        verifiedRunRecorder = null;
-        allowUnrankedPlayOnce = true;
-        originGame.play.pressed = true;
-        toast('Partie locale · non classée.');
+        startUnrankedFromBlack(originGame);
+      } else {
+        restoreMenuFromBlack(originGame);
       }
     }
   } finally {
@@ -616,14 +694,6 @@ async function syncBestWithCloud({ reason = 'manual', notify = false } = {}) {
       scoreSyncState = 'synced';
       scoreSyncError = null;
       renderAccount(auth.snapshot());
-
-      if (notify) {
-        if (best > beforeSync) {
-          toast(`Record récupéré : ${best}`);
-        } else {
-          toast(`Record synchronisé : ${best}`);
-        }
-      }
 
       return best;
     } catch (error) {
@@ -900,9 +970,6 @@ async function loadLeaderboard({ force = false, notify = false } = {}) {
       leaderboardRows = await auth.fetchLeaderboard({ limit: 100 });
       leaderboardState = 'loaded';
       leaderboardLoadedAt = Date.now();
-      if (notify) {
-        toast('Classement actualisé.');
-      }
       return leaderboardRows;
     } catch (error) {
       leaderboardState = 'error';
@@ -1149,7 +1216,6 @@ $('discord-logout').onclick = async () => {
   scoreSyncState = 'local';
   scoreSyncError = null;
   renderAccount(auth.snapshot());
-  toast('Déconnecté de Discord.');
 };
 
 $('refresh-leaderboard').onclick = () => {
@@ -1565,11 +1631,6 @@ $('performance-mode').onchange = () => {
   settings.performance = $('performance-mode').checked;
   saveSettings();
   resize();
-  toast(
-    settings.performance
-      ? 'Mode Performance : rendu interne plafonné à ×2.'
-      : 'Mode Performance désactivé.',
-  );
 };
 
 $('sound').onchange = () => {
@@ -1665,11 +1726,13 @@ function interceptAuthenticatedPlay(input) {
     return false;
   }
 
-  // Neutralize the native button release while the ticket request or warning
-  // is pending. A confirmed local fallback re-arms one ordinary release.
+  // Neutralize the native release while the ticket request or warning is
+  // pending. Verified runs immediately enter the original black transition,
+  // hiding server latency behind the same visual cadence as the APK.
   game.play.pressed = false;
   game.play.released = false;
-  beginAuthenticatedPlay(game, mode);
+  const fadeStartedAt = mode === 'verified' ? startVerifiedPlayFade(game) : null;
+  beginAuthenticatedPlay(game, mode, fadeStartedAt);
   return true;
 }
 
@@ -1797,7 +1860,6 @@ async function copyAudioDiagnostics() {
 
   try {
     await navigator.clipboard.writeText(text);
-    toast('Diagnostic audio copié.');
     return;
   } catch {
     // Clipboard API can be unavailable in standalone Safari/PWA contexts.
@@ -1813,7 +1875,6 @@ async function copyAudioDiagnostics() {
 
   try {
     document.execCommand('copy');
-    toast('Diagnostic audio copié.');
   } catch {
     toast('Copie impossible : utilisez Exporter audio.');
   } finally {
@@ -1940,7 +2001,6 @@ $('install').onclick = async () => {
 window.addEventListener('appinstalled', () => {
   $('install').hidden = true;
   tryLockPortrait();
-  toast('Application installée.');
 });
 
 async function checkOffline() {
@@ -2072,13 +2132,7 @@ async function markUpdateReady(version = null) {
     `Mise \u00e0 jour ${pendingUpdateVersion} pr\u00eate \u00b7 installation automatique au prochain lancement.`;
   updateButton({ text: 'Installer maintenant', disabled: false });
 
-  if (lastUpdateToastVersion !== pendingUpdateVersion) {
-    lastUpdateToastVersion = pendingUpdateVersion;
-    toast(
-      `Une mise \u00e0 jour ${pendingUpdateVersion} est pr\u00eate. Elle s\u2019installera au prochain lancement.`,
-      6500,
-    );
-  }
+  lastUpdateToastVersion = pendingUpdateVersion;
 
   return true;
 }
@@ -2156,7 +2210,6 @@ async function checkForUpdates({ silent = false, reason = 'manual' } = {}) {
       updateButton({ text: 'Rechercher une mise \u00e0 jour', disabled: false });
 
       if (!silent && reason === 'manual') {
-        toast('Vous utilisez d\u00e9j\u00e0 la derni\u00e8re version.');
       }
 
       return 'current';
@@ -2325,11 +2378,6 @@ async function setupPWA() {
   const previousVersion = rememberVersion();
   const offlineReady = await checkOffline();
 
-  if (previousVersion) {
-    toast(`Mise \u00e0 jour termin\u00e9e \u00b7 version ${VERSION}`, 5500);
-  } else if (offlineReady) {
-    toast('Tout est pr\u00eat \u00b7 vous pouvez jouer m\u00eame hors connexion.', 5000);
-  }
 
   // Check once at launch, then periodically and whenever the app comes back to
   // the foreground. A discovered build is downloaded in the background but is
@@ -2383,9 +2431,6 @@ async function boot() {
       }
 
       if (auth.callbackResult === 'signed_in') {
-        if (scoreSyncState !== 'synced') {
-          toast('Connexion Discord réussie · record en attente de synchronisation.');
-        }
         openOptions();
       } else if (auth.callbackResult === 'error') {
         toast(`Connexion Discord impossible : ${auth.error || 'erreur OAuth'}`);

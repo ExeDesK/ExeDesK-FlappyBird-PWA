@@ -195,3 +195,17 @@ Les runs `verified` ne sont plus conservées indéfiniment. Après chaque nouvel
 - le meilleur run historique avec le même départage déterministe que le leaderboard.
 
 Le résultat est donc de 50 lignes si le record fait partie des 50 dernières, ou 51 lignes au maximum s'il est plus ancien. `player_stats` conserve les agrégats lifetime avant toute purge. Les lignes `issued` et `rejected` ne sont pas concernées par cette politique.
+
+
+## UX de démarrage (v0.2.7.3b-dev6.2)
+
+La récupération du ticket `run-start` est masquée derrière la transition PLAY native :
+
+1. clic PLAY ;
+2. fade vers le noir pendant 0,5 s ;
+3. `run-start` s’exécute en parallèle ;
+4. l’écran reste noir si le serveur n’a pas encore répondu ;
+5. le ticket reçu installe la partie canonique ;
+6. fade retour pendant 0,5 s vers READY.
+
+Le lancement dure donc au minimum une seconde, comme la transition visuelle d’origine. Aucun toast de succès n’est affiché pendant la création, l’envoi ou la validation normale d’une run. Seuls les problèmes (hors-ligne, rejet, stockage impossible, etc.) sont signalés.
