@@ -1,4 +1,4 @@
-# iOS Performance — v0.2.7.3b-dev5.3
+# iOS Performance — v0.2.7.3b-dev5.4
 
 Cette version cible une micro-saccade perceptible sur iOS au moment de chaque flap, absente sur Android et desktop.
 
@@ -22,10 +22,11 @@ Le correctif ne modifie ni la physique, ni les ticks, ni le format des Verified 
 
 Un `pointerdown` tactile ne fait plus que :
 
-1. `preventDefault()` ;
+1. horodater le tap si le profiler est actif ;
 2. transformer les coordonnées via une géométrie de canvas mise en cache ;
-3. enregistrer le touch/tap ;
-4. demander un déverrouillage audio uniquement si le contexte n'est pas déjà opérationnel.
+3. enregistrer le touch/tap pour le prochain tick logique.
+
+Il ne fait ni `preventDefault()` tactile, ni focus, ni capture de pointeur, ni opération audio.
 
 Les opérations suivantes ne sont plus effectuées à chaque flap tactile :
 
@@ -62,10 +63,27 @@ Pour valider le hotfix sur iPhone :
 3. comparer le ressenti ainsi que `delta`, `tap` et `audio wing` entre les deux captures.
 
 
-## dev5.3 — contournement du scheduler WebKit
+## dev5.3 — essai timer thread principal
 
 Les mesures `dev5.2` sur iPhone ont montré une corrélation 1:1 : chaque tap observé appartenait à une frame > 25 ms, typiquement 30–31 ms, alors que le handler de tap et `render()` restaient quasi nuls. Ce profil correspond au bug WebKit public où les événements tactiles retardent `requestAnimationFrame`.
 
-Le mode `AUTO` utilise donc un timer 60 Hz comme pilote sur iOS WebKit uniquement. La simulation ne dépend pas de ce timer : `FixedClock(60)` reste l'unique horloge physique et les Verified Runs continuent d'enregistrer les taps par tick. Les autres plateformes restent sur `requestAnimationFrame`.
+`dev5.3` a testé un timer du thread principal à 60 Hz. Le hitch ponctuel au tap a disparu, mais le profil réel iPhone a montré **500 frames en 10 s**, soit **50 FPS**, avec un delta stable autour de 20 ms. Ce pilote n'est donc pas retenu comme défaut : il transforme un hitch ponctuel en manque de fluidité permanent.
 
-Le panneau diagnostic permet de forcer `rAF` ou `TIMER 60 Hz` pour réaliser un A/B dans la même build. Le profiler exporte `frameDriver` et `driverFps`; les champs historiques `rafFps`/`tapRafCount` sont conservés pour compatibilité des exports, mais l'affichage parle désormais de frame/driver.
+Le mode `TIMER 60 Hz (TEST)` reste disponible dans les diagnostics uniquement pour reproduire ce comportement et comparer les schedulers.
+
+## dev5.4 — ticker Web Worker 60 Hz
+
+Le mode `AUTO` utilise désormais un **Dedicated Web Worker** sur iOS WebKit. Le worker ne contient ni moteur de jeu, ni physique, ni logique Verified Runs : il émet uniquement des messages de cadence vers le thread principal.
+
+Le ticker utilise une échéance absolue (`nextAt += 1000 / 60`) avec correction de dérive. Lors de chaque message, le thread principal appelle exactement le même chemin `animate(performance.now())`, toujours piloté par `FixedClock(60)`. Android et desktop restent sur `requestAnimationFrame`.
+
+Modes de diagnostic disponibles :
+
+- `AUTO (WORKER SUR iOS)` : worker sur iOS, rAF ailleurs ;
+- `rAF` : scheduler natif pour reproduire le hitch WebKit ;
+- `WORKER 60 Hz` : force le nouveau ticker ;
+- `TIMER 60 Hz (TEST)` : ancien essai main-thread, conservé uniquement pour A/B.
+
+Si le worker n'est pas disponible ou échoue à démarrer, le runtime retombe automatiquement sur `requestAnimationFrame` et le profiler rapporte le pilote réellement actif.
+
+Le Service Worker précache également `frame-driver.js` et `frame-ticker.worker.js` afin que ce chemin reste disponible en PWA hors connexion.

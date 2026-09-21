@@ -28,7 +28,7 @@ import {
 } from './verified-run-client.js';
 import { createCanonicalRunGame } from './verified-runs.js';
 
-const VERSION = '0.2.7.3b-dev5.3';
+const VERSION = '0.2.7.3b-dev5.4';
 const BEST_SCORE_KEY = 'flappy13-personal-best-v1';
 const SETTINGS_KEY = 'flappy13-settings-v1';
 const LAST_VERSION_KEY = 'flappy13-last-version-v1';
@@ -81,6 +81,8 @@ let cachedDebugState = null;
 let frameCallbackCount = 0;
 let frameLoopGeneration = 0;
 let frameTimerId = null;
+let frameWorker = null;
+let currentFrameDriver = 'raf';
 let tickCount = 0;
 let statsAt = 0;
 let previousCommands = null;
@@ -199,11 +201,16 @@ function frameDriverEnvironment() {
     userAgent: navigator.userAgent,
     platform: navigator.platform,
     maxTouchPoints: navigator.maxTouchPoints,
+    workerAvailable: typeof Worker === 'function',
   };
 }
 
-function activeFrameDriver() {
+function resolvedFrameDriver() {
   return resolveFrameDriver(settings.frameDriver, frameDriverEnvironment());
+}
+
+function activeFrameDriver() {
+  return currentFrameDriver;
 }
 
 function stopFrameLoop() {
@@ -212,13 +219,71 @@ function stopFrameLoop() {
     clearInterval(frameTimerId);
     frameTimerId = null;
   }
+  if (frameWorker) {
+    frameWorker.terminate();
+    frameWorker = null;
+  }
+}
+
+function startRafLoop(generation) {
+  const rafLoop = now => {
+    if (generation !== frameLoopGeneration || document.hidden) {
+      return;
+    }
+    animate(now);
+    requestAnimationFrame(rafLoop);
+  };
+  requestAnimationFrame(rafLoop);
 }
 
 function startFrameLoop() {
   stopFrameLoop();
   const generation = frameLoopGeneration;
-  const driver = activeFrameDriver();
+  const driver = resolvedFrameDriver();
+  currentFrameDriver = driver;
   clock.reset();
+
+  if (driver === 'worker') {
+    try {
+      const worker = new Worker(
+        new URL('./frame-ticker.worker.js', import.meta.url),
+        { type: 'module', name: 'flappy13-frame-ticker' },
+      );
+      frameWorker = worker;
+
+      worker.onmessage = event => {
+        if (
+          generation !== frameLoopGeneration
+          || document.hidden
+          || event.data?.type !== 'frame'
+        ) {
+          return;
+        }
+        animate(performance.now());
+      };
+
+      worker.onerror = error => {
+        if (generation !== frameLoopGeneration) {
+          return;
+        }
+        console.warn('[Frame Driver] Worker indisponible, fallback rAF.', error);
+        currentFrameDriver = 'raf';
+        worker.terminate();
+        if (frameWorker === worker) {
+          frameWorker = null;
+        }
+        startRafLoop(generation);
+      };
+
+      worker.postMessage({ type: 'start', hz: FRAME_DRIVER_HZ });
+      return;
+    } catch (error) {
+      console.warn('[Frame Driver] Impossible de créer le worker, fallback rAF.', error);
+      currentFrameDriver = 'raf';
+      startRafLoop(generation);
+      return;
+    }
+  }
 
   if (driver === 'timer') {
     frameTimerId = setInterval(() => {
@@ -230,14 +295,7 @@ function startFrameLoop() {
     return;
   }
 
-  const rafLoop = now => {
-    if (generation !== frameLoopGeneration || document.hidden) {
-      return;
-    }
-    animate(now);
-    requestAnimationFrame(rafLoop);
-  };
-  requestAnimationFrame(rafLoop);
+  startRafLoop(generation);
 }
 
 function toast(text, ms = 4500) {

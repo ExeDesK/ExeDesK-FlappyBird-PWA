@@ -111,34 +111,52 @@ test('game canvas is not focusable and relies on touch-action for touch gestures
 });
 
 
-test('auto frame driver uses timer on iOS WebKit and rAF elsewhere', () => {
+test('auto frame driver uses worker ticker on iOS WebKit and rAF elsewhere', () => {
   const ios = {
     userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148 Safari/604.1',
     platform: 'iPhone',
     maxTouchPoints: 5,
+    workerAvailable: true,
   };
   const desktop = {
     userAgent: 'Mozilla/5.0 Chrome/140.0.0.0 Safari/537.36',
     platform: 'Win32',
     maxTouchPoints: 0,
+    workerAvailable: true,
   };
 
   assert.equal(isIOSWebKitEnvironment(ios), true);
-  assert.equal(resolveFrameDriver('auto', ios), 'timer');
+  assert.equal(resolveFrameDriver('auto', ios), 'worker');
   assert.equal(resolveFrameDriver('auto', desktop), 'raf');
   assert.equal(resolveFrameDriver('raf', ios), 'raf');
+  assert.equal(resolveFrameDriver('worker', ios), 'worker');
   assert.equal(resolveFrameDriver('timer', desktop), 'timer');
+  assert.equal(resolveFrameDriver('auto', { ...ios, workerAvailable: false }), 'raf');
   assert.equal(normalizeFrameDriverPreference('wat'), 'auto');
 });
 
-test('main loop offers a timer driver without changing the fixed simulation clock', () => {
+test('main loop offers worker and timer drivers without changing the fixed simulation clock', () => {
   const source = fs.readFileSync(new URL('../site/src/main.js', import.meta.url), 'utf8');
   const html = fs.readFileSync(new URL('../site/index.html', import.meta.url), 'utf8');
 
   assert.match(source, /resolveFrameDriver/);
+  assert.match(source, /new Worker\(/);
+  assert.match(source, /frame-ticker\.worker\.js/);
   assert.match(source, /setInterval\(\(\) =>/);
   assert.match(source, /FRAME_DRIVER_PERIOD_MS/);
   assert.match(source, /new FixedClock\(60\)/);
   assert.match(html, /id="frame-driver"/);
-  assert.match(html, /AUTO \(TIMER SUR iOS\)/);
+  assert.match(html, /AUTO \(WORKER SUR iOS\)/);
+  assert.match(html, /WORKER 60 Hz/);
+});
+
+
+test('worker ticker uses drift-corrected scheduling and never owns game physics', () => {
+  const worker = fs.readFileSync(new URL('../site/src/frame-ticker.worker.js', import.meta.url), 'utf8');
+
+  assert.match(worker, /periodMs = 1000 \/ 60/);
+  assert.match(worker, /nextAt \+= periodMs/);
+  assert.match(worker, /setTimeout\(tick, delay\)/);
+  assert.match(worker, /postMessage\(\{ type: 'frame' \}\)/);
+  assert.doesNotMatch(worker, /import\s|new\s+Game|new\s+FixedClock|physics_version/);
 });

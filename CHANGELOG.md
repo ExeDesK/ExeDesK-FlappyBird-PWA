@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.2.7.3b-dev5.4 - iOS worker frame ticker
+
+- Le profil iPhone `dev5.3` confirme que le timer principal supprime le hitch au tap mais tourne à **50 FPS** réels (`500 frames / 10 s`, delta ~20 ms) : ce pilote n'est plus utilisé par `AUTO`.
+- Sur iOS WebKit, `AUTO` utilise désormais un ticker 60 Hz dans un **Dedicated Web Worker** afin d'éviter à la fois le scheduler `requestAnimationFrame` perturbé par le touch et la cadence ~50 Hz des timers du thread principal.
+- Le worker ne possède aucune logique de jeu : il envoie uniquement des impulsions de frame ; `FixedClock(60)` reste l'unique horloge de simulation et `flappy13-physics-v1` reste inchangée.
+- Le ticker worker utilise une échéance absolue et corrige sa dérive sans accumuler de backlog après une suspension ou un stall.
+- Ajout du mode diagnostic `WORKER 60 Hz`; `rAF` et `TIMER 60 Hz (TEST)` restent disponibles pour A/B dans la même build.
+- Fallback automatique vers `requestAnimationFrame` si le Worker est indisponible ou échoue à démarrer.
+- Correction du précache PWA : `frame-driver.js` et le nouveau `frame-ticker.worker.js` sont maintenant inclus, pour un total de **34 ressources** offline.
+- Aucun changement de physique, Verified Runs, Supabase, leaderboard, statistiques ou rétention.
+- Validation automatisée : **128/128 tests Node** passent.
+
 ## v0.2.7.3b-dev5.3 - iOS frame-driver workaround
 
 - Les profils iPhone `dev5.2` confirment un hitch WebKit parfaitement corrélé au contact : chaque tap mesuré produit une frame d'environ 30–31 ms alors que le handler et le rendu restent quasi nuls.

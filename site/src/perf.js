@@ -19,7 +19,7 @@ export class PerfProfiler {
   start(now = performance.now(), frameDriver = 'raf') {
     this.active = true;
     this.startedAt = now;
-    this.frameDriver = frameDriver === 'timer' ? 'timer' : 'raf';
+    this.frameDriver = ['raf', 'timer', 'worker'].includes(frameDriver) ? frameDriver : 'raf';
     this.lastRaf = null;
     this.samples.length = 0;
     this.steps.length = 0;

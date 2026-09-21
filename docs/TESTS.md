@@ -1,11 +1,11 @@
-# Rapport de tests - v0.2.7.3b-dev5.3
+# Rapport de tests - v0.2.7.3b-dev5.4
 
 ## Résultat
 
-- **127/127 tests Node passent** avec `npm test`.
+- **128/128 tests Node passent** avec `npm test`.
 - Le bundle concaténé utilisé par le smoke test passe le contrôle de syntaxe JavaScript.
 - Le smoke test Chromium n’a pas été relancé dans cet environnement, où Playwright Python et Chromium ne sont pas installés.
-- Le cache PWA contient **32 ressources** et refuse de se déclarer complet si une ressource de précache manque.
+- Le cache PWA contient **34 ressources** et refuse de se déclarer complet si une ressource de précache manque.
 - `version.json` reste volontairement hors du cache du Service Worker afin de servir de sonde réseau réelle pour la mise à jour.
 - Les liens et ressources du site utilisent des chemins relatifs compatibles avec un projet GitHub Pages publié sous `/<repository>/`.
 
@@ -18,7 +18,7 @@
 | États | Menu → Ready → Playing → Game Over → retour accueil / replay. |
 | Déterminisme | Deux simulations identiques produisent exactement le même snapshot. |
 | Cadence | 60 updates/s validées pour 30, 60, 90, 120, 144 et 240 Hz de présentation. |
-| iOS pacing | Rattrapage borné et profiler rAF. |
+| iOS pacing | Profiler tap→frame, driver rAF/timer/worker, ticker worker 60 Hz et fallback rAF couverts. |
 | Sol | Interpolation cyclique sans rollback lors du wrap 24 px. |
 | Tuyaux | Identités de rendu stables lors des recyclages. |
 | Ratio Adapté | 288:512 centré ; ciel/terre supplémentaires rendus dans le même Canvas. |
@@ -171,13 +171,17 @@ Les contrôles dédiés vérifient que le canvas n'est plus focusable, que le to
 
 Le profiler corrèle désormais un tap au prochain `requestAnimationFrame` et mesure le `delta` de la frame contenant ce tap, ce qui permet de vérifier directement si les frames longues iOS sont liées au contact même lorsque le handler JavaScript est quasi nul.
 
-Validation complète : **127/127 tests Node** passent.
+Validation de cette étape : **125/125 tests Node** passaient.
 
 
-## Contournement scheduler iOS (v0.2.7.3b-dev5.3)
+## Ticker worker iOS (v0.2.7.3b-dev5.4)
 
-- `AUTO` sélectionne `timer` sur iOS WebKit et `rAF` ailleurs.
-- Le sélecteur diagnostic permet de forcer `AUTO`, `rAF` ou `TIMER 60 Hz` sans redéploiement.
-- `FixedClock(60)` reste l'unique horloge de simulation ; le pilote de frame n'altère pas les constantes physiques ni le format Verified Runs.
-- Le profiler expose `frameDriver`/`driverFps` et conserve les champs historiques pour compatibilité des exports.
-- Validation complète : **127/127 tests Node** passent.
+- Le profil réel `dev5.3` confirme que le timer principal est stable mais plafonne à environ 50 FPS sur l'iPhone testé.
+- `AUTO` sélectionne désormais `worker` sur iOS WebKit lorsque `Worker` est disponible, et `rAF` ailleurs.
+- Le sélecteur diagnostic permet de forcer `AUTO`, `rAF`, `WORKER 60 Hz` ou `TIMER 60 Hz (TEST)` sans redéploiement.
+- Le worker ne contient aucune physique : il ne fait qu'émettre les impulsions qui appellent le chemin `animate()` existant ; `FixedClock(60)` reste l'unique horloge de simulation.
+- Le ticker utilise une échéance absolue avec correction de dérive et évite les backlogs après stall.
+- Un échec de création/exécution du worker provoque un fallback `rAF`.
+- Le précache offline inclut désormais `frame-driver.js` et `frame-ticker.worker.js` (34 ressources).
+- Le profiler expose le pilote réellement actif via `frameDriver`/`driverFps`.
+- Validation complète : **128/128 tests Node** passent.

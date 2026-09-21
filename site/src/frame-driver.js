@@ -1,11 +1,13 @@
 export const FRAME_DRIVER_AUTO = 'auto';
 export const FRAME_DRIVER_RAF = 'raf';
 export const FRAME_DRIVER_TIMER = 'timer';
+export const FRAME_DRIVER_WORKER = 'worker';
 
 const VALID_FRAME_DRIVERS = new Set([
   FRAME_DRIVER_AUTO,
   FRAME_DRIVER_RAF,
   FRAME_DRIVER_TIMER,
+  FRAME_DRIVER_WORKER,
 ]);
 
 export function normalizeFrameDriverPreference(value) {
@@ -29,7 +31,7 @@ export function resolveFrameDriver(preference, environment = {}) {
   if (normalized !== FRAME_DRIVER_AUTO) {
     return normalized;
   }
-  return isIOSWebKitEnvironment(environment)
-    ? FRAME_DRIVER_TIMER
+  return isIOSWebKitEnvironment(environment) && environment.workerAvailable !== false
+    ? FRAME_DRIVER_WORKER
     : FRAME_DRIVER_RAF;
 }

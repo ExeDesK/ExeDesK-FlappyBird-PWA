@@ -8,7 +8,7 @@ The goal is not to create another Flappy Bird-inspired clone, but to **reproduce
 
 Gameplay runs entirely client-side without a framework and can be installed as an application on Windows, iPhone/iPad and Android. Optional community features use Supabase; no account is required to play.
 
-> **Project status: beta — v0.2.7.3b-dev5.3**
+> **Project status: beta — v0.2.7.3b-dev5.4**
 
 ---
 
@@ -32,7 +32,7 @@ Gameplay runs entirely client-side without a framework and can be installed as a
 - Dynamic sky and ground extensions for displays taller than the original aspect ratio.
 - Performance mode to limit supersampling on high-DPR devices.
 - Visual interpolation to reduce mobile browser `requestAnimationFrame` jitter.
-- On iOS WebKit, `AUTO` uses a 60 Hz timer frame driver to work around measured touch-triggered `requestAnimationFrame` hitches.
+- On iOS WebKit, `AUTO` uses a 60 Hz Web Worker ticker to work around measured touch-triggered `requestAnimationFrame` hitches without the ~50 Hz pacing observed with main-thread timers.
 - Supersampled rendering to improve rotated sprites, especially the bird on Retina displays.
 - Built-in frame-pacing performance profiler.
 - Optimized iOS tap hot path: no per-flap layout read, touch focus/capture or orientation-lock retry; routine audio diagnostics are kept out of the hot path.
