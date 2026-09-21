@@ -23,7 +23,7 @@ import {
 } from './verified-run-client.js';
 import { createCanonicalRunGame } from './verified-runs.js';
 
-const VERSION = '0.2.7.3b-dev6.2.2';
+const VERSION = '0.2.7.3b-dev6.2.3';
 const BEST_SCORE_KEY = 'flappy13-personal-best-v1';
 const SETTINGS_KEY = 'flappy13-settings-v1';
 const LAST_VERSION_KEY = 'flappy13-last-version-v1';
@@ -378,17 +378,30 @@ function installVerifiedGame(ticket) {
   trace.length = 0;
   droppedReplay = false;
   lastInputSignature = '';
-  previousCommands = cloneCommands(game.commands);
-  currentCommands = cloneCommands(game.commands);
   cachedDebugState = debug ? game.snapshot() : null;
   lastUtilityVisibility = null;
 
-  // The ticket was fetched behind the native black PLAY transition. The Game
-  // constructor starts its own reveal tween, so pin the replacement scene to
-  // fully black first. Paint that black frame before starting the canonical
-  // 0.5 s reveal to avoid a one-frame flash during the game swap.
+  // The canonical run has already been warmed up to READY, so its command list
+  // may contain a visible scene. Pin the replacement Game to black AND pin the
+  // renderer caches to an explicitly black-composited frame before swapping it
+  // onto screen. This prevents a prepared READY frame from flashing between the
+  // old menu fade and the new game's reveal.
   game.fade.done = true;
   game.fade.value = 1;
+
+  const blackCommands = cloneCommands(game.commands);
+  blackCommands.push({
+    name: 'black',
+    x: -144,
+    y: -256,
+    alpha: 1,
+    angle: 0,
+    w: 864,
+    h: 1536,
+    key: undefined,
+  });
+  previousCommands = cloneCommands(blackCommands);
+  currentCommands = cloneCommands(blackCommands);
 
   clock.reset();
   syncUtilityVisibility();

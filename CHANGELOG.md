@@ -1,3 +1,10 @@
+## v0.2.7.3b-dev6.2.3 - Verified PLAY renderer cache flash fix
+
+- Corrige le flash restant lors du fade retour : les caches `previousCommands` / `currentCommands` contenaient encore une frame READY visible préparée avant le forçage du noir.
+- Le swap vers le jeu vérifié construit désormais explicitement une frame de commandes avec overlay noir opaque, utilisée à la fois comme frame précédente et courante avant le premier rendu.
+- Le fade retour interpole ensuite depuis cette vraie frame noire vers READY, sans exposer la scène préchauffée.
+- Aucun changement de physique, de Verified Runs, de Supabase ni du moteur `flappy13-physics-v1`.
+
 ## v0.2.7.3b-dev6.2.2 - Verified PLAY fade flash fix
 
 - Supprime le flash d'une frame lors du fade de retour après réception du ticket Verified Run.

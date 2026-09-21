@@ -185,3 +185,10 @@ Le client valide strictement les deux états autorisés (classé / non classé),
 ## v0.2.7.3b-dev6.2.2
 
 - Non-régression : le remplacement par le jeu vérifié peint d'abord une frame entièrement noire avant de lancer le fade de révélation.
+
+
+## v0.2.7.3b-dev6.2.3
+
+- Non-régression : les caches d’interpolation `previousCommands` / `currentCommands` sont eux-mêmes initialisés avec un overlay noir opaque avant le fade retour.
+- Vérifie que la frame READY préchauffée ne peut pas être présentée entre le swap du `Game` et le début du reveal.
+- Suite complète : `npm test`.

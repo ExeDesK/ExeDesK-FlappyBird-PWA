@@ -174,13 +174,21 @@ test('verified PLAY hides ticket latency behind the native one-second fade caden
 });
 
 
-test('verified game swap paints a fully black frame before reveal fade', () => {
+test('verified game swap paints a fully black cached frame before reveal fade', () => {
   const main = read('site/src/main.js');
   const black = main.indexOf('game.fade.value = 1;');
-  const renderBlack = main.indexOf('render(1);', black);
+  const cachedBlack = main.indexOf('const blackCommands = cloneCommands(game.commands);', black);
+  const opaqueOverlay = main.indexOf("name: 'black'", cachedBlack);
+  const previousCache = main.indexOf('previousCommands = cloneCommands(blackCommands);', opaqueOverlay);
+  const currentCache = main.indexOf('currentCommands = cloneCommands(blackCommands);', previousCache);
+  const renderBlack = main.indexOf('render(1);', currentCache);
   const reveal = main.indexOf('game.transition(false, 0, PLAY_FADE_SECONDS);', renderBlack);
 
   assert.ok(black >= 0, 'replacement game should be pinned to full black');
-  assert.ok(renderBlack > black, 'full black scene should be rendered before reveal');
+  assert.ok(cachedBlack > black, 'black renderer command cache should be rebuilt after pinning fade');
+  assert.ok(opaqueOverlay > cachedBlack, 'black cache should include an explicit opaque black overlay');
+  assert.ok(previousCache > opaqueOverlay, 'previous interpolation cache should be black');
+  assert.ok(currentCache > previousCache, 'current interpolation cache should be black');
+  assert.ok(renderBlack > currentCache, 'black cached scene should be rendered before reveal');
   assert.ok(reveal > renderBlack, 'reveal fade should start only after black frame is painted');
 });
