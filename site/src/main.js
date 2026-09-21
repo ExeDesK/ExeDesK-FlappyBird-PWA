@@ -9,11 +9,6 @@ import {
   renderQualityScale,
 } from './display.js';
 import { Game } from './game.js';
-import {
-  FRAME_DRIVER_AUTO,
-  normalizeFrameDriverPreference,
-  resolveFrameDriver,
-} from './frame-driver.js';
 import { leaderboardName } from './leaderboard.js';
 import { PerfProfiler } from './perf.js';
 import {
@@ -28,7 +23,7 @@ import {
 } from './verified-run-client.js';
 import { createCanonicalRunGame } from './verified-runs.js';
 
-const VERSION = '0.2.7.3b-dev5.6';
+const VERSION = '0.2.7.3b-dev5.7';
 const BEST_SCORE_KEY = 'flappy13-personal-best-v1';
 const SETTINGS_KEY = 'flappy13-settings-v1';
 const LAST_VERSION_KEY = 'flappy13-last-version-v1';
@@ -44,9 +39,6 @@ const SUPABASE_PUBLISHABLE_KEY = typeof runtimeConfig.supabasePublishableKey ===
 const UPDATE_CHECK_INTERVAL_MS = 15 * 60 * 1000;
 const UPDATE_PROBE_TIMEOUT_MS = 3500;
 const MAX_REPLAY_INPUTS = 30000;
-const FRAME_DRIVER_HZ = 60;
-const FRAME_DRIVER_WORKER_HZ = 120;
-const FRAME_DRIVER_PERIOD_MS = 1000 / FRAME_DRIVER_HZ;
 
 const $ = id => document.getElementById(id);
 const query = new URLSearchParams(location.search);
@@ -79,11 +71,7 @@ let reloadOnControllerChange = false;
 let lastUpdateToastVersion = null;
 let lastPerfResult = null;
 let cachedDebugState = null;
-let frameCallbackCount = 0;
-let frameLoopGeneration = 0;
-let frameTimerId = null;
-let frameWorker = null;
-let currentFrameDriver = 'raf';
+let rafCount = 0;
 let tickCount = 0;
 let statsAt = 0;
 let previousCommands = null;
@@ -118,12 +106,6 @@ const LEADERBOARD_STALE_MS = 60 * 1000;
 
 const touchRecords = new Map();
 const trace = [];
-let pointerMetrics = {
-  left: 0,
-  top: 0,
-  cssScale: 1,
-  valid: false,
-};
 
 let displayLayout = {
   width: 288,
@@ -166,7 +148,6 @@ const settings = {
   sound: true,
   aspect: defaultAspectForCapabilities({ desktop: desktopDefault }),
   performance: false,
-  frameDriver: FRAME_DRIVER_AUTO,
 };
 
 try {
@@ -184,8 +165,6 @@ try {
     if (typeof saved.performance === 'boolean') {
       settings.performance = saved.performance;
     }
-
-    settings.frameDriver = normalizeFrameDriverPreference(saved.frameDriver);
   }
 } catch {
   // Invalid/missing settings simply fall back to defaults.
@@ -194,110 +173,7 @@ try {
 $('sound').checked = settings.sound;
 $('aspect').value = settings.aspect;
 $('performance-mode').checked = settings.performance;
-$('frame-driver').value = settings.frameDriver;
 audio.muted = !settings.sound;
-
-function frameDriverEnvironment() {
-  return {
-    userAgent: navigator.userAgent,
-    platform: navigator.platform,
-    maxTouchPoints: navigator.maxTouchPoints,
-    workerAvailable: typeof Worker === 'function',
-  };
-}
-
-function resolvedFrameDriver() {
-  return resolveFrameDriver(settings.frameDriver, frameDriverEnvironment());
-}
-
-function activeFrameDriver() {
-  return currentFrameDriver;
-}
-
-function stopFrameLoop() {
-  frameLoopGeneration++;
-  if (frameTimerId !== null) {
-    clearInterval(frameTimerId);
-    frameTimerId = null;
-  }
-  if (frameWorker) {
-    frameWorker.terminate();
-    frameWorker = null;
-  }
-}
-
-function startRafLoop(generation) {
-  const rafLoop = now => {
-    if (generation !== frameLoopGeneration || document.hidden) {
-      return;
-    }
-    animate(now);
-    requestAnimationFrame(rafLoop);
-  };
-  requestAnimationFrame(rafLoop);
-}
-
-function startFrameLoop() {
-  stopFrameLoop();
-  const generation = frameLoopGeneration;
-  const driver = resolvedFrameDriver();
-  currentFrameDriver = driver;
-  clock.reset();
-
-  if (driver === 'worker') {
-    try {
-      const worker = new Worker(
-        new URL('./frame-ticker.worker.js', import.meta.url),
-        { type: 'module', name: 'flappy13-frame-ticker' },
-      );
-      frameWorker = worker;
-
-      worker.onmessage = event => {
-        if (
-          generation !== frameLoopGeneration
-          || document.hidden
-          || event.data?.type !== 'frame'
-        ) {
-          return;
-        }
-        animate(performance.now());
-      };
-
-      worker.onerror = error => {
-        if (generation !== frameLoopGeneration) {
-          return;
-        }
-        console.warn('[Frame Driver] Worker indisponible, fallback rAF.', error);
-        currentFrameDriver = 'raf';
-        worker.terminate();
-        if (frameWorker === worker) {
-          frameWorker = null;
-        }
-        startRafLoop(generation);
-      };
-
-      worker.postMessage({ type: 'start', hz: FRAME_DRIVER_WORKER_HZ });
-      return;
-    } catch (error) {
-      console.warn('[Frame Driver] Impossible de créer le worker, fallback rAF.', error);
-      currentFrameDriver = 'raf';
-      startRafLoop(generation);
-      return;
-    }
-  }
-
-  if (driver === 'timer') {
-    frameTimerId = setInterval(() => {
-      if (generation !== frameLoopGeneration || document.hidden) {
-        return;
-      }
-      animate(performance.now());
-    }, FRAME_DRIVER_PERIOD_MS);
-    return;
-  }
-
-  startRafLoop(generation);
-}
 
 function toast(text, ms = 4500) {
   $('toast').textContent = text;
@@ -348,11 +224,7 @@ function saveBest(value) {
 
 function handleGameEvent({ type, value }) {
   if (type === 'sound') {
-    const startedAt = profiler.active && value === 'wing' ? performance.now() : 0;
     audio.play(value);
-    if (startedAt) {
-      profiler.audio(performance.now() - startedAt);
-    }
   } else if (type === 'record' && !verifiedRunRecorder) {
     // Ranked runs update persistent scores only after run-submit has replayed
     // them authoritatively. The Game may still render its in-run panel value.
@@ -1134,7 +1006,7 @@ function resize() {
   stage.style.setProperty('--game-height', `${size.gameHeight}px`);
   canvas.style.width = `${size.width}px`;
   canvas.style.height = `${size.height}px`;
-  refreshPointerMetrics();
+  updateCanvasRect();
 
   if (!renderer) {
     return;
@@ -1319,25 +1191,20 @@ function clearInput() {
   pendingTap = null;
 }
 
-function refreshPointerMetrics() {
-  const rect = canvas.getBoundingClientRect();
-  pointerMetrics = {
-    left: rect.left,
-    top: rect.top,
-    cssScale: rect.width / LOGICAL_WIDTH || 1,
-    valid: rect.width > 0,
-  };
+let canvasRect = canvas.getBoundingClientRect();
+
+function updateCanvasRect() {
+  canvasRect = canvas.getBoundingClientRect();
 }
 
 function pointerPosition(event) {
-  if (!pointerMetrics.valid) {
-    refreshPointerMetrics();
-  }
+  const rect = canvasRect;
+  const cssScale = rect.width / LOGICAL_WIDTH || 1;
 
   return {
-    x: Math.trunc((event.clientX - pointerMetrics.left) / pointerMetrics.cssScale),
+    x: Math.trunc((event.clientX - rect.left) / cssScale),
     y: Math.trunc(
-      (event.clientY - pointerMetrics.top) / pointerMetrics.cssScale - displayLayout.topPad,
+      (event.clientY - rect.top) / cssScale - displayLayout.topPad,
     ),
   };
 }
@@ -1347,9 +1214,7 @@ function press(id, point) {
     return;
   }
 
-  if (!audio.muted && audio.needsUnlock()) {
-    audio.unlock('game-input');
-  }
+  audio.unlock('game-input');
   touchRecords.set(id, {
     ...point,
     released: false,
@@ -1377,25 +1242,13 @@ canvas.addEventListener('pointerdown', event => {
     return;
   }
 
-  const isTouch = event.pointerType === 'touch';
-  const startedAt = profiler.active ? performance.now() : 0;
-
-  // `touch-action: none` already tells the browser that the canvas does not
-  // participate in pan/zoom gestures. Avoid canceling touch PointerEvents on
-  // iOS: current WebKit builds have focus/default-action regressions around
-  // pointerdown + preventDefault(), especially on focusable elements.
-  if (!isTouch) {
+  if (event.pointerType !== 'touch') {
     event.preventDefault();
-    canvas.setPointerCapture?.(event.pointerId);
+    canvas.focus({ preventScroll: true });
+    canvas.setPointerCapture(event.pointerId);
   }
 
-  const tapAt = performance.now();
-  profiler.markTap?.(tapAt);
   press(event.pointerId, pointerPosition(event));
-
-  if (startedAt) {
-    profiler.tap(performance.now() - startedAt);
-  }
 });
 
 canvas.addEventListener('pointerup', event => {
@@ -1493,23 +1346,20 @@ document.addEventListener('visibilitychange', () => {
   clearInput();
   clock.reset();
 
-  if (document.hidden) {
-    stopFrameLoop();
-    return;
-  }
+  if (!document.hidden) {
+    audio.recover('visibility-visible');
+    tryLockPortrait();
+    updateOrientationGuard();
 
-  startFrameLoop();
-  audio.recover('visibility-visible');
-  tryLockPortrait();
-  updateOrientationGuard();
-
-  if (swRegistration && navigator.onLine) {
-    checkForUpdates({ silent: true, reason: 'foreground' });
+    if (swRegistration && navigator.onLine) {
+      checkForUpdates({ silent: true, reason: 'foreground' });
+    }
   }
 });
 
 window.addEventListener('resize', scheduleResize);
 window.visualViewport?.addEventListener('resize', scheduleResize);
+new ResizeObserver(updateCanvasRect).observe(canvas);
 window.addEventListener('orientationchange', updateOrientationGuard);
 screen.orientation?.addEventListener?.('change', updateOrientationGuard);
 
@@ -1552,14 +1402,6 @@ $('performance-mode').onchange = () => {
       ? 'Mode Performance : rendu interne plafonné à ×2.'
       : 'Mode Performance désactivé.',
   );
-};
-
-$('frame-driver').onchange = () => {
-  settings.frameDriver = normalizeFrameDriverPreference($('frame-driver').value);
-  saveSettings();
-  startFrameLoop();
-  $('perf-output').textContent = `Pilote actif : ${activeFrameDriver()}. Lancez un nouveau profil.`;
-  toast(`Pilote de frame : ${activeFrameDriver()}.`);
 };
 
 $('sound').onchange = () => {
@@ -1679,7 +1521,7 @@ function tick(input = nextInput()) {
       trace.push({
         frame: game.frame + 1,
         touches: input.touches.map(({ x, y }) => ({ x, y })),
-        ...(input.tap ? { tap: { x: input.tap.x, y: input.tap.y } } : {}),
+        tap: input.tap ? { x: input.tap.x, y: input.tap.y } : null,
       });
     } else {
       droppedReplay = true;
@@ -1727,11 +1569,10 @@ function perfText(result = lastPerfResult) {
 }
 
 function startProfiler() {
-  profiler.start(performance.now(), activeFrameDriver());
+  profiler.start(performance.now());
   lastPerfResult = null;
   $('perf-output').textContent = 'Profil en cours pendant 10 s…';
   $('profile').disabled = true;
-  $('frame-driver').disabled = true;
 }
 
 function downloadJson(filename, data) {
@@ -1816,7 +1657,7 @@ $('copy-audio').onclick = copyAudioDiagnostics;
 $('export-audio').onclick = exportAudioDiagnostics;
 
 function animate(now) {
-  frameCallbackCount++;
+  rafCount++;
 
   if (
     game &&
@@ -1843,7 +1684,6 @@ function animate(now) {
       lastPerfResult = result;
       $('perf-output').textContent = perfText(result);
       $('profile').disabled = false;
-      $('frame-driver').disabled = false;
       $('export-perf').disabled = false;
     }
   } else {
@@ -1857,7 +1697,7 @@ function animate(now) {
 
       $('stats').textContent = [
         `${snapshot.state} | tick ${snapshot.frame}`,
-        `updates/s ${Math.round(tickCount * 1000 / elapsed)} | frame/s ${Math.round(frameCallbackCount * 1000 / elapsed)} | ${activeFrameDriver()}`,
+        `updates/s ${Math.round(tickCount * 1000 / elapsed)} | rAF/s ${Math.round(rafCount * 1000 / elapsed)}`,
         `seed ${snapshot.seed}`,
         `bird (${snapshot.bird.x}, ${snapshot.bird.y})`,
         `v=${snapshot.bird.velocity.toFixed(7)} | rot=${snapshot.bird.rotation.toFixed(4)}`,
@@ -1878,9 +1718,10 @@ function animate(now) {
 
     statsAt = now;
     tickCount = 0;
-    frameCallbackCount = 0;
+    rafCount = 0;
   }
 
+  requestAnimationFrame(animate);
 }
 
 function replayData() {
@@ -2358,7 +2199,7 @@ async function boot() {
     cachedDebugState = debug ? game.snapshot() : null;
     render();
     tryLockPortrait();
-    startFrameLoop();
+    requestAnimationFrame(animate);
 
     authInit.then(async state => {
       renderAccount(auth.snapshot());

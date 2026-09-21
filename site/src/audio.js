@@ -267,19 +267,7 @@ export class Audio {
     return false;
   }
 
-  needsUnlock() {
-    return !this.context
-      || this.context.state !== 'running'
-      || this.hardRecoveryNeeded;
-  }
-
   unlock(origin = 'unknown') {
-    // Successful steady-state playback is the hottest path in the game. Avoid
-    // allocating diagnostic events or entering resume logic for every flap.
-    if (!this.needsUnlock()) {
-      return true;
-    }
-
     this.note('UNLOCK_REQUEST', { origin });
 
     if (!this.context) {
@@ -395,9 +383,10 @@ export class Audio {
       source.connect(this.context.destination);
       source.start();
       this.lastSoundResult = 'started';
-      if (flushedFrom) {
-        this.note('SFX_FLUSHED', { name, from: flushedFrom });
-      }
+      this.note(flushedFrom ? 'SFX_FLUSHED' : 'SFX_STARTED', {
+        name,
+        ...(flushedFrom ? { from: flushedFrom } : {}),
+      });
       return true;
     } catch (error) {
       this.error = error.message;
@@ -427,11 +416,11 @@ export class Audio {
 
   play(name) {
     this.lastSound = name;
+    this.note('SFX_REQUEST', { name });
 
-    // Do not allocate timestamped diagnostic objects for every successful flap
-    // (or every muted flap). Exceptional/recovery paths remain fully logged.
     if (this.muted) {
       this.lastSoundResult = 'muted';
+      this.note('SFX_SKIPPED', { name, reason: 'muted' });
       return;
     }
 

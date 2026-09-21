@@ -1,11 +1,11 @@
-# Rapport de tests - v0.2.7.3b-dev5.6
+# Rapport de tests - v0.2.7.3b-dev5
 
 ## Résultat
 
-- **129/129 tests Node passent** avec `npm test`.
+- **120/120 tests Node passent** avec `npm test`.
 - Le bundle concaténé utilisé par le smoke test passe le contrôle de syntaxe JavaScript.
 - Le smoke test Chromium n’a pas été relancé dans cet environnement, où Playwright Python et Chromium ne sont pas installés.
-- Le cache PWA contient **34 ressources** et refuse de se déclarer complet si une ressource de précache manque.
+- Le cache PWA contient **32 ressources** et refuse de se déclarer complet si une ressource de précache manque.
 - `version.json` reste volontairement hors du cache du Service Worker afin de servir de sonde réseau réelle pour la mise à jour.
 - Les liens et ressources du site utilisent des chemins relatifs compatibles avec un projet GitHub Pages publié sous `/<repository>/`.
 
@@ -18,7 +18,7 @@
 | États | Menu → Ready → Playing → Game Over → retour accueil / replay. |
 | Déterminisme | Deux simulations identiques produisent exactement le même snapshot. |
 | Cadence | 60 updates/s validées pour 30, 60, 90, 120, 144 et 240 Hz de présentation. |
-| iOS pacing | Profiler tap→frame, driver rAF/timer/worker, ticker worker 60 Hz et fallback rAF couverts. |
+| iOS pacing | Rattrapage borné et profiler rAF. |
 | Sol | Interpolation cyclique sans rollback lors du wrap 24 px. |
 | Tuyaux | Identités de rendu stables lors des recyclages. |
 | Ratio Adapté | 288:512 centré ; ciel/terre supplémentaires rendus dans le même Canvas. |
@@ -159,29 +159,3 @@ Les tests de rétention vérifient que `006_verified_run_retention.sql` :
 Les tests dédiés vérifient que `007_personal_leaderboard_context.sql` calcule le rang depuis `player_stats`, reprend le même tri global que le leaderboard et ne permet jamais à `anon` d'appeler la RPC. La fonction ne prend aucun `player_id` en paramètre : l'identité provient de `auth.uid()`.
 
 Le client valide strictement les deux états autorisés (classé / non classé), envoie le JWT Supabase pour la RPC personnelle et affiche dans la modale la carte `VOTRE CLASSEMENT` avec rang, record, compteur lifetime et date du record.
-
-
-## Hotfix latence tactile iOS (v0.2.7.3b-dev5.1)
-
-Les tests vérifient le fast-path `Audio.needsUnlock()`, l'absence de reprise audio inutile lorsque le contexte est déjà `running`, et les métriques `tap` / `audio wing` du profiler. Ils garantissent aussi l'absence de lecture de layout et de `structuredClone(input)` dans le chemin du flap.
-
-## Hotfix frame pacing tactile iOS (v0.2.7.3b-dev5.2)
-
-Les contrôles dédiés vérifient que le canvas n'est plus focusable, que le touch path n'annule plus les PointerEvents avec `preventDefault()`, que `touch-action: none` et `-webkit-touch-callout: none` portent la neutralisation des gestes WebKit, et que la capture de pointeur reste réservée aux pointeurs non tactiles.
-
-Le profiler corrèle désormais un tap au prochain `requestAnimationFrame` et mesure le `delta` de la frame contenant ce tap, ce qui permet de vérifier directement si les frames longues iOS sont liées au contact même lorsque le handler JavaScript est quasi nul.
-
-Validation de cette étape : **125/125 tests Node** passaient.
-
-
-## Ticker worker iOS (v0.2.7.3b-dev5.4)
-
-- Le profil réel `dev5.3` confirme que le timer principal est stable mais plafonne à environ 50 FPS sur l'iPhone testé.
-- `AUTO` sélectionne désormais `worker` sur iOS WebKit lorsque `Worker` est disponible, et `rAF` ailleurs.
-- Le sélecteur diagnostic permet de forcer `AUTO`, `rAF`, `WORKER 60 Hz` ou `TIMER 60 Hz (TEST)` sans redéploiement.
-- Le worker ne contient aucune physique : il ne fait qu'émettre les impulsions qui appellent le chemin `animate()` existant ; `FixedClock(60)` reste l'unique horloge de simulation.
-- Le ticker utilise une échéance absolue avec correction de dérive et évite les backlogs après stall.
-- Un échec de création/exécution du worker provoque un fallback `rAF`.
-- Le précache offline inclut désormais `frame-driver.js` et `frame-ticker.worker.js` (34 ressources).
-- Le profiler expose le pilote réellement actif via `frameDriver`/`driverFps`.
-- Validation complète : **129/129 tests Node** passent.

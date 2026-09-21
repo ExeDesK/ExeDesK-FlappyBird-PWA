@@ -187,13 +187,13 @@ function harness(scope = 'https://example.invalid/lab/flappy/') {
   };
 }
 
-test('All 34 runtime resources are cached together, including frame drivers, sounds and icons', async () => {
+test('All 32 runtime resources are cached together, including sounds and icons', async () => {
   const h = harness();
   await h.event('install');
 
   const result = await h.verify();
   assert.equal(result.complete, true);
-  assert.equal(result.count, 34);
+  assert.equal(result.count, 32);
   assert.equal(h.skipped, false);
 
   await h.event('activate');
@@ -211,8 +211,6 @@ test('Cached navigation, modules, atlas, audio and icons work offline', async ()
     '?seed=42',
     'index.html?debug=1',
     'src/game.js',
-    'src/frame-driver.js',
-    'src/frame-ticker.worker.js',
     'assets/atlas.png',
     'assets/sounds/sfx_wing.wav',
     'icons/icon-512.png',
@@ -280,7 +278,7 @@ test('Waiting workers expose their build number to the page', async () => {
     }],
   });
 
-  assert.equal(result.build, '0.2.7.3b-dev5.6');
+  assert.equal(result.build, '0.2.7.3b-dev5.7');
 });
 
 test('Activation of a waiting update requires an explicit message', async () => {

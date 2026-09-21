@@ -8,7 +8,7 @@ The goal is not to create another Flappy Bird-inspired clone, but to **reproduce
 
 Gameplay runs entirely client-side without a framework and can be installed as an application on Windows, iPhone/iPad and Android. Optional community features use Supabase; no account is required to play.
 
-> **Project status: beta — v0.2.7.3b-dev5.6**
+> **Project status: beta — v0.2.7.3b-dev5.7**
 
 ---
 
@@ -32,10 +32,8 @@ Gameplay runs entirely client-side without a framework and can be installed as a
 - Dynamic sky and ground extensions for displays taller than the original aspect ratio.
 - Performance mode to limit supersampling on high-DPR devices.
 - Visual interpolation to reduce mobile browser `requestAnimationFrame` jitter.
-- On iOS WebKit, `AUTO` uses a 60 Hz Web Worker ticker to work around measured touch-triggered `requestAnimationFrame` hitches without the ~50 Hz pacing observed with main-thread timers.
 - Supersampled rendering to improve rotated sprites, especially the bird on Retina displays.
 - Built-in frame-pacing performance profiler.
-- Optimized iOS tap hot path: no per-flap layout read, touch focus/capture or orientation-lock retry; routine audio diagnostics are kept out of the hot path.
 - Deterministic replay export for engine comparison.
 - Portrait orientation requested by the PWA, with an additional fallback when the browser refuses orientation locking.
 
@@ -80,7 +78,6 @@ Detailed notes are available in:
 - [`docs/LEADERBOARD.md`](./docs/LEADERBOARD.md) (French)
 - [`docs/PLAYER-STATS.md`](./docs/PLAYER-STATS.md) (French)
 - [`docs/RETENTION.md`](./docs/RETENTION.md) (French)
-- [`docs/IOS-PERFORMANCE.md`](./docs/IOS-PERFORMANCE.md) (French)
 
 ---
 
@@ -388,7 +385,3 @@ This repository does not claim to grant any rights to the original assets. Anyon
 ## Continuous 1:1 validation
 
 Since v0.2.6b, every push and pull request automatically compares the PWA engine against golden traces captured from the Android 1.3 APK through the dedicated harness. GitHub Pages deployment is also blocked if parity diverges. See [`docs/APK-PARITY.md`](docs/APK-PARITY.md).
-
-### iOS presentation pacing
-
-Since `v0.2.7.3b-dev5.6`, `AUTO` uses a **120 Hz** oversampled presentation worker on iOS while keeping deterministic simulation at **60 Hz** through `FixedClock(60)`. This works around WebKit touch-event stalls while reducing the phase jitter observed with the 60 Hz worker. Android and PC keep using `requestAnimationFrame`.

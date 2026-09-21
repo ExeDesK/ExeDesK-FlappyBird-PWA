@@ -1,58 +1,12 @@
+## v0.2.7.3b-dev5.7 - iOS ProMotion / rAF cleanup
+
+- Retour à `requestAnimationFrame` comme unique pilote de présentation sur toutes les plateformes.
+- Suppression des contournements worker/timer expérimentaux de la branche iOS.
+- Conservation des optimisations hot-path sans impact physique : cache du rectangle canvas, pas de focus/capture inutile sur les taps tactiles, trace replay copiée sans `structuredClone()` au moment du tap.
+- Documentation du comportement WebKit ProMotion : le flag Safari `Prefer Page Rendering Updates near 60fps` ne peut pas être désactivé par le code de la PWA ; sur appareil ProMotion, le désactiver permet à rAF de suivre la cadence native quand WebKit l'autorise.
+- Aucun changement de `flappy13-physics-v1`, Verified Runs ou Supabase.
+
 # Changelog
-
-## v0.2.7.3b-dev5.6 - iOS interpolated worker pacing
-
-- Repart du comportement `dev5.4`, jugé le plus fluide sur iOS : worker de présentation + `FixedClock(60)` + rendu interpolé.
-- Le ticker worker iOS est sur-échantillonné à 120 Hz afin de réduire la latence de phase et de fournir plus souvent un rendu récent au prochain rafraîchissement 60 Hz.
-- La simulation reste strictement à 60 Hz : le worker ne possède aucune logique de jeu et ne fait qu'alimenter la boucle existante.
-- Android et PC restent en `requestAnimationFrame` en mode `AUTO`.
-- Le timer 60 Hz reste disponible uniquement comme témoin de diagnostic.
-- Aucun changement de physique, Verified Runs, Supabase ou Edge Functions.
-- Validation automatisée : **129/129 tests Node** passent.
-
-## v0.2.7.3b-dev5.4 - iOS worker frame ticker
-
-- Le profil iPhone `dev5.3` confirme que le timer principal supprime le hitch au tap mais tourne à **50 FPS** réels (`500 frames / 10 s`, delta ~20 ms) : ce pilote n'est plus utilisé par `AUTO`.
-- Sur iOS WebKit, `AUTO` utilise désormais un ticker 60 Hz dans un **Dedicated Web Worker** afin d'éviter à la fois le scheduler `requestAnimationFrame` perturbé par le touch et la cadence ~50 Hz des timers du thread principal.
-- Le worker ne possède aucune logique de jeu : il envoie uniquement des impulsions de frame ; `FixedClock(60)` reste l'unique horloge de simulation et `flappy13-physics-v1` reste inchangée.
-- Le ticker worker utilise une échéance absolue et corrige sa dérive sans accumuler de backlog après une suspension ou un stall.
-- Ajout du mode diagnostic `WORKER 60 Hz`; `rAF` et `TIMER 60 Hz (TEST)` restent disponibles pour A/B dans la même build.
-- Fallback automatique vers `requestAnimationFrame` si le Worker est indisponible ou échoue à démarrer.
-- Correction du précache PWA : `frame-driver.js` et le nouveau `frame-ticker.worker.js` sont maintenant inclus, pour un total de **34 ressources** offline.
-- Aucun changement de physique, Verified Runs, Supabase, leaderboard, statistiques ou rétention.
-- Validation automatisée : **128/128 tests Node** passent.
-
-## v0.2.7.3b-dev5.3 - iOS frame-driver workaround
-
-- Les profils iPhone `dev5.2` confirment un hitch WebKit parfaitement corrélé au contact : chaque tap mesuré produit une frame d'environ 30–31 ms alors que le handler et le rendu restent quasi nuls.
-- Ajout d'un pilote de frame alternatif `timer` à 60 Hz afin de contourner les retards `requestAnimationFrame` documentés par WebKit pendant les événements tactiles.
-- En mode `AUTO`, iPhone/iPad WebKit utilisent le pilote `timer`; Android et desktop conservent `requestAnimationFrame`.
-- Ajout d'un sélecteur diagnostic `AUTO / rAF / TIMER 60 Hz` pour comparer les deux pilotes dans une seule build.
-- La simulation reste assurée par `FixedClock(60)` : aucun changement des constantes physiques, du format Verified Runs ou de `flappy13-physics-v1`.
-- Le profiler exporte désormais le pilote actif et affiche `tap→frame` afin que les métriques restent exactes avec les deux modes.
-- La boucle timer est arrêtée lorsque la page est masquée et redémarrée au retour au premier plan.
-- Aucun changement Supabase.
-
-## v0.2.7.3b-dev5.2 - iOS touch frame-pacing hotfix
-
-- Suppression de la focusabilité du canvas de jeu (`tabindex`) : les contrôles clavier restent globaux via `window`, sans provoquer de changement de focus lors d'un tap iOS.
-- Les `pointerdown` / `pointerup` tactiles ne sont plus annulés par `preventDefault()` ; `touch-action: none` reste l'autorité CSS pour neutraliser pan/zoom sur la zone de jeu.
-- `preventDefault()` et la capture de pointeur sont conservés pour souris/stylet lorsque nécessaires.
-- Ajout de `-webkit-touch-callout: none` sur le canvas pour éviter le comportement long-press iOS sans remettre de travail dans le handler tactile.
-- Extension du profiler avec la corrélation `tap → prochain rAF` et la durée de la frame contenant chaque tap (`tapFrameDelta`) afin de confirmer ou réfuter le hitch WebKit au contact.
-- Aucun changement de physique, Verified Runs, Supabase, leaderboard, statistiques ou rétention.
-- Validation automatisée : **125/125 tests Node** passent.
-
-## v0.2.7.3b-dev5.1 - iOS input latency hotfix
-
-- Allègement du hot path tactile iOS sans modifier la simulation ni `flappy13-physics-v1`.
-- Suppression de `tryLockPortrait()`, `canvas.focus()` et `setPointerCapture()` sur chaque `pointerdown` tactile ; les contrôles desktop conservent focus et capture.
-- Mise en cache de la géométrie du canvas lors des resize afin d'éviter `getBoundingClientRect()` à chaque flap.
-- Fast-path audio : aucun `unlock()`/diagnostic de reprise lorsque l'`AudioContext` est déjà `running`, et suppression des événements diagnostiques routiniers alloués à chaque SFX réussi ou flap muet.
-- Remplacement du `structuredClone(input)` déclenché sur les taps par une copie minimale des coordonnées nécessaires à la trace de replay locale.
-- Extension du profiler 10 s avec les mesures `tap` et `audio wing` (moyenne, p95, max) pour diagnostiquer précisément iOS son ON/OFF.
-- Aucun changement Supabase, Verified Runs, leaderboard, statistiques joueur ou politique de rétention.
-- Validation automatisée : **123/123 tests Node** passent.
 
 ## v0.2.7.3b-dev5 - Personal leaderboard context
 

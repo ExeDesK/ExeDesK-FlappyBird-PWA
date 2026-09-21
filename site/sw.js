@@ -1,4 +1,4 @@
-const BUILD = '0.2.7.3b-dev5.6';
+const BUILD = '0.2.7.3b-dev5.7';
 const PREFIX = `flappy13-${encodeURIComponent(self.registration.scope)}-`;
 const CACHE = `${PREFIX}${BUILD}`;
 const ASSETS = [
@@ -26,8 +26,6 @@ const ASSETS = [
   './src/auth.js',
   './src/clock.js',
   './src/display.js',
-  './src/frame-driver.js',
-  './src/frame-ticker.worker.js',
   './src/game.js',
   './src/leaderboard.js',
   './src/main.js',
