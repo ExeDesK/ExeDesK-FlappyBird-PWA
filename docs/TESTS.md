@@ -166,3 +166,10 @@ Le client valide strictement les deux états autorisés (classé / non classé),
 - Suite Node : **125/125 tests**.
 - Nouveau fichier `tests/player-performance.test.mjs`.
 - Vérifie la RPC authentifiée, l'absence de `player_id` client, les fenêtres 10/25/50, l'usage exclusif des runs `verified`, l'ordre `issued_at`, médiane/écart-type et l'UI de statistiques.
+
+
+## v0.2.7.3b-dev6.1
+
+- Le bloc `VOS STATISTIQUES` utilise `details/summary`, est replié par défaut et expose un chevron d’état.
+- Les tests de version/cache ont été mis à jour vers `dev6.1`.
+- Aucun changement attendu côté Supabase ou moteur physique.

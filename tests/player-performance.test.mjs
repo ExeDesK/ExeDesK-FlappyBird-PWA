@@ -95,6 +95,9 @@ test('performance SQL uses lifetime aggregates plus only the 50 most recent reta
 test('leaderboard modal exposes career and recent performance blocks', async () => {
   const html = await readFile(new URL('../site/index.html', import.meta.url), 'utf8');
   const main = await readFile(new URL('../site/src/main.js', import.meta.url), 'utf8');
+  assert.match(html, /<details id="leaderboard-stats-card"[^>]*>/);
+  assert.match(html, /<summary class="leaderboard-stats-summary">/);
+  assert.match(html, /leaderboard-stats-chevron/);
   assert.match(html, /VOS STATISTIQUES/);
   assert.match(html, /MOY\. CARRIÈRE/);
   assert.match(html, /TENDANCE 50/);

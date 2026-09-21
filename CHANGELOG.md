@@ -1,3 +1,12 @@
+## v0.2.7.3b-dev6.1 - UI readability & collapsible stats
+
+- Augmentation modérée des tailles de police des menus, options, cartes et du leaderboard, surtout sur écrans tablette/desktop.
+- Les micro-libellés des statistiques ont été agrandis pour rester lisibles sans modifier la densité mobile.
+- `VOS STATISTIQUES` devient une section repliable native (`details/summary`), fermée par défaut.
+- Ajout d'un chevron qui reflète visuellement l'état ouvert/fermé de la section.
+- Le contexte essentiel `VOTRE CLASSEMENT` (rang, record, runs) reste toujours visible.
+- Aucun changement Supabase, physique, Verified Runs ou calcul statistique.
+
 ## v0.2.7.3b-dev6 - Career & Recent Stats
 
 - Ajout d’une RPC authentifiée `get_my_player_performance_stats()` basée exclusivement sur les données autoritaires.
@@ -9,7 +18,7 @@
 - Aucun score ni statistique n’est envoyé par le client ; tout est dérivé côté Supabase.
 - Ajout des tests de sécurité, contrat RPC et affichage des statistiques.
 
-## v0.2.7.3b-dev6 - Dynamic iOS ProMotion guidance
+## v0.2.7.3b-dev5.9 - Dynamic iOS ProMotion guidance
 
 - Le conseil ProMotion de `Options → Jeu → Performance` est désormais affiché uniquement sur iPhone/iPad/iPadOS.
 - Mesure automatique de la cadence réelle `requestAnimationFrame` côté Safari.

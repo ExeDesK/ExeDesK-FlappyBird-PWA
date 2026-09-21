@@ -8,7 +8,7 @@ L'objectif n'est pas de produire un simple clone « inspiré de » Flappy Bird, 
 
 Le gameplay fonctionne entièrement côté client, sans framework, et peut être installé comme une application sur Windows, iPhone/iPad et Android. Les fonctions communautaires utilisent un backend Supabase facultatif : aucun compte n'est nécessaire pour jouer.
 
-> **État du projet : bêta — v0.2.7.3b-dev6**
+> **État du projet : bêta — v0.2.7.3b-dev6.1**
 
 - Statistiques joueur : carrière + fenêtres 10 / 25 / 50 calculées uniquement depuis les runs vérifiées.
 > Sur iPhone/iPad ProMotion, un statut dynamique dans les options Performance mesure la cadence rAF sur iOS : il confirme la haute fréquence lorsqu’elle est active, sinon il propose le réglage Safari et un tutoriel au timecode utile.
@@ -388,3 +388,6 @@ Ce dépôt ne prétend accorder aucun droit sur les ressources originales. Avant
 ## Validation 1:1 continue
 
 Depuis la v0.2.6b, chaque push et chaque pull request compare automatiquement le moteur PWA aux golden traces issues de l'APK Android 1.3 via le harness dédié. Le déploiement GitHub Pages est également bloqué si cette parité diverge. Voir [`docs/APK-PARITY.md`](docs/APK-PARITY.md).
+
+
+- **dev6.1** : lisibilité accrue des menus sur grands écrans et bloc `VOS STATISTIQUES` repliable par défaut.

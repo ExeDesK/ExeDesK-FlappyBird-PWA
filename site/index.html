@@ -82,7 +82,7 @@
         <button id="close-options" class="close-options" aria-label="Fermer">X</button>
       </header>
 
-      <p class="version">BETA 0.2.7.3b-dev6</p>
+      <p class="version">BETA 0.2.7.3b-dev6.1</p>
       <p id="offline-status" class="status-card">Préparation du mode hors ligne...</p>
 
       <section class="menu-card account-card" aria-labelledby="account-title">
@@ -211,7 +211,7 @@
         <button id="close-leaderboard" class="close-options" type="button" aria-label="Fermer le classement">X</button>
       </header>
 
-      <p class="version">BETA 0.2.7.3b-dev6</p>
+      <p class="version">BETA 0.2.7.3b-dev6.1</p>
 
       <div class="leaderboard-toolbar">
         <p id="leaderboard-status" class="hint">Chargement du classement...</p>
@@ -248,12 +248,16 @@
         </p>
       </section>
 
-      <section id="leaderboard-stats-card" class="leaderboard-stats-card" aria-labelledby="leaderboard-stats-title" hidden>
-        <div class="leaderboard-player-heading">
+      <details id="leaderboard-stats-card" class="leaderboard-stats-card" hidden>
+        <summary class="leaderboard-stats-summary">
           <strong id="leaderboard-stats-title">VOS STATISTIQUES</strong>
-          <span id="leaderboard-stats-status">Chargement...</span>
-        </div>
+          <span class="leaderboard-stats-summary-meta">
+            <span id="leaderboard-stats-status">Chargement...</span>
+            <span class="leaderboard-stats-chevron" aria-hidden="true">›</span>
+          </span>
+        </summary>
 
+        <div class="leaderboard-stats-content">
         <div class="leaderboard-career-grid">
           <div class="leaderboard-stat-box"><span>MOY. CARRIÈRE</span><strong id="stats-career-average">—</strong></div>
           <div class="leaderboard-stat-box"><span>POINTS TOTAL</span><strong id="stats-total-score">—</strong></div>
@@ -275,7 +279,8 @@
           </div>
         </div>
         <p class="leaderboard-stats-note">RÉGUL. = ÉCART-TYPE · PLUS BAS = PLUS RÉGULIER</p>
-      </section>
+        </div>
+      </details>
 
       <div class="leaderboard-scroll">
         <ol id="leaderboard-list" class="leaderboard-list" aria-live="polite"></ol>
