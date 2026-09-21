@@ -180,3 +180,8 @@ Le client valide strictement les deux états autorisés (classé / non classé),
 - Correctif de non-régression du lancement Verified PLAY : le mode `ticket` déclenche bien le fade noir avant l’attente de `run-start`.
 - `ensureVerifiedPlayFadeToBlack()` garantit qu’aucune attente ne peut porter sur un fade jamais démarré.
 - Suite complète : `npm test`.
+
+
+## v0.2.7.3b-dev6.2.2
+
+- Non-régression : le remplacement par le jeu vérifié peint d'abord une frame entièrement noire avant de lancer le fade de révélation.

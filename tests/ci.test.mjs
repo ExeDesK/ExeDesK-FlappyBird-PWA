@@ -172,3 +172,15 @@ test('verified PLAY hides ticket latency behind the native one-second fade caden
   assert.match(main, /performance\.now\(\) - startedAt < PLAY_FADE_MIN_MS/);
   assert.match(main, /game\.transition\(false, 0, PLAY_FADE_SECONDS\)/);
 });
+
+
+test('verified game swap paints a fully black frame before reveal fade', () => {
+  const main = read('site/src/main.js');
+  const black = main.indexOf('game.fade.value = 1;');
+  const renderBlack = main.indexOf('render(1);', black);
+  const reveal = main.indexOf('game.transition(false, 0, PLAY_FADE_SECONDS);', renderBlack);
+
+  assert.ok(black >= 0, 'replacement game should be pinned to full black');
+  assert.ok(renderBlack > black, 'full black scene should be rendered before reveal');
+  assert.ok(reveal > renderBlack, 'reveal fade should start only after black frame is painted');
+});

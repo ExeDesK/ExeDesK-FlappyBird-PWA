@@ -214,3 +214,8 @@ Le lancement dure donc au minimum une seconde, comme la transition visuelle d’
 ### Hotfix dev6.2.1
 
 `verifiedRunStartMode()` renvoie `ticket` pour un lancement classé connecté. Le hotfix garantit que ce mode déclenche réellement le fade PLAY avant l’attente du ticket serveur et protège aussi le cas où un fade de menu est encore en cours.
+
+
+### Hotfix dev6.2.2
+
+Lors du remplacement du menu noir par le `Game` canonique, le constructeur du nouveau jeu avait déjà commencé son propre tween de révélation. La première frame pouvait donc être partiellement visible avant le fade attendu. Le client force maintenant le nouveau jeu à un état 100 % noir, rend explicitement cette frame noire, puis démarre le fade retour de 0,5 s.

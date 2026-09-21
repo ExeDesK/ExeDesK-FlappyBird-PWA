@@ -1,3 +1,9 @@
+## v0.2.7.3b-dev6.2.2 - Verified PLAY fade flash fix
+
+- Supprime le flash d'une frame lors du fade de retour après réception du ticket Verified Run.
+- Le nouveau `Game` est maintenant forcé à 100 % noir et rendu une fois avant de démarrer le fade de révélation de 0,5 s.
+- Aucun changement de physique, de Verified Runs, de Supabase ni du moteur `flappy13-physics-v1`.
+
 ## v0.2.7.3b-dev6.2.1 - Verified PLAY fade hotfix
 
 - Correction d’un blocage après `run-start` : `verifiedRunStartMode()` renvoie `ticket`, mais `dev6.2` ne démarrait le fade que pour un mode inexistant `verified`.

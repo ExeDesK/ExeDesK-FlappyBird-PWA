@@ -23,7 +23,7 @@ import {
 } from './verified-run-client.js';
 import { createCanonicalRunGame } from './verified-runs.js';
 
-const VERSION = '0.2.7.3b-dev6.2.1';
+const VERSION = '0.2.7.3b-dev6.2.2';
 const BEST_SCORE_KEY = 'flappy13-personal-best-v1';
 const SETTINGS_KEY = 'flappy13-settings-v1';
 const LAST_VERSION_KEY = 'flappy13-last-version-v1';
@@ -383,13 +383,17 @@ function installVerifiedGame(ticket) {
   cachedDebugState = debug ? game.snapshot() : null;
   lastUtilityVisibility = null;
 
-  // The ticket was fetched behind the native black PLAY transition. Reveal
-  // the canonical seeded READY state with the original 0.5 s fade-out.
-  game.transition(false, 0, PLAY_FADE_SECONDS);
+  // The ticket was fetched behind the native black PLAY transition. The Game
+  // constructor starts its own reveal tween, so pin the replacement scene to
+  // fully black first. Paint that black frame before starting the canonical
+  // 0.5 s reveal to avoid a one-frame flash during the game swap.
+  game.fade.done = true;
+  game.fade.value = 1;
 
   clock.reset();
   syncUtilityVisibility();
   render(1);
+  game.transition(false, 0, PLAY_FADE_SECONDS);
 
   console.info('[Verified Runs] Partie classée prête.', {
     run_id: ticket.run_id,
