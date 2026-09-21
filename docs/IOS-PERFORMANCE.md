@@ -1,6 +1,18 @@
-# iOS Performance — v0.2.7.3b-dev5.1
+# iOS Performance — v0.2.7.3b-dev5.2
 
 Cette version cible une micro-saccade perceptible sur iOS au moment de chaque flap, absente sur Android et desktop.
+
+## dev5.2 : focus et default actions WebKit
+
+Le profil iPhone du dev5.1 montrait un handler de tap et un rendu quasi nuls, mais des frames longues exactement au contact. Le dev5.2 cible donc le travail interne WebKit qui peut arriver **après** le retour du handler JavaScript :
+
+- le canvas n'est plus focusable (`tabindex` supprimé) ;
+- un PointerEvent tactile n'appelle plus `preventDefault()` ;
+- `touch-action: none` bloque déjà pan/zoom sur le canvas ;
+- souris et stylet conservent la capture de pointeur ;
+- le profiler mesure maintenant `tap → prochain rAF` et le `delta` de la frame contenant le tap.
+
+Le moteur logique, la cadence 60 Hz et `flappy13-physics-v1` ne changent pas.
 
 ## Invariants
 

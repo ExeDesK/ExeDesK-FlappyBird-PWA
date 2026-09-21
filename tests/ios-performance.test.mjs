@@ -67,11 +67,40 @@ test('touch pointerdown avoids synchronous WebKit-heavy operations', () => {
   const handler = match[0];
 
   assert.doesNotMatch(handler, /tryLockPortrait\(\)/);
-  assert.match(handler, /event\.pointerType !== 'touch'/);
-  assert.match(handler, /canvas\.focus/);
+  assert.match(handler, /const isTouch = event\.pointerType === 'touch'/);
+  assert.match(handler, /if \(!isTouch\)/);
+  assert.match(handler, /event\.preventDefault\(\)/);
+  assert.doesNotMatch(handler, /canvas\.focus/);
   assert.match(handler, /setPointerCapture/);
 
   const position = source.match(/function pointerPosition\(event\)[\s\S]*?\n\}/)?.[0] ?? '';
   assert.doesNotMatch(position, /getBoundingClientRect/);
   assert.doesNotMatch(source, /\.\.\.structuredClone\(input\)/);
+});
+
+
+test('profiler correlates a tap with the next delayed animation frame', () => {
+  const profiler = new PerfProfiler(1000);
+  profiler.start(0);
+  profiler.frame(0, 1, 0.2);
+  profiler.markTap(4);
+  profiler.frame(30, 2, 0.2);
+  const result = profiler.finish(30);
+
+  assert.equal(result.tapRafCount, 1);
+  assert.equal(result.tapToRafMax, 26);
+  assert.equal(result.tapFrameDeltaMax, 30);
+  assert.equal(result.tapFramesOver25, 1);
+  assert.match(profiler.format(), /tap→rAF 1/);
+  assert.match(profiler.format(), /frame avec tap/);
+});
+
+test('game canvas is not focusable and relies on touch-action for touch gestures', () => {
+  const html = fs.readFileSync(new URL('../site/index.html', import.meta.url), 'utf8');
+  const css = fs.readFileSync(new URL('../site/style.css', import.meta.url), 'utf8');
+  const canvas = html.match(/<canvas[\s\S]*?<\/canvas>/)?.[0] ?? '';
+
+  assert.doesNotMatch(canvas, /tabindex=/);
+  assert.match(css, /#game[\s\S]*?touch-action:\s*none/);
+  assert.match(css, /#game[\s\S]*?-webkit-touch-callout:\s*none/);
 });

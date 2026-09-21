@@ -1,5 +1,15 @@
 # Changelog
 
+## v0.2.7.3b-dev5.2 - iOS touch frame-pacing hotfix
+
+- Suppression de la focusabilité du canvas de jeu (`tabindex`) : les contrôles clavier restent globaux via `window`, sans provoquer de changement de focus lors d'un tap iOS.
+- Les `pointerdown` / `pointerup` tactiles ne sont plus annulés par `preventDefault()` ; `touch-action: none` reste l'autorité CSS pour neutraliser pan/zoom sur la zone de jeu.
+- `preventDefault()` et la capture de pointeur sont conservés pour souris/stylet lorsque nécessaires.
+- Ajout de `-webkit-touch-callout: none` sur le canvas pour éviter le comportement long-press iOS sans remettre de travail dans le handler tactile.
+- Extension du profiler avec la corrélation `tap → prochain rAF` et la durée de la frame contenant chaque tap (`tapFrameDelta`) afin de confirmer ou réfuter le hitch WebKit au contact.
+- Aucun changement de physique, Verified Runs, Supabase, leaderboard, statistiques ou rétention.
+- Validation automatisée : **125/125 tests Node** passent.
+
 ## v0.2.7.3b-dev5.1 - iOS input latency hotfix
 
 - Allègement du hot path tactile iOS sans modifier la simulation ni `flappy13-physics-v1`.

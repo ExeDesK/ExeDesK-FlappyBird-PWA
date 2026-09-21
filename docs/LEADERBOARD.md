@@ -1,4 +1,4 @@
-# Leaderboard - contrat v0.2.7.3b-dev5.1
+# Leaderboard - contrat v0.2.7.3b-dev5.2
 
 ## Objectif
 

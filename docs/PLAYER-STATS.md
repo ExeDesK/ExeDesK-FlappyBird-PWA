@@ -1,4 +1,4 @@
-# Player Stats — contrat v0.2.7.3b-dev5.1
+# Player Stats — contrat v0.2.7.3b-dev5.2
 
 ## Objectif
 

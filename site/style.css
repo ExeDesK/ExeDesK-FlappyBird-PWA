@@ -66,6 +66,7 @@ body {
   max-height: none;
   outline: none;
   touch-action: none;
+  -webkit-touch-callout: none;
   image-rendering: pixelated;
   image-rendering: crisp-edges;
 }

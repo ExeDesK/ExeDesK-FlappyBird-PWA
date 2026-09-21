@@ -8,7 +8,7 @@ L'objectif n'est pas de produire un simple clone « inspiré de » Flappy Bird, 
 
 Le gameplay fonctionne entièrement côté client, sans framework, et peut être installé comme une application sur Windows, iPhone/iPad et Android. Les fonctions communautaires utilisent un backend Supabase facultatif : aucun compte n'est nécessaire pour jouer.
 
-> **État du projet : bêta — v0.2.7.3b-dev5.1**
+> **État du projet : bêta — v0.2.7.3b-dev5.2**
 
 ---
 
@@ -34,7 +34,7 @@ Le gameplay fonctionne entièrement côté client, sans framework, et peut être
 - Interpolation visuelle pour réduire les micro-saccades liées au `requestAnimationFrame` des navigateurs mobiles.
 - Supersampling du rendu pour améliorer notamment la rotation de l'oiseau sur les écrans Retina.
 - Profiler intégré pour diagnostiquer le frame pacing et les performances.
-- Chemin de tap iOS optimisé : aucune lecture de layout, focus/capture tactile ou tentative de verrouillage d’orientation à chaque flap ; diagnostics audio routiniers sortis du hot path.
+- Chemin de tap iOS optimisé : canvas non focusable, aucun `preventDefault()` tactile, aucune lecture de layout, focus/capture tactile ou tentative de verrouillage d’orientation à chaque flap ; `touch-action: none` gère les gestes navigateur.
 - Export de replays déterministes pour comparer le comportement du moteur.
 - Orientation portrait demandée par la PWA, avec protection supplémentaire si le navigateur refuse le verrouillage.
 

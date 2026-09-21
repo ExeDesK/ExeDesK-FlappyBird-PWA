@@ -9,6 +9,9 @@ export class PerfProfiler {
     this.renderTimes = [];
     this.tapTimes = [];
     this.audioTimes = [];
+    this.pendingTapMarks = [];
+    this.tapToRafTimes = [];
+    this.tapFrameDeltas = [];
     this.result = null;
   }
 
@@ -21,6 +24,9 @@ export class PerfProfiler {
     this.renderTimes.length = 0;
     this.tapTimes.length = 0;
     this.audioTimes.length = 0;
+    this.pendingTapMarks.length = 0;
+    this.tapToRafTimes.length = 0;
+    this.tapFrameDeltas.length = 0;
     this.result = null;
   }
 
@@ -36,13 +42,31 @@ export class PerfProfiler {
     }
   }
 
+  markTap(now = performance.now()) {
+    if (this.active && Number.isFinite(now)) {
+      this.pendingTapMarks.push(now);
+    }
+  }
+
   frame(now, steps, renderMs) {
     if (!this.active) {
       return null;
     }
 
+    let frameDelta = null;
     if (this.lastRaf !== null) {
-      this.samples.push(now - this.lastRaf);
+      frameDelta = now - this.lastRaf;
+      this.samples.push(frameDelta);
+    }
+
+    if (this.pendingTapMarks.length) {
+      for (const tapAt of this.pendingTapMarks) {
+        this.tapToRafTimes.push(now - tapAt);
+        if (frameDelta !== null) {
+          this.tapFrameDeltas.push(frameDelta);
+        }
+      }
+      this.pendingTapMarks.length = 0;
     }
 
     this.lastRaf = now;
@@ -68,6 +92,8 @@ export class PerfProfiler {
     const renders = this.renderTimes.slice().sort((a, b) => a - b);
     const taps = this.tapTimes.slice().sort((a, b) => a - b);
     const audio = this.audioTimes.slice().sort((a, b) => a - b);
+    const tapToRaf = this.tapToRafTimes.slice().sort((a, b) => a - b);
+    const tapFrames = this.tapFrameDeltas.slice().sort((a, b) => a - b);
     const sum = values => values.reduce((total, value) => total + value, 0);
     const percentile = (values, ratio) => {
       if (!values.length) {
@@ -109,6 +135,16 @@ export class PerfProfiler {
       audioAvg: this.audioTimes.length ? sum(this.audioTimes) / this.audioTimes.length : 0,
       audioP95: percentile(audio, 0.95),
       audioMax: audio.at(-1) ?? 0,
+      tapRafCount: this.tapToRafTimes.length,
+      tapToRafAvg: this.tapToRafTimes.length ? sum(this.tapToRafTimes) / this.tapToRafTimes.length : 0,
+      tapToRafP95: percentile(tapToRaf, 0.95),
+      tapToRafMax: tapToRaf.at(-1) ?? 0,
+      tapFrameDeltaAvg: this.tapFrameDeltas.length ? sum(this.tapFrameDeltas) / this.tapFrameDeltas.length : 0,
+      tapFrameDeltaP95: percentile(tapFrames, 0.95),
+      tapFrameDeltaMax: tapFrames.at(-1) ?? 0,
+      tapFramesOver20: this.tapFrameDeltas.filter(value => value > 20).length,
+      tapFramesOver25: this.tapFrameDeltas.filter(value => value > 25).length,
+      tapFramesOver33: this.tapFrameDeltas.filter(value => value > 33.34).length,
       steps0: this.steps.filter(value => value === 0).length,
       steps1: this.steps.filter(value => value === 1).length,
       steps2plus: this.steps.filter(value => value >= 2).length,
@@ -135,6 +171,8 @@ export class PerfProfiler {
       `render moy ${result.renderAvg.toFixed(2)} ms | p95 ${result.renderP95.toFixed(2)} | max ${result.renderMax.toFixed(2)}`,
       `tap ${result.tapCount} | moy ${result.tapAvg.toFixed(3)} ms | p95 ${result.tapP95.toFixed(3)} | max ${result.tapMax.toFixed(3)}`,
       `audio wing ${result.audioCount} | moy ${result.audioAvg.toFixed(3)} ms | p95 ${result.audioP95.toFixed(3)} | max ${result.audioMax.toFixed(3)}`,
+      `tap→rAF ${result.tapRafCount} | moy ${result.tapToRafAvg.toFixed(2)} ms | p95 ${result.tapToRafP95.toFixed(2)} | max ${result.tapToRafMax.toFixed(2)}`,
+      `frame avec tap moy ${result.tapFrameDeltaAvg.toFixed(2)} ms | p95 ${result.tapFrameDeltaP95.toFixed(2)} | max ${result.tapFrameDeltaMax.toFixed(2)} | >25 ${result.tapFramesOver25}`,
       `ticks/rAF 0:${result.steps0} 1:${result.steps1} 2+:${result.steps2plus} | max ${result.maxSteps}`,
     ].join('\n');
   }

@@ -23,7 +23,7 @@ import {
 } from './verified-run-client.js';
 import { createCanonicalRunGame } from './verified-runs.js';
 
-const VERSION = '0.2.7.3b-dev5.1';
+const VERSION = '0.2.7.3b-dev5.2';
 const BEST_SCORE_KEY = 'flappy13-personal-best-v1';
 const SETTINGS_KEY = 'flappy13-settings-v1';
 const LAST_VERSION_KEY = 'flappy13-last-version-v1';
@@ -1259,18 +1259,20 @@ canvas.addEventListener('pointerdown', event => {
     return;
   }
 
+  const isTouch = event.pointerType === 'touch';
   const startedAt = profiler.active ? performance.now() : 0;
-  event.preventDefault();
 
-  // Keep the iOS touch hot path minimal. Focus, pointer capture and
-  // orientation-lock retries are unnecessary for a one-shot flap and can force
-  // synchronous browser work in WebKit. Mouse/stylus keep focus/capture for
-  // desktop ergonomics.
-  if (event.pointerType !== 'touch') {
-    canvas.focus({ preventScroll: true });
+  // `touch-action: none` already tells the browser that the canvas does not
+  // participate in pan/zoom gestures. Avoid canceling touch PointerEvents on
+  // iOS: current WebKit builds have focus/default-action regressions around
+  // pointerdown + preventDefault(), especially on focusable elements.
+  if (!isTouch) {
+    event.preventDefault();
     canvas.setPointerCapture?.(event.pointerId);
   }
 
+  const tapAt = performance.now();
+  profiler.markTap?.(tapAt);
   press(event.pointerId, pointerPosition(event));
 
   if (startedAt) {
@@ -1279,7 +1281,9 @@ canvas.addEventListener('pointerdown', event => {
 });
 
 canvas.addEventListener('pointerup', event => {
-  event.preventDefault();
+  if (event.pointerType !== 'touch') {
+    event.preventDefault();
+  }
   release(event.pointerId);
 });
 

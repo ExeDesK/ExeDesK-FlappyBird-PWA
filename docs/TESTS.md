@@ -1,8 +1,8 @@
-# Rapport de tests - v0.2.7.3b-dev5.1
+# Rapport de tests - v0.2.7.3b-dev5.2
 
 ## Résultat
 
-- **123/123 tests Node passent** avec `npm test`.
+- **125/125 tests Node passent** avec `npm test`.
 - Le bundle concaténé utilisé par le smoke test passe le contrôle de syntaxe JavaScript.
 - Le smoke test Chromium n’a pas été relancé dans cet environnement, où Playwright Python et Chromium ne sont pas installés.
 - Le cache PWA contient **32 ressources** et refuse de se déclarer complet si une ressource de précache manque.
@@ -163,8 +163,12 @@ Le client valide strictement les deux états autorisés (classé / non classé),
 
 ## Hotfix latence tactile iOS (v0.2.7.3b-dev5.1)
 
-Les tests vérifient le fast-path `Audio.needsUnlock()`, l'absence de reprise audio inutile lorsque le contexte est déjà `running`, et les nouvelles métriques `tap` / `audio wing` du profiler.
+Les tests vérifient le fast-path `Audio.needsUnlock()`, l'absence de reprise audio inutile lorsque le contexte est déjà `running`, et les métriques `tap` / `audio wing` du profiler. Ils garantissent aussi l'absence de lecture de layout et de `structuredClone(input)` dans le chemin du flap.
 
-Un contrôle statique garantit également que le handler `pointerdown` tactile ne déclenche plus le verrouillage d'orientation, que focus/capture sont réservés aux pointeurs non tactiles, que `pointerPosition()` n'effectue plus de `getBoundingClientRect()` et que la trace de tap n'utilise plus `structuredClone(input)`.
+## Hotfix frame pacing tactile iOS (v0.2.7.3b-dev5.2)
 
-Validation complète : **123/123 tests Node** passent.
+Les contrôles dédiés vérifient que le canvas n'est plus focusable, que le touch path n'annule plus les PointerEvents avec `preventDefault()`, que `touch-action: none` et `-webkit-touch-callout: none` portent la neutralisation des gestes WebKit, et que la capture de pointeur reste réservée aux pointeurs non tactiles.
+
+Le profiler corrèle désormais un tap au prochain `requestAnimationFrame` et mesure le `delta` de la frame contenant ce tap, ce qui permet de vérifier directement si les frames longues iOS sont liées au contact même lorsque le handler JavaScript est quasi nul.
+
+Validation complète : **125/125 tests Node** passent.

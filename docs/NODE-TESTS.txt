@@ -1,9 +1,9 @@
 
-> flappy-bird-1-3-pwa@0.2.7-3b-dev5.1 test
+> flappy-bird-1-3-pwa@0.2.7-3b-dev5.2 test
 > npm run check:edge-physics && node --test tests/core.test.mjs tests/cache.test.mjs tests/ci.test.mjs tests/audio.test.mjs tests/auth.test.mjs tests/verified-runs.test.mjs tests/verified-run-client.test.mjs tests/run-submit.test.mjs tests/leaderboard.test.mjs tests/player-stats.test.mjs tests/retention.test.mjs tests/ios-performance.test.mjs
 
 
-> flappy-bird-1-3-pwa@0.2.7-3b-dev5.1 check:edge-physics
+> flappy-bird-1-3-pwa@0.2.7-3b-dev5.2 check:edge-physics
 > node scripts/sync-edge-physics.mjs --check
 
 Moteur Edge flappy13-physics-v1 synchronisé.
@@ -11,747 +11,759 @@ TAP version 13
 # Subtest: foreground recovery resumes an interrupted context when Safari allows it
 ok 1 - foreground recovery resumes an interrupted context when Safari allows it
   ---
-  duration_ms: 2.740919
+  duration_ms: 3.564362
   type: 'test'
   ...
 # Subtest: a user gesture hard-recreates an iOS context still interrupted after device lock
 ok 2 - a user gesture hard-recreates an iOS context still interrupted after device lock
   ---
-  duration_ms: 1.197814
+  duration_ms: 1.640372
   type: 'test'
   ...
 # Subtest: first SFX after lock recovery is queued then played after buffers are decoded
 ok 3 - first SFX after lock recovery is queued then played after buffers are decoded
   ---
-  duration_ms: 5.957575
+  duration_ms: 5.322792
   type: 'test'
   ...
 # Subtest: resolved resume that remains interrupted requests hard recovery for next gesture
 ok 4 - resolved resume that remains interrupted requests hard recovery for next gesture
   ---
-  duration_ms: 0.303847
+  duration_ms: 0.298359
   type: 'test'
   ...
 # Subtest: running AudioContext is not resumed unnecessarily
 ok 5 - running AudioContext is not resumed unnecessarily
   ---
-  duration_ms: 0.171037
+  duration_ms: 0.171598
   type: 'test'
   ...
 # Subtest: fresh suspended iOS context cannot block all later unlock gestures forever
 ok 6 - fresh suspended iOS context cannot block all later unlock gestures forever
   ---
-  duration_ms: 20.663428
+  duration_ms: 20.955796
   type: 'test'
   ...
 # Subtest: new AudioContext receives a silent unlock pulse before normal playback
 ok 7 - new AudioContext receives a silent unlock pulse before normal playback
   ---
-  duration_ms: 0.722398
+  duration_ms: 1.117954
   type: 'test'
   ...
 # Subtest: Discord login targets Supabase authorize endpoint and the GitHub Pages callback
 ok 8 - Discord login targets Supabase authorize endpoint and the GitHub Pages callback
   ---
-  duration_ms: 1.173899
+  duration_ms: 1.318377
   type: 'test'
   ...
 # Subtest: OAuth fragment is consumed, validated, profiled and removed from the visible URL
 ok 9 - OAuth fragment is consumed, validated, profiled and removed from the visible URL
   ---
-  duration_ms: 17.336877
+  duration_ms: 19.065793
   type: 'test'
   ...
 # Subtest: offline startup keeps a cached Discord profile usable without blocking the game
 ok 10 - offline startup keeps a cached Discord profile usable without blocking the game
   ---
-  duration_ms: 0.323247
+  duration_ms: 0.625523
   type: 'test'
   ...
 # Subtest: Discord user metadata provides a profile fallback if the profile table is unavailable
 ok 11 - Discord user metadata provides a profile fallback if the profile table is unavailable
   ---
-  duration_ms: 0.596709
+  duration_ms: 0.84274
   type: 'test'
   ...
 # Subtest: personal best sync calls the atomic Supabase RPC and accepts the higher remote score
 ok 12 - personal best sync calls the atomic Supabase RPC and accepts the higher remote score
   ---
-  duration_ms: 0.641176
+  duration_ms: 0.61697
   type: 'test'
   ...
 # Subtest: verified run start sends the user JWT and validates the server ticket
 ok 13 - verified run start sends the user JWT and validates the server ticket
   ---
-  duration_ms: 0.593844
+  duration_ms: 0.635528
   type: 'test'
   ...
 # Subtest: verified run submission sends only replay inputs and validates the server result
 ok 14 - verified run submission sends only replay inputs and validates the server result
   ---
-  duration_ms: 0.808568
+  duration_ms: 0.972545
   type: 'test'
   ...
 # Subtest: best score migration performs an atomic max merge and prevents direct browser writes
 ok 15 - best score migration performs an atomic max merge and prevents direct browser writes
   ---
-  duration_ms: 5.246934
+  duration_ms: 8.683746
   type: 'test'
   ...
 # Subtest: successful profile refresh clears a previous transient profile error
 ok 16 - successful profile refresh clears a previous transient profile error
   ---
-  duration_ms: 0.976721
+  duration_ms: 1.221061
   type: 'test'
   ...
 # Subtest: All 32 runtime resources are cached together, including sounds and icons
 ok 17 - All 32 runtime resources are cached together, including sounds and icons
   ---
-  duration_ms: 26.407712
+  duration_ms: 28.808315
   type: 'test'
   ...
 # Subtest: Cached navigation, modules, atlas, audio and icons work offline
 ok 18 - Cached navigation, modules, atlas, audio and icons work offline
   ---
-  duration_ms: 8.986257
+  duration_ms: 8.912322
   type: 'test'
   ...
 # Subtest: A missing precache asset rejects installation instead of claiming offline readiness
 ok 19 - A missing precache asset rejects installation instead of claiming offline readiness
   ---
-  duration_ms: 4.942245
+  duration_ms: 6.288647
   type: 'test'
   ...
 # Subtest: Activation removes only obsolete caches from the same application scope
 ok 20 - Activation removes only obsolete caches from the same application scope
   ---
-  duration_ms: 3.278008
+  duration_ms: 3.767368
   type: 'test'
   ...
 # Subtest: Unsupported routes and external origins are not intercepted
 ok 21 - Unsupported routes and external origins are not intercepted
   ---
-  duration_ms: 6.742227
+  duration_ms: 14.354253
   type: 'test'
   ...
 # Subtest: version.json remains network-only for GitHub Pages reachability checks
 ok 22 - version.json remains network-only for GitHub Pages reachability checks
   ---
-  duration_ms: 5.029747
+  duration_ms: 5.031202
   type: 'test'
   ...
 # Subtest: Waiting workers expose their build number to the page
 ok 23 - Waiting workers expose their build number to the page
   ---
-  duration_ms: 3.454825
+  duration_ms: 1.449244
   type: 'test'
   ...
 # Subtest: Activation of a waiting update requires an explicit message
 ok 24 - Activation of a waiting update requires an explicit message
   ---
-  duration_ms: 3.628246
+  duration_ms: 6.209939
   type: 'test'
   ...
 # Subtest: A cache completeness request reports an evicted asset
 ok 25 - A cache completeness request reports an evicted asset
   ---
-  duration_ms: 4.100147
+  duration_ms: 10.410579
   type: 'test'
   ...
 # Subtest: APK parity runs on every push and pull request against a pinned harness release
 ok 26 - APK parity runs on every push and pull request against a pinned harness release
   ---
-  duration_ms: 1.564216
+  duration_ms: 1.637227
   type: 'test'
   ...
 # Subtest: GitHub Pages deployment is gated by APK parity
 ok 27 - GitHub Pages deployment is gated by APK parity
   ---
-  duration_ms: 0.223347
+  duration_ms: 0.187482
   type: 'test'
   ...
 # Subtest: PWA repository contains no APK payload
 ok 28 - PWA repository contains no APK payload
   ---
-  duration_ms: 2.622981
+  duration_ms: 3.357951
   type: 'test'
   ...
 # Subtest: Home navigation is exposed on READY and GAME OVER but not during gameplay
 ok 29 - Home navigation is exposed on READY and GAME OVER but not during gameplay
   ---
-  duration_ms: 0.850832
+  duration_ms: 1.319148
   type: 'test'
   ...
 # Subtest: Settings expose parity statement and GitHub link
 ok 30 - Settings expose parity statement and GitHub link
   ---
-  duration_ms: 0.287563
+  duration_ms: 0.443208
   type: 'test'
   ...
 # Subtest: authenticated PLAY requests a verified ticket and offers an explicit unranked fallback
 ok 31 - authenticated PLAY requests a verified ticket and offers an explicit unranked fallback
   ---
-  duration_ms: 0.288685
+  duration_ms: 0.272501
   type: 'test'
   ...
 # Subtest: completed verified runs flush automatically without trusting a client score
 ok 32 - completed verified runs flush automatically without trusting a client score
   ---
-  duration_ms: 0.591161
+  duration_ms: 0.74954
   type: 'test'
   ...
 # Subtest: Discord community auth uses deploy-time runtime config and ships no server secret
 ok 33 - Discord community auth uses deploy-time runtime config and ships no server secret
   ---
-  duration_ms: 0.483919
+  duration_ms: 0.525102
   type: 'test'
   ...
 # Subtest: repository does not contain a production Supabase runtime configuration
 ok 34 - repository does not contain a production Supabase runtime configuration
   ---
-  duration_ms: 2.922994
+  duration_ms: 3.801569
   type: 'test'
   ...
 # Subtest: Java PRNG: seed 0, 500 outputs
 ok 35 - Java PRNG: seed 0, 500 outputs
   ---
-  duration_ms: 1.465017
+  duration_ms: 1.615645
   type: 'test'
   ...
 # Subtest: Java PRNG: seed 1, 500 outputs
 ok 36 - Java PRNG: seed 1, 500 outputs
   ---
-  duration_ms: 0.323096
+  duration_ms: 0.208034
   type: 'test'
   ...
 # Subtest: Java PRNG: seed -1, 500 outputs
 ok 37 - Java PRNG: seed -1, 500 outputs
   ---
-  duration_ms: 0.223988
+  duration_ms: 0.137077
   type: 'test'
   ...
 # Subtest: Java PRNG: seed 123456789, 500 outputs
 ok 38 - Java PRNG: seed 123456789, 500 outputs
   ---
-  duration_ms: 0.182185
+  duration_ms: 0.168204
   type: 'test'
   ...
 # Subtest: Java PRNG: seed -2147483648, 500 outputs
 ok 39 - Java PRNG: seed -2147483648, 500 outputs
   ---
-  duration_ms: 0.148794
+  duration_ms: 0.173421
   type: 'test'
   ...
 # Subtest: Java PRNG: seed 2147483647, 500 outputs
 ok 40 - Java PRNG: seed 2147483647, 500 outputs
   ---
-  duration_ms: 0.147872
+  duration_ms: 0.151528
   type: 'test'
   ...
 # Subtest: Bird arithmetic agrees bit-for-bit with JVM reference across 2000 updates
 ok 41 - Bird arithmetic agrees bit-for-bit with JVM reference across 2000 updates
   ---
-  duration_ms: 8.531492
+  duration_ms: 7.92898
   type: 'test'
   ...
 # Subtest: 360-entry sine table agrees with JVM reference
 ok 42 - 360-entry sine table agrees with JVM reference
   ---
-  duration_ms: 0.191728
+  duration_ms: 0.337959
   type: 'test'
   ...
 # Subtest: Idle bob uses 8 degrees/update and wraps after 45
 ok 43 - Idle bob uses 8 degrees/update and wraps after 45
   ---
-  duration_ms: 0.369176
+  duration_ms: 0.351099
   type: 'test'
   ...
 # Subtest: Hitbox is inclusive on touching edges
 ok 44 - Hitbox is inclusive on touching edges
   ---
-  duration_ms: 0.314424
+  duration_ms: 0.31161
   type: 'test'
   ...
 # Subtest: Flaps above the top are ignored
 ok 45 - Flaps above the top are ignored
   ---
-  duration_ms: 0.150557
+  duration_ms: 0.207573
   type: 'test'
   ...
 # Subtest: Ground clamps to y=380 and kills vertical speed
 ok 46 - Ground clamps to y=380 and kills vertical speed
   ---
-  duration_ms: 0.133281
+  duration_ms: 0.134783
   type: 'test'
   ...
 # Subtest: Animation clock uses integer thresholds 33 and 100, with +15
 ok 47 - Animation clock uses integer thresholds 33 and 100, with +15
   ---
-  duration_ms: 0.086711
+  duration_ms: 0.091829
   type: 'test'
   ...
 # Subtest: Tween IDs 5 and 11 are cubic-out and quintic-out, 30 frames per half second
 ok 48 - Tween IDs 5 and 11 are cubic-out and quintic-out, 30 frames per half second
   ---
-  duration_ms: 0.232511
+  duration_ms: 0.202285
   type: 'test'
   ...
 # Subtest: 1000-delay events fire after 34 updates; 500-delay after 17
 ok 49 - 1000-delay events fire after 34 updates; 500-delay after 17
   ---
-  duration_ms: 1.701023
+  duration_ms: 1.217054
   type: 'test'
   ...
 # Subtest: Score increments at pipe x=bird x, not when its trailing edge passes
 ok 50 - Score increments at pipe x=bird x, not when its trailing edge passes
   ---
-  duration_ms: 0.287152
+  duration_ms: 0.276307
   type: 'test'
   ...
 # Subtest: Pipe positions survive reset; spacing is 157 after recycling
 ok 51 - Pipe positions survive reset; spacing is 157 after recycling
   ---
-  duration_ms: 0.226621
+  duration_ms: 0.279091
   type: 'test'
   ...
 # Subtest: Menu -> play release -> ready -> flying -> death -> panel -> replay
 ok 52 - Menu -> play release -> ready -> flying -> death -> panel -> replay
   ---
-  duration_ms: 3.019839
+  duration_ms: 3.495468
   type: 'test'
   ...
 # Subtest: Two runs with the same input stream and seed are deterministic
 ok 53 - Two runs with the same input stream and seed are deterministic
   ---
-  duration_ms: 25.351551
+  duration_ms: 33.613722
   type: 'test'
   ...
 # Subtest: All display-list sprite names resolve in supplied atlas
 ok 54 - All display-list sprite names resolve in supplied atlas
   ---
-  duration_ms: 2.413917
+  duration_ms: 2.883125
   type: 'test'
   ...
 # Subtest: 60 simulation updates/sec at 30 Hz presentation
 ok 55 - 60 simulation updates/sec at 30 Hz presentation
   ---
-  duration_ms: 0.272932
+  duration_ms: 0.250758
   type: 'test'
   ...
 # Subtest: 60 simulation updates/sec at 60 Hz presentation
 ok 56 - 60 simulation updates/sec at 60 Hz presentation
   ---
-  duration_ms: 0.121964
+  duration_ms: 0.323638
   type: 'test'
   ...
 # Subtest: 60 simulation updates/sec at 90 Hz presentation
 ok 57 - 60 simulation updates/sec at 90 Hz presentation
   ---
-  duration_ms: 0.120011
+  duration_ms: 0.12584
   type: 'test'
   ...
 # Subtest: 60 simulation updates/sec at 120 Hz presentation
 ok 58 - 60 simulation updates/sec at 120 Hz presentation
   ---
-  duration_ms: 0.197227
+  duration_ms: 0.873476
   type: 'test'
   ...
 # Subtest: 60 simulation updates/sec at 144 Hz presentation
 ok 59 - 60 simulation updates/sec at 144 Hz presentation
   ---
-  duration_ms: 0.157216
+  duration_ms: 0.082394
   type: 'test'
   ...
 # Subtest: 60 simulation updates/sec at 240 Hz presentation
 ok 60 - 60 simulation updates/sec at 240 Hz presentation
   ---
-  duration_ms: 0.21243
+  duration_ms: 0.094953
   type: 'test'
   ...
 # Subtest: Slow displays catch up to 60 Hz while large background gaps stay bounded
 ok 61 - Slow displays catch up to 60 Hz while large background gaps stay bounded
   ---
-  duration_ms: 0.144218
+  duration_ms: 0.128353
   type: 'test'
   ...
 # Subtest: Score panel medals and record thresholds match all four native tiers
 ok 62 - Score panel medals and record thresholds match all four native tiers
   ---
-  duration_ms: 0.635607
+  duration_ms: 0.521746
   type: 'test'
   ...
 # Subtest: Sparse replay survives JSON export and reproduces the exact final snapshot
 ok 63 - Sparse replay survives JSON export and reproduces the exact final snapshot
   ---
-  duration_ms: 4.833702
+  duration_ms: 5.593701
   type: 'test'
   ...
 # Subtest: Performance profiler reports cadence and drop buckets
 ok 64 - Performance profiler reports cadence and drop buckets
   ---
-  duration_ms: 0.841759
+  duration_ms: 0.51742
   type: 'test'
   ...
 # Subtest: Land interpolation crosses the 24 px wrap forward without visual rollback
 ok 65 - Land interpolation crosses the 24 px wrap forward without visual rollback
   ---
-  duration_ms: 0.10571
+  duration_ms: 0.095334
   type: 'test'
   ...
 # Subtest: Render identities follow a pipe across slot recycling
 ok 66 - Render identities follow a pipe across slot recycling
   ---
-  duration_ms: 0.117447
+  duration_ms: 0.1064
   type: 'test'
   ...
 # Subtest: All visible pipe commands carry stable render identities
 ok 67 - All visible pipe commands carry stable render identities
   ---
-  duration_ms: 0.149425
+  duration_ms: 0.152229
   type: 'test'
   ...
 # Subtest: Adapted aspect centers the 288:512 game and fills the full portrait height
 ok 68 - Adapted aspect centers the 288:512 game and fills the full portrait height
   ---
-  duration_ms: 0.176186
+  duration_ms: 0.17948
   type: 'test'
   ...
 # Subtest: Adapted aspect never stretches the logical game non-uniformly
 ok 69 - Adapted aspect never stretches the logical game non-uniformly
   ---
-  duration_ms: 0.115434
+  duration_ms: 0.156786
   type: 'test'
   ...
 # Subtest: Original aspect preserves 288:512 with no scene padding
 ok 70 - Original aspect preserves 288:512 with no scene padding
   ---
-  duration_ms: 0.102114
+  duration_ms: 0.082564
   type: 'test'
   ...
 # Subtest: Performance mode affects backing supersampling, not CSS game size
 ok 71 - Performance mode affects backing supersampling, not CSS game size
   ---
-  duration_ms: 0.324519
+  duration_ms: 0.110887
   type: 'test'
   ...
 # Subtest: Aspect default is Original on desktop and Adapted on touch/mobile-class input
 ok 72 - Aspect default is Original on desktop and Adapted on touch/mobile-class input
   ---
-  duration_ms: 0.167802
+  duration_ms: 0.070306
   type: 'test'
   ...
 # Subtest: Scene extension colors match original day/night sky and land
 ok 73 - Scene extension colors match original day/night sky and land
   ---
-  duration_ms: 0.149695
+  duration_ms: 0.142625
   type: 'test'
   ...
 # Subtest: Renderer supersamples rotated sprites at x2 desktop and x3 high-DPR mobile
 ok 74 - Renderer supersamples rotated sprites at x2 desktop and x3 high-DPR mobile
   ---
-  duration_ms: 0.067401
+  duration_ms: 0.067272
   type: 'test'
   ...
 # Subtest: PWA requests portrait-primary and avoids translucent iOS status-bar blur
 ok 75 - PWA requests portrait-primary and avoids translucent iOS status-bar blur
   ---
-  duration_ms: 0.310698
+  duration_ms: 0.267844
   type: 'test'
   ...
 # Subtest: Adapted scene extension is rendered by Canvas, not a CSS pseudo-element
 ok 76 - Adapted scene extension is rendered by Canvas, not a CSS pseudo-element
   ---
-  duration_ms: 0.45137
+  duration_ms: 0.190807
   type: 'test'
   ...
 # Subtest: GitHub Pages paths stay relative to the repository base path
 ok 77 - GitHub Pages paths stay relative to the repository base path
   ---
-  duration_ms: 0.161934
+  duration_ms: 0.150997
   type: 'test'
   ...
 # Subtest: Static update probe uses version.json instead of a dynamic health endpoint
 ok 78 - Static update probe uses version.json instead of a dynamic health endpoint
   ---
-  duration_ms: 0.317668
+  duration_ms: 0.266272
   type: 'test'
   ...
 # Subtest: Score sync success takes precedence over stale profile/auth errors in account status
 ok 79 - Score sync success takes precedence over stale profile/auth errors in account status
   ---
-  duration_ms: 0.239
+  duration_ms: 0.248324
   type: 'test'
   ...
 # Subtest: running audio context uses the steady-state unlock fast path
 ok 80 - running audio context uses the steady-state unlock fast path
   ---
-  duration_ms: 1.628674
+  duration_ms: 1.809937
   type: 'test'
   ...
 # Subtest: profiler reports tap and wing audio hot-path timing
 ok 81 - profiler reports tap and wing audio hot-path timing
   ---
-  duration_ms: 0.584401
+  duration_ms: 0.81617
   type: 'test'
   ...
 # Subtest: touch pointerdown avoids synchronous WebKit-heavy operations
 ok 82 - touch pointerdown avoids synchronous WebKit-heavy operations
   ---
-  duration_ms: 0.569899
+  duration_ms: 0.688968
+  type: 'test'
+  ...
+# Subtest: profiler correlates a tap with the next delayed animation frame
+ok 83 - profiler correlates a tap with the next delayed animation frame
+  ---
+  duration_ms: 0.548046
+  type: 'test'
+  ...
+# Subtest: game canvas is not focusable and relies on touch-action for touch gestures
+ok 84 - game canvas is not focusable and relies on touch-action for touch gestures
+  ---
+  duration_ms: 1.009311
   type: 'test'
   ...
 # Subtest: leaderboard payload is normalized and keeps one unique player per row
-ok 83 - leaderboard payload is normalized and keeps one unique player per row
+ok 85 - leaderboard payload is normalized and keeps one unique player per row
   ---
-  duration_ms: 1.856497
+  duration_ms: 1.152526
   type: 'test'
   ...
 # Subtest: public leaderboard RPC works without a Discord session
-ok 84 - public leaderboard RPC works without a Discord session
+ok 86 - public leaderboard RPC works without a Discord session
   ---
-  duration_ms: 21.389552
+  duration_ms: 18.465729
   type: 'test'
   ...
 # Subtest: leaderboard SQL exposes only verified per-player best scores through a public RPC
-ok 85 - leaderboard SQL exposes only verified per-player best scores through a public RPC
+ok 87 - leaderboard SQL exposes only verified per-player best scores through a public RPC
   ---
-  duration_ms: 5.326054
+  duration_ms: 8.302262
   type: 'test'
   ...
 # Subtest: leaderboard UI is public, dedicated, explains sign-in, and the original scores action opens it
-ok 86 - leaderboard UI is public, dedicated, explains sign-in, and the original scores action opens it
+ok 88 - leaderboard UI is public, dedicated, explains sign-in, and the original scores action opens it
   ---
-  duration_ms: 5.311362
+  duration_ms: 1.692271
   type: 'test'
   ...
 # Subtest: personal leaderboard payload validates ranked and unranked states
-ok 87 - personal leaderboard payload validates ranked and unranked states
+ok 89 - personal leaderboard payload validates ranked and unranked states
   ---
-  duration_ms: 0.594515
+  duration_ms: 0.759765
   type: 'test'
   ...
 # Subtest: personal leaderboard RPC is authenticated and never accepts a player id
-ok 88 - personal leaderboard RPC is authenticated and never accepts a player id
+ok 90 - personal leaderboard RPC is authenticated and never accepts a player id
   ---
-  duration_ms: 0.704932
+  duration_ms: 0.684832
   type: 'test'
   ...
 # Subtest: personal leaderboard SQL derives caller identity from auth.uid and is not anonymous
-ok 89 - personal leaderboard SQL derives caller identity from auth.uid and is not anonymous
+ok 91 - personal leaderboard SQL derives caller identity from auth.uid and is not anonymous
   ---
-  duration_ms: 4.880602
+  duration_ms: 1.661358
   type: 'test'
   ...
 # Subtest: leaderboard modal contains a dedicated personal context card for signed-in players
-ok 90 - leaderboard modal contains a dedicated personal context card for signed-in players
+ok 92 - leaderboard modal contains a dedicated personal context card for signed-in players
   ---
-  duration_ms: 1.568163
+  duration_ms: 2.472236
   type: 'test'
   ...
 # Subtest: player_stats stores lifetime verified aggregates and authoritative death causes
-ok 91 - player_stats stores lifetime verified aggregates and authoritative death causes
+ok 93 - player_stats stores lifetime verified aggregates and authoritative death causes
   ---
-  duration_ms: 4.418767
+  duration_ms: 3.820868
   type: 'test'
   ...
 # Subtest: player_stats backfill only derives data from authoritative verified_runs
-ok 92 - player_stats backfill only derives data from authoritative verified_runs
+ok 94 - player_stats backfill only derives data from authoritative verified_runs
   ---
-  duration_ms: 1.411186
+  duration_ms: 1.620392
   type: 'test'
   ...
 # Subtest: verified transition updates lifetime stats once inside the database
-ok 93 - verified transition updates lifetime stats once inside the database
+ok 95 - verified transition updates lifetime stats once inside the database
   ---
-  duration_ms: 0.850231
+  duration_ms: 0.92889
   type: 'test'
   ...
 # Subtest: browser roles cannot read or write player_stats directly
-ok 94 - browser roles cannot read or write player_stats directly
+ok 96 - browser roles cannot read or write player_stats directly
   ---
-  duration_ms: 1.482363
+  duration_ms: 1.468203
   type: 'test'
   ...
 # Subtest: retention keeps the 50 most recently started verified runs
-ok 95 - retention keeps the 50 most recently started verified runs
+ok 97 - retention keeps the 50 most recently started verified runs
   ---
-  duration_ms: 4.09573
+  duration_ms: 5.190583
   type: 'test'
   ...
 # Subtest: retention always preserves the deterministic historical best run
-ok 96 - retention always preserves the deterministic historical best run
+ok 98 - retention always preserves the deterministic historical best run
   ---
-  duration_ms: 1.3674
+  duration_ms: 2.208859
   type: 'test'
   ...
 # Subtest: retention deletes only verified rows and never issued/rejected tickets
-ok 97 - retention deletes only verified rows and never issued/rejected tickets
+ok 99 - retention deletes only verified rows and never issued/rejected tickets
   ---
-  duration_ms: 0.992375
+  duration_ms: 1.673312
   type: 'test'
   ...
 # Subtest: retention is serialized per player and runs only after a run becomes verified
-ok 98 - retention is serialized per player and runs only after a run becomes verified
+ok 100 - retention is serialized per player and runs only after a run becomes verified
   ---
-  duration_ms: 1.582904
+  duration_ms: 1.587222
   type: 'test'
   ...
 # Subtest: retention maintenance functions are not executable by browser roles
-ok 99 - retention maintenance functions are not executable by browser roles
+ok 101 - retention maintenance functions are not executable by browser roles
   ---
-  duration_ms: 0.937131
+  duration_ms: 1.565355
   type: 'test'
   ...
 # Subtest: migration prunes already-existing verified histories once
-ok 100 - migration prunes already-existing verified histories once
+ok 102 - migration prunes already-existing verified histories once
   ---
-  duration_ms: 0.624611
+  duration_ms: 0.759294
   type: 'test'
   ...
 # Subtest: run-submit verifier authoritatively accepts the canonical ground replay
-ok 101 - run-submit verifier authoritatively accepts the canonical ground replay
+ok 103 - run-submit verifier authoritatively accepts the canonical ground replay
   ---
-  duration_ms: 8.296398
+  duration_ms: 8.320198
   type: 'test'
   ...
 # Subtest: run-submit verifier rejects a replay that claims a late collision
-ok 102 - run-submit verifier rejects a replay that claims a late collision
+ok 104 - run-submit verifier rejects a replay that claims a late collision
   ---
-  duration_ms: 1.608293
+  duration_ms: 2.027976
   type: 'test'
   ...
 # Subtest: reserved client fields are rejected before authoritative simulation
-ok 103 - reserved client fields are rejected before authoritative simulation
+ok 105 - reserved client fields are rejected before authoritative simulation
   ---
-  duration_ms: 1.186868
+  duration_ms: 1.051294
   type: 'test'
   ...
 # Subtest: client submissions cannot carry player statistics or any extra field
-ok 104 - client submissions cannot carry player statistics or any extra field
+ok 106 - client submissions cannot carry player statistics or any extra field
   ---
-  duration_ms: 0.540975
+  duration_ms: 0.512382
   type: 'test'
   ...
 # Subtest: canonical replay hash is independent from JSON property order
-ok 105 - canonical replay hash is independent from JSON property order
+ok 107 - canonical replay hash is independent from JSON property order
   ---
-  duration_ms: 0.601456
+  duration_ms: 0.608237
   type: 'test'
   ...
 # Subtest: run-submit authenticates ownership and resolves one issued row atomically
-ok 106 - run-submit authenticates ownership and resolves one issued row atomically
+ok 108 - run-submit authenticates ownership and resolves one issued row atomically
   ---
-  duration_ms: 0.994678
+  duration_ms: 1.01495
   type: 'test'
   ...
 # Subtest: only a Discord session gates PLAY behind a ticket or offline warning
-ok 107 - only a Discord session gates PLAY behind a ticket or offline warning
+ok 109 - only a Discord session gates PLAY behind a ticket or offline warning
   ---
-  duration_ms: 0.731392
+  duration_ms: 1.069011
   type: 'test'
   ...
 # Subtest: PLAY release detection preserves the original strict hitbox
-ok 108 - PLAY release detection preserves the original strict hitbox
+ok 110 - PLAY release detection preserves the original strict hitbox
   ---
-  duration_ms: 0.210558
+  duration_ms: 0.301655
   type: 'test'
   ...
 # Subtest: client recorder produces the canonical sparse submission through collision
-ok 109 - client recorder produces the canonical sparse submission through collision
+ok 111 - client recorder produces the canonical sparse submission through collision
   ---
-  duration_ms: 3.871633
+  duration_ms: 5.523785
   type: 'test'
   ...
 # Subtest: READY waiting time and ignored pause-zone taps do not shift tick zero
-ok 110 - READY waiting time and ignored pause-zone taps do not shift tick zero
+ok 112 - READY waiting time and ignored pause-zone taps do not shift tick zero
   ---
-  duration_ms: 1.10857
+  duration_ms: 5.154819
   type: 'test'
   ...
 # Subtest: completed submissions are deduplicated and bounded in the offline queue
-ok 111 - completed submissions are deduplicated and bounded in the offline queue
+ok 113 - completed submissions are deduplicated and bounded in the offline queue
   ---
-  duration_ms: 6.414753
+  duration_ms: 10.226422
   type: 'test'
   ...
 # Subtest: offline queue keeps account ownership local and removes one resolved run
-ok 112 - offline queue keeps account ownership local and removes one resolved run
+ok 114 - offline queue keeps account ownership local and removes one resolved run
   ---
-  duration_ms: 0.625803
+  duration_ms: 1.219317
   type: 'test'
   ...
 # Subtest: queue repair removes ownerless and malformed legacy poison pills and keeps the newest duplicate
-ok 113 - queue repair removes ownerless and malformed legacy poison pills and keeps the newest duplicate
+ok 115 - queue repair removes ownerless and malformed legacy poison pills and keeps the newest duplicate
   ---
-  duration_ms: 0.375686
+  duration_ms: 0.507195
   type: 'test'
   ...
 # Subtest: new queued verified runs require a valid player owner
-ok 114 - new queued verified runs require a valid player owner
+ok 116 - new queued verified runs require a valid player owner
   ---
-  duration_ms: 0.426512
+  duration_ms: 0.566064
   type: 'test'
   ...
 # Subtest: only permanent submission failures discard a queued run
-ok 115 - only permanent submission failures discard a queued run
+ok 117 - only permanent submission failures discard a queued run
   ---
-  duration_ms: 0.305119
+  duration_ms: 0.47784
   type: 'test'
   ...
 # Subtest: run tickets accept only the versioned server contract
-ok 116 - run tickets accept only the versioned server contract
+ok 118 - run tickets accept only the versioned server contract
   ---
-  duration_ms: 1.522083
+  duration_ms: 1.564337
   type: 'test'
   ...
 # Subtest: verified submission contract contains no client-owned seed or score
-ok 117 - verified submission contract contains no client-owned seed or score
+ok 119 - verified submission contract contains no client-owned seed or score
   ---
-  duration_ms: 0.4444
+  duration_ms: 0.541897
   type: 'test'
   ...
 # Subtest: verified run results accept coherent verified and rejected outcomes only
-ok 118 - verified run results accept coherent verified and rejected outcomes only
+ok 120 - verified run results accept coherent verified and rejected outcomes only
   ---
-  duration_ms: 0.22592
+  duration_ms: 0.237417
   type: 'test'
   ...
 # Subtest: canonical start reproduces all four APK harness START states
-ok 119 - canonical start reproduces all four APK harness START states
+ok 121 - canonical start reproduces all four APK harness START states
   ---
-  duration_ms: 4.14177
+  duration_ms: 4.345078
   type: 'test'
   ...
 # Subtest: authoritative replay core matches the four APK golden terminal results
-ok 120 - authoritative replay core matches the four APK golden terminal results
+ok 122 - authoritative replay core matches the four APK golden terminal results
   ---
-  duration_ms: 14.441566
+  duration_ms: 17.689039
   type: 'test'
   ...
 # Subtest: authoritative replay rejects an early collision and a false terminal tick
-ok 121 - authoritative replay rejects an early collision and a false terminal tick
+ok 123 - authoritative replay rejects an early collision and a false terminal tick
   ---
-  duration_ms: 1.269041
+  duration_ms: 1.421362
   type: 'test'
   ...
 # Subtest: verified-runs migration is private and reserves one authoritative result per run_id
-ok 122 - verified-runs migration is private and reserves one authoritative result per run_id
+ok 124 - verified-runs migration is private and reserves one authoritative result per run_id
   ---
-  duration_ms: 5.607007
+  duration_ms: 5.471245
   type: 'test'
   ...
 # Subtest: run-start authenticates the caller and generates the seed on the server
-ok 123 - run-start authenticates the caller and generates the seed on the server
+ok 125 - run-start authenticates the caller and generates the seed on the server
   ---
-  duration_ms: 0.691783
+  duration_ms: 0.654366
   type: 'test'
   ...
-1..123
-# tests 123
+1..125
+# tests 125
 # suites 0
-# pass 123
+# pass 125
 # fail 0
 # cancelled 0
 # skipped 0
 # todo 0
-# duration_ms 790.503274
+# duration_ms 786.7993
