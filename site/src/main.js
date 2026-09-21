@@ -28,7 +28,7 @@ import {
 } from './verified-run-client.js';
 import { createCanonicalRunGame } from './verified-runs.js';
 
-const VERSION = '0.2.7.3b-dev5.4';
+const VERSION = '0.2.7.3b-dev5.5';
 const BEST_SCORE_KEY = 'flappy13-personal-best-v1';
 const SETTINGS_KEY = 'flappy13-settings-v1';
 const LAST_VERSION_KEY = 'flappy13-last-version-v1';
@@ -83,6 +83,7 @@ let frameLoopGeneration = 0;
 let frameTimerId = null;
 let frameWorker = null;
 let currentFrameDriver = 'raf';
+let workerLastSequence = 0;
 let tickCount = 0;
 let statsAt = 0;
 let previousCommands = null;
@@ -251,6 +252,7 @@ function startFrameLoop() {
       );
       frameWorker = worker;
 
+      workerLastSequence = 0;
       worker.onmessage = event => {
         if (
           generation !== frameLoopGeneration
@@ -259,7 +261,17 @@ function startFrameLoop() {
         ) {
           return;
         }
-        animate(performance.now());
+
+        const sequence = Number(event.data.sequence);
+        if (!Number.isInteger(sequence) || sequence <= workerLastSequence) {
+          return;
+        }
+
+        // The worker cadence is the clock on iOS. If several messages were
+        // delayed by WebKit, discard the stale logical impulses instead of
+        // replaying a 0/1/2-tick burst on the main thread.
+        workerLastSequence = sequence;
+        animateWorkerFrame(performance.now());
       };
 
       worker.onerror = error => {
@@ -1813,6 +1825,57 @@ async function copyAudioDiagnostics() {
 
 $('copy-audio').onclick = copyAudioDiagnostics;
 $('export-audio').onclick = exportAudioDiagnostics;
+
+function animateWorkerFrame(now) {
+  frameCallbackCount++;
+
+  if (
+    game
+    && !options.open
+    && !leaderboardDialog.open
+    && !document.hidden
+    && !paused
+    && !orientationBlocked
+  ) {
+    tick();
+
+    const renderStarted = performance.now();
+    render(1);
+    const renderMs = performance.now() - renderStarted;
+    const result = profiler.frame(now, 1, renderMs);
+
+    if (result) {
+      lastPerfResult = result;
+      $('perf-output').textContent = perfText(result);
+      $('profile').disabled = false;
+      $('frame-driver').disabled = false;
+      $('export-perf').disabled = false;
+    }
+  } else {
+    clock.reset();
+  }
+
+  if (now - statsAt >= 500) {
+    if (debug && game) {
+      const snapshot = game.snapshot();
+      const elapsed = now - statsAt;
+
+      $('stats').textContent = [
+        `${snapshot.state} | tick ${snapshot.frame}`,
+        `updates/s ${Math.round(tickCount * 1000 / elapsed)} | frame/s ${Math.round(frameCallbackCount * 1000 / elapsed)} | ${activeFrameDriver()}`,
+        `seed ${snapshot.seed}`,
+        `bird (${snapshot.bird.x}, ${snapshot.bird.y})`,
+        `v=${snapshot.bird.velocity.toFixed(7)} | rot=${snapshot.bird.rotation.toFixed(4)}`,
+        `score=${snapshot.score} | hidden=${snapshot.hidden}`,
+        `pipes ${snapshot.pipes.map(pipe => `${pipe.x}:${pipe.y}`).join(' / ')}`,
+      ].join('\n');
+    }
+
+    tickCount = 0;
+    frameCallbackCount = 0;
+    statsAt = now;
+  }
+}
 
 function animate(now) {
   frameCallbackCount++;

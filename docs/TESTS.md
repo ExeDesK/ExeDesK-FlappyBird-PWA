@@ -1,4 +1,4 @@
-# Rapport de tests - v0.2.7.3b-dev5.4
+# Rapport de tests - v0.2.7.3b-dev5.5
 
 ## Résultat
 
@@ -174,14 +174,15 @@ Le profiler corrèle désormais un tap au prochain `requestAnimationFrame` et me
 Validation de cette étape : **125/125 tests Node** passaient.
 
 
-## Ticker worker iOS (v0.2.7.3b-dev5.4)
+## Pilote worker fixed-step iOS (v0.2.7.3b-dev5.5)
 
-- Le profil réel `dev5.3` confirme que le timer principal est stable mais plafonne à environ 50 FPS sur l'iPhone testé.
-- `AUTO` sélectionne désormais `worker` sur iOS WebKit lorsque `Worker` est disponible, et `rAF` ailleurs.
-- Le sélecteur diagnostic permet de forcer `AUTO`, `rAF`, `WORKER 60 Hz` ou `TIMER 60 Hz (TEST)` sans redéploiement.
-- Le worker ne contient aucune physique : il ne fait qu'émettre les impulsions qui appellent le chemin `animate()` existant ; `FixedClock(60)` reste l'unique horloge de simulation.
-- Le ticker utilise une échéance absolue avec correction de dérive et évite les backlogs après stall.
+- `AUTO` sélectionne `worker` sur iOS WebKit lorsque `Worker` est disponible, et `rAF` ailleurs.
+- Le worker ne contient aucune physique ; il émet uniquement des impulsions séquencées.
+- Chaque impulsion fraîche exécute exactement `tick()` une fois puis `render(1)` sur le thread principal.
+- Les séquences dupliquées ou obsolètes sont ignorées afin d'éviter toute rafale de rattrapage après un stall.
+- Android/desktop restent sur `requestAnimationFrame` + `FixedClock(60)`.
+- Le ticker utilise toujours une échéance absolue avec correction de dérive et évite les backlogs prolongés.
 - Un échec de création/exécution du worker provoque un fallback `rAF`.
-- Le précache offline inclut désormais `frame-driver.js` et `frame-ticker.worker.js` (34 ressources).
-- Le profiler expose le pilote réellement actif via `frameDriver`/`driverFps`.
-- Validation complète : **128/128 tests Node** passent.
+- Le précache offline inclut `frame-driver.js` et `frame-ticker.worker.js` (34 ressources).
+- Le profiler expose le pilote réellement actif via `frameDriver`/`driverFps` et doit maintenant montrer `steps1` proche de 100 % en mode worker.
+- Validation complète : **129/129 tests Node** passent.

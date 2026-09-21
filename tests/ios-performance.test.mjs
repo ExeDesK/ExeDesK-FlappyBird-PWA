@@ -157,6 +157,17 @@ test('worker ticker uses drift-corrected scheduling and never owns game physics'
   assert.match(worker, /periodMs = 1000 \/ 60/);
   assert.match(worker, /nextAt \+= periodMs/);
   assert.match(worker, /setTimeout\(tick, delay\)/);
-  assert.match(worker, /postMessage\(\{ type: 'frame' \}\)/);
+  assert.match(worker, /postMessage\(\{ type: 'frame', sequence, scheduledAt: nextAt \}\)/);
   assert.doesNotMatch(worker, /import\s|new\s+Game|new\s+FixedClock|physics_version/);
+});
+
+
+test('worker driver consumes one fresh impulse as exactly one logical tick', () => {
+  const source = fs.readFileSync(new URL('../site/src/main.js', import.meta.url), 'utf8');
+
+  assert.match(source, /animateWorkerFrame\(performance\.now\(\)\)/);
+  assert.match(source, /function animateWorkerFrame\(now\)/);
+  assert.match(source, /tick\(\);[\s\S]*render\(1\);/);
+  assert.match(source, /profiler\.frame\(now, 1, renderMs\)/);
+  assert.match(source, /sequence <= workerLastSequence/);
 });

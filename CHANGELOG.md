@@ -1,5 +1,12 @@
 # Changelog
 
+## v0.2.7.3b-dev5.5 - iOS fixed-step worker driver
+
+- Sur iOS en mode worker, chaque impulsion valide exécute désormais exactement **1 tick logique 60 Hz + 1 rendu**, au lieu de repasser par `FixedClock.steps(performance.now())`.
+- Les séquences worker sont monotones ; les impulsions obsolètes ou dupliquées sont ignorées et ne provoquent jamais de rafale de rattrapage.
+- Android/PC restent inchangés en `requestAnimationFrame` + `FixedClock(60)`.
+- Le moteur, `flappy13-physics-v1` et le format Verified Runs restent inchangés.
+
 ## v0.2.7.3b-dev5.4 - iOS worker frame ticker
 
 - Le profil iPhone `dev5.3` confirme que le timer principal supprime le hitch au tap mais tourne à **50 FPS** réels (`500 frames / 10 s`, delta ~20 ms) : ce pilote n'est plus utilisé par `AUTO`.

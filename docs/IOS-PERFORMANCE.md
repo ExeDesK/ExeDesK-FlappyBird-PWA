@@ -1,4 +1,4 @@
-# iOS Performance — v0.2.7.3b-dev5.4
+# iOS Performance — v0.2.7.3b-dev5.5
 
 Cette version cible une micro-saccade perceptible sur iOS au moment de chaque flap, absente sur Android et desktop.
 
@@ -87,3 +87,11 @@ Modes de diagnostic disponibles :
 Si le worker n'est pas disponible ou échoue à démarrer, le runtime retombe automatiquement sur `requestAnimationFrame` et le profiler rapporte le pilote réellement actif.
 
 Le Service Worker précache également `frame-driver.js` et `frame-ticker.worker.js` afin que ce chemin reste disponible en PWA hors connexion.
+
+## dev5.5 — fixed-step worker driver
+
+Le profil réel `dev5.4` tient environ 60 FPS et supprime les gros hitches au tap, mais montre un motif `0 / 1 / 2 ticks` presque alterné lorsque les impulsions worker irrégulières sont réinterprétées par `FixedClock.steps(performance.now())`.
+
+En `dev5.5`, le worker iOS devient la cadence logique de présentation : chaque message de séquence fraîche déclenche exactement **1 `tick()` + 1 `render(1)`**. Le worker reste dépourvu de toute logique de jeu ; il ne choisit ni physique, ni score, ni collision. Android et desktop gardent le chemin `requestAnimationFrame` + `FixedClock(60)`.
+
+Chaque impulsion transporte un numéro de séquence monotone. Les séquences dupliquées ou obsolètes sont ignorées, afin qu'un stall WebKit ne puisse pas provoquer ensuite une rafale de ticks de rattrapage.
