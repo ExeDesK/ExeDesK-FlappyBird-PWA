@@ -166,6 +166,8 @@ test('verified PLAY hides ticket latency behind the native one-second fade caden
   assert.match(main, /PLAY_FADE_SECONDS = 0\.5/);
   assert.match(main, /PLAY_FADE_MIN_MS = PLAY_FADE_SECONDS \* 1000/);
   assert.match(main, /originGame\.transition\(true, 0, PLAY_FADE_SECONDS\)/);
+  assert.match(main, /mode === 'ticket' \? startVerifiedPlayFade\(game\) : null/);
+  assert.match(main, /ensureVerifiedPlayFadeToBlack\(originGame, fadeStartedAt\)/);
   assert.match(main, /Promise\.all\(\[ticketPromise, fadePromise\]\)/);
   assert.match(main, /performance\.now\(\) - startedAt < PLAY_FADE_MIN_MS/);
   assert.match(main, /game\.transition\(false, 0, PLAY_FADE_SECONDS\)/);

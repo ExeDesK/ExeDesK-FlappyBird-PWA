@@ -23,7 +23,7 @@ import {
 } from './verified-run-client.js';
 import { createCanonicalRunGame } from './verified-runs.js';
 
-const VERSION = '0.2.7.3b-dev6.2';
+const VERSION = '0.2.7.3b-dev6.2.1';
 const BEST_SCORE_KEY = 'flappy13-personal-best-v1';
 const SETTINGS_KEY = 'flappy13-settings-v1';
 const LAST_VERSION_KEY = 'flappy13-last-version-v1';
@@ -560,6 +560,27 @@ async function waitForPlayFadeToBlack(originGame, startedAt) {
   return game === originGame;
 }
 
+async function ensureVerifiedPlayFadeToBlack(originGame, startedAt = null) {
+  let effectiveStartedAt = startedAt;
+
+  // PLAY can be pressed while another menu fade is still completing. Never
+  // wait for a black value unless we have actually started the PLAY fade.
+  while (game === originGame && effectiveStartedAt == null) {
+    if (originGame.fade.done) {
+      effectiveStartedAt = startVerifiedPlayFade(originGame);
+      break;
+    }
+
+    await sleep(16);
+  }
+
+  if (game !== originGame || effectiveStartedAt == null) {
+    return false;
+  }
+
+  return waitForPlayFadeToBlack(originGame, effectiveStartedAt);
+}
+
 function startVerifiedPlayFade(originGame) {
   if (!originGame?.fade?.done) {
     return null;
@@ -619,9 +640,10 @@ async function beginAuthenticatedPlay(originGame, mode, fadeStartedAt = null) {
       return;
     }
 
+    const fadePromise = ensureVerifiedPlayFadeToBlack(originGame, fadeStartedAt);
+
     try {
       const ticketPromise = auth.startVerifiedRun();
-      const fadePromise = waitForPlayFadeToBlack(originGame, fadeStartedAt ?? performance.now());
       const [ticket, stillCurrent] = await Promise.all([ticketPromise, fadePromise]);
 
       if (stillCurrent && game === originGame && originGame.play.active) {
@@ -630,9 +652,7 @@ async function beginAuthenticatedPlay(originGame, mode, fadeStartedAt = null) {
     } catch (error) {
       console.warn('[Verified Runs] Ticket indisponible.', error);
 
-      if (fadeStartedAt != null) {
-        await waitForPlayFadeToBlack(originGame, fadeStartedAt);
-      }
+      await fadePromise;
 
       const proceed = await askToPlayUnranked(
         `Impossible de préparer la partie classée : ${error?.message || error}. `
@@ -1731,7 +1751,7 @@ function interceptAuthenticatedPlay(input) {
   // hiding server latency behind the same visual cadence as the APK.
   game.play.pressed = false;
   game.play.released = false;
-  const fadeStartedAt = mode === 'verified' ? startVerifiedPlayFade(game) : null;
+  const fadeStartedAt = mode === 'ticket' ? startVerifiedPlayFade(game) : null;
   beginAuthenticatedPlay(game, mode, fadeStartedAt);
   return true;
 }

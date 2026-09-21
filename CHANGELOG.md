@@ -1,3 +1,10 @@
+## v0.2.7.3b-dev6.2.1 - Verified PLAY fade hotfix
+
+- Correction d’un blocage après `run-start` : `verifiedRunStartMode()` renvoie `ticket`, mais `dev6.2` ne démarrait le fade que pour un mode inexistant `verified`.
+- Le fade PLAY est maintenant explicitement garanti avant d’être attendu ; un fade de menu encore actif est laissé terminer puis le fade noir PLAY démarre.
+- Ajout d’un test de non-régression pour verrouiller le contrat `mode === 'ticket'` et empêcher toute attente d’un fade jamais lancé.
+- Aucun changement Supabase, physique, replay autoritaire ou contrat Verified Runs.
+
 ## v0.2.7.3b-dev6.2 - Toast & Verified Run start UX
 
 - Les toasts passent dans le Top Layer via `popover=manual`, afin de rester visibles au-dessus des modales.
