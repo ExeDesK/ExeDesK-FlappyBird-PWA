@@ -7,6 +7,8 @@ export class PerfProfiler {
     this.samples = [];
     this.steps = [];
     this.renderTimes = [];
+    this.tapTimes = [];
+    this.audioTimes = [];
     this.result = null;
   }
 
@@ -17,7 +19,21 @@ export class PerfProfiler {
     this.samples.length = 0;
     this.steps.length = 0;
     this.renderTimes.length = 0;
+    this.tapTimes.length = 0;
+    this.audioTimes.length = 0;
     this.result = null;
+  }
+
+  tap(durationMs) {
+    if (this.active && Number.isFinite(durationMs)) {
+      this.tapTimes.push(durationMs);
+    }
+  }
+
+  audio(durationMs) {
+    if (this.active && Number.isFinite(durationMs)) {
+      this.audioTimes.push(durationMs);
+    }
   }
 
   frame(now, steps, renderMs) {
@@ -50,6 +66,8 @@ export class PerfProfiler {
 
     const deltas = this.samples.slice().sort((a, b) => a - b);
     const renders = this.renderTimes.slice().sort((a, b) => a - b);
+    const taps = this.tapTimes.slice().sort((a, b) => a - b);
+    const audio = this.audioTimes.slice().sort((a, b) => a - b);
     const sum = values => values.reduce((total, value) => total + value, 0);
     const percentile = (values, ratio) => {
       if (!values.length) {
@@ -83,6 +101,14 @@ export class PerfProfiler {
         : 0,
       renderP95: percentile(renders, 0.95),
       renderMax: renders.at(-1) ?? 0,
+      tapCount: this.tapTimes.length,
+      tapAvg: this.tapTimes.length ? sum(this.tapTimes) / this.tapTimes.length : 0,
+      tapP95: percentile(taps, 0.95),
+      tapMax: taps.at(-1) ?? 0,
+      audioCount: this.audioTimes.length,
+      audioAvg: this.audioTimes.length ? sum(this.audioTimes) / this.audioTimes.length : 0,
+      audioP95: percentile(audio, 0.95),
+      audioMax: audio.at(-1) ?? 0,
       steps0: this.steps.filter(value => value === 0).length,
       steps1: this.steps.filter(value => value === 1).length,
       steps2plus: this.steps.filter(value => value >= 2).length,
@@ -107,6 +133,8 @@ export class PerfProfiler {
       `delta moy ${result.deltaAvg.toFixed(2)} ms | p95 ${result.deltaP95.toFixed(2)} | p99 ${result.deltaP99.toFixed(2)} | max ${result.deltaMax.toFixed(2)}`,
       `>20 ms ${result.over20} (${percentage(result.over20, result.frames)}%) | >25 ms ${result.over25} | >33 ms ${result.over33}`,
       `render moy ${result.renderAvg.toFixed(2)} ms | p95 ${result.renderP95.toFixed(2)} | max ${result.renderMax.toFixed(2)}`,
+      `tap ${result.tapCount} | moy ${result.tapAvg.toFixed(3)} ms | p95 ${result.tapP95.toFixed(3)} | max ${result.tapMax.toFixed(3)}`,
+      `audio wing ${result.audioCount} | moy ${result.audioAvg.toFixed(3)} ms | p95 ${result.audioP95.toFixed(3)} | max ${result.audioMax.toFixed(3)}`,
       `ticks/rAF 0:${result.steps0} 1:${result.steps1} 2+:${result.steps2plus} | max ${result.maxSteps}`,
     ].join('\n');
   }

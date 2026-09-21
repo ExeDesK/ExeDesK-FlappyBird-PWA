@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.2.7.3b-dev5.1 - iOS input latency hotfix
+
+- Allègement du hot path tactile iOS sans modifier la simulation ni `flappy13-physics-v1`.
+- Suppression de `tryLockPortrait()`, `canvas.focus()` et `setPointerCapture()` sur chaque `pointerdown` tactile ; les contrôles desktop conservent focus et capture.
+- Mise en cache de la géométrie du canvas lors des resize afin d'éviter `getBoundingClientRect()` à chaque flap.
+- Fast-path audio : aucun `unlock()`/diagnostic de reprise lorsque l'`AudioContext` est déjà `running`, et suppression des événements diagnostiques routiniers alloués à chaque SFX réussi ou flap muet.
+- Remplacement du `structuredClone(input)` déclenché sur les taps par une copie minimale des coordonnées nécessaires à la trace de replay locale.
+- Extension du profiler 10 s avec les mesures `tap` et `audio wing` (moyenne, p95, max) pour diagnostiquer précisément iOS son ON/OFF.
+- Aucun changement Supabase, Verified Runs, leaderboard, statistiques joueur ou politique de rétention.
+- Validation automatisée : **123/123 tests Node** passent.
+
 ## v0.2.7.3b-dev5 - Personal leaderboard context
 
 - Ajout d'une carte `VOTRE CLASSEMENT` dans la modale pour les joueurs connectés, sans modifier l'accès public au Top 100.

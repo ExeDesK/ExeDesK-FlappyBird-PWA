@@ -23,7 +23,7 @@ import {
 } from './verified-run-client.js';
 import { createCanonicalRunGame } from './verified-runs.js';
 
-const VERSION = '0.2.7.3b-dev5';
+const VERSION = '0.2.7.3b-dev5.1';
 const BEST_SCORE_KEY = 'flappy13-personal-best-v1';
 const SETTINGS_KEY = 'flappy13-settings-v1';
 const LAST_VERSION_KEY = 'flappy13-last-version-v1';
@@ -106,6 +106,12 @@ const LEADERBOARD_STALE_MS = 60 * 1000;
 
 const touchRecords = new Map();
 const trace = [];
+let pointerMetrics = {
+  left: 0,
+  top: 0,
+  cssScale: 1,
+  valid: false,
+};
 
 let displayLayout = {
   width: 288,
@@ -224,7 +230,11 @@ function saveBest(value) {
 
 function handleGameEvent({ type, value }) {
   if (type === 'sound') {
+    const startedAt = profiler.active && value === 'wing' ? performance.now() : 0;
     audio.play(value);
+    if (startedAt) {
+      profiler.audio(performance.now() - startedAt);
+    }
   } else if (type === 'record' && !verifiedRunRecorder) {
     // Ranked runs update persistent scores only after run-submit has replayed
     // them authoritatively. The Game may still render its in-run panel value.
@@ -1006,6 +1016,7 @@ function resize() {
   stage.style.setProperty('--game-height', `${size.gameHeight}px`);
   canvas.style.width = `${size.width}px`;
   canvas.style.height = `${size.height}px`;
+  refreshPointerMetrics();
 
   if (!renderer) {
     return;
@@ -1190,14 +1201,25 @@ function clearInput() {
   pendingTap = null;
 }
 
-function pointerPosition(event) {
+function refreshPointerMetrics() {
   const rect = canvas.getBoundingClientRect();
-  const cssScale = rect.width / LOGICAL_WIDTH || 1;
+  pointerMetrics = {
+    left: rect.left,
+    top: rect.top,
+    cssScale: rect.width / LOGICAL_WIDTH || 1,
+    valid: rect.width > 0,
+  };
+}
+
+function pointerPosition(event) {
+  if (!pointerMetrics.valid) {
+    refreshPointerMetrics();
+  }
 
   return {
-    x: Math.trunc((event.clientX - rect.left) / cssScale),
+    x: Math.trunc((event.clientX - pointerMetrics.left) / pointerMetrics.cssScale),
     y: Math.trunc(
-      (event.clientY - rect.top) / cssScale - displayLayout.topPad,
+      (event.clientY - pointerMetrics.top) / pointerMetrics.cssScale - displayLayout.topPad,
     ),
   };
 }
@@ -1207,7 +1229,9 @@ function press(id, point) {
     return;
   }
 
-  audio.unlock('game-input');
+  if (!audio.muted && audio.needsUnlock()) {
+    audio.unlock('game-input');
+  }
   touchRecords.set(id, {
     ...point,
     released: false,
@@ -1235,11 +1259,23 @@ canvas.addEventListener('pointerdown', event => {
     return;
   }
 
+  const startedAt = profiler.active ? performance.now() : 0;
   event.preventDefault();
-  tryLockPortrait();
-  canvas.focus({ preventScroll: true });
-  canvas.setPointerCapture(event.pointerId);
+
+  // Keep the iOS touch hot path minimal. Focus, pointer capture and
+  // orientation-lock retries are unnecessary for a one-shot flap and can force
+  // synchronous browser work in WebKit. Mouse/stylus keep focus/capture for
+  // desktop ergonomics.
+  if (event.pointerType !== 'touch') {
+    canvas.focus({ preventScroll: true });
+    canvas.setPointerCapture?.(event.pointerId);
+  }
+
   press(event.pointerId, pointerPosition(event));
+
+  if (startedAt) {
+    profiler.tap(performance.now() - startedAt);
+  }
 });
 
 canvas.addEventListener('pointerup', event => {
@@ -1508,7 +1544,8 @@ function tick(input = nextInput()) {
     if (trace.length < MAX_REPLAY_INPUTS) {
       trace.push({
         frame: game.frame + 1,
-        ...structuredClone(input),
+        touches: input.touches.map(({ x, y }) => ({ x, y })),
+        ...(input.tap ? { tap: { x: input.tap.x, y: input.tap.y } } : {}),
       });
     } else {
       droppedReplay = true;

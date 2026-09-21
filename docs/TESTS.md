@@ -1,8 +1,8 @@
-# Rapport de tests - v0.2.7.3b-dev5
+# Rapport de tests - v0.2.7.3b-dev5.1
 
 ## Résultat
 
-- **120/120 tests Node passent** avec `npm test`.
+- **123/123 tests Node passent** avec `npm test`.
 - Le bundle concaténé utilisé par le smoke test passe le contrôle de syntaxe JavaScript.
 - Le smoke test Chromium n’a pas été relancé dans cet environnement, où Playwright Python et Chromium ne sont pas installés.
 - Le cache PWA contient **32 ressources** et refuse de se déclarer complet si une ressource de précache manque.
@@ -159,3 +159,12 @@ Les tests de rétention vérifient que `006_verified_run_retention.sql` :
 Les tests dédiés vérifient que `007_personal_leaderboard_context.sql` calcule le rang depuis `player_stats`, reprend le même tri global que le leaderboard et ne permet jamais à `anon` d'appeler la RPC. La fonction ne prend aucun `player_id` en paramètre : l'identité provient de `auth.uid()`.
 
 Le client valide strictement les deux états autorisés (classé / non classé), envoie le JWT Supabase pour la RPC personnelle et affiche dans la modale la carte `VOTRE CLASSEMENT` avec rang, record, compteur lifetime et date du record.
+
+
+## Hotfix latence tactile iOS (v0.2.7.3b-dev5.1)
+
+Les tests vérifient le fast-path `Audio.needsUnlock()`, l'absence de reprise audio inutile lorsque le contexte est déjà `running`, et les nouvelles métriques `tap` / `audio wing` du profiler.
+
+Un contrôle statique garantit également que le handler `pointerdown` tactile ne déclenche plus le verrouillage d'orientation, que focus/capture sont réservés aux pointeurs non tactiles, que `pointerPosition()` n'effectue plus de `getBoundingClientRect()` et que la trace de tap n'utilise plus `structuredClone(input)`.
+
+Validation complète : **123/123 tests Node** passent.
