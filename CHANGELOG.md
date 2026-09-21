@@ -1,5 +1,17 @@
 # Changelog
 
+## v0.2.7.3b-dev3 - Persistent authoritative player stats
+
+- Ajout de `public.player_stats`, table privée d'agrégats lifetime dérivés exclusivement des runs autoritairement vérifiés.
+- Les compteurs persistants couvrent `verified_runs_count`, `total_score`, le meilleur score/run/date, les première et dernière runs vérifiées, ainsi que les morts par tuyau haut, tuyau bas et sol.
+- Ajout d'un backfill initial depuis les `verified_runs` existantes ; il ignore volontairement les joueurs déjà agrégés afin qu'une réexécution future ne puisse pas écraser l'historique après mise en place de la rétention.
+- Ajout d'un trigger PostgreSQL sur la transition vers `status = 'verified'` : les statistiques sont mises à jour dans la même transaction que le verdict du run et une retry idempotente ne peut pas recompter la partie.
+- Le navigateur n'envoie aucune statistique. Le contrat de soumission est désormais fermé aux cinq champs attendus (`schema`, `run_id`, `physics_version`, `terminal_tick`, `taps`) et rejette tout champ supplémentaire.
+- `player_stats` n'accorde aucun accès direct à `anon` ou `authenticated` ; les futurs écrans personnels passeront par des RPC dédiées.
+- Préparation de la future rétention `50 dernières runs + meilleur run historique` sans encore supprimer aucune donnée dans cette version.
+- Ajout de `supabase/005_player_stats.sql`, de la documentation dédiée et de tests de non-régression.
+- Validation automatisée : **110/110 tests Node** passent.
+
 ## v0.2.7.3b-dev2 - Dedicated leaderboard modal
 
 - Le bouton SCORES ouvre désormais une modale `CLASSEMENT` dédiée au lieu d'injecter le leaderboard dans les options.

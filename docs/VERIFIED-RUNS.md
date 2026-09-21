@@ -147,7 +147,7 @@ La migration [`supabase/003_verified_runs.sql`](../supabase/003_verified_runs.sq
 - seul `service_role`, utilisé côté serveur par les Edge Functions, reçoit les droits `select`, `insert` et `update`.
 - le cache de schéma PostgREST est rechargé en fin de migration.
 
-Le futur leaderboard passera par une vue ou une RPC dédiée et n’exposera jamais directement les tickets, seeds ou rejets.
+Le leaderboard public passe par la RPC dédiée `get_leaderboard()` et n’expose jamais directement les tickets, seeds ou rejets. Depuis `v0.2.7.3b-dev3`, la transition autoritaire vers `verified` alimente aussi `public.player_stats` via trigger PostgreSQL ; le client n’envoie aucune statistique.
 
 ## Déploiement
 
@@ -157,6 +157,8 @@ Exécuter les migrations dans l’ordre :
 supabase/001_profiles.sql
 supabase/002_best_score_sync.sql
 supabase/003_verified_runs.sql
+supabase/004_leaderboard.sql
+supabase/005_player_stats.sql
 ```
 
 Vérifier ensuite la copie serveur du moteur et déployer les fonctions :

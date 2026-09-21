@@ -67,6 +67,23 @@ test('reserved client fields are rejected before authoritative simulation', asyn
   assert.equal(resolution.tap_ticks, null);
 });
 
+test('client submissions cannot carry player statistics or any extra field', async () => {
+  const inspection = await inspectRunPayload(submission({
+    verified_runs_count: 999,
+    total_score: 999999,
+    best_score: 999999,
+  }));
+  const resolution = verifyInspectedRun({
+    inspection,
+    seed: 42,
+    ticketPhysicsVersion: PHYSICS_VERSION,
+  });
+
+  assert.equal(inspection.submission, null);
+  assert.equal(resolution.status, 'rejected');
+  assert.equal(resolution.rejection_code, 'invalid_submission');
+});
+
 test('canonical replay hash is independent from JSON property order', async () => {
   const first = await inspectRunPayload(submission());
   const second = await inspectRunPayload({

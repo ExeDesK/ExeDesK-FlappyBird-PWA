@@ -1,4 +1,4 @@
-# Leaderboard - contrat v0.2.7.3b-dev2
+# Leaderboard - contrat v0.2.7.3b-dev3
 
 ## Objectif
 
@@ -50,3 +50,10 @@ Le joueur courant est surligné lorsqu'il apparaît dans le Top 100. Un bouton `
 ## Hors connexion réseau
 
 La PWA reste jouable hors connexion, mais le classement global est une donnée communautaire distante et ne peut pas être actualisé sans réseau. Le terme "déconnecté" pour cette phase signifie donc principalement "sans session Discord". Un cache persistant du dernier classement pourra être ajouté ultérieurement si ce comportement est souhaité.
+
+
+## Statistiques lifetime autoritaires
+
+Depuis `v0.2.7.3b-dev3`, `supabase/005_player_stats.sql` maintient une mémoire longue par joueur dans `public.player_stats`. Cette table ne remplace pas la source du Top 100 pour cette phase : `get_leaderboard()` continue de lire les meilleurs `verified_runs`. Elle prépare le rang personnel, les statistiques carrière et la future politique de rétention.
+
+Le navigateur n'envoie aucune statistique. `run-submit` ne reçoit que les entrées du replay ; après relecture autoritaire, la transition de la ligne `verified_runs` vers `verified` déclenche PostgreSQL, qui agrège lui-même le score et la collision recalculés. `player_stats` reste inaccessible directement à `anon` et `authenticated`.

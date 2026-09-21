@@ -1,8 +1,8 @@
-# Rapport de tests - v0.2.7.3b-dev2
+# Rapport de tests - v0.2.7.3b-dev3
 
 ## Résultat
 
-- **105/105 tests Node passent** avec `npm test`.
+- **110/110 tests Node passent** avec `npm test`.
 - Le bundle concaténé utilisé par le smoke test passe le contrôle de syntaxe JavaScript.
 - Le smoke test Chromium n’a pas été relancé dans cet environnement, où Playwright Python et Chromium ne sont pas installés.
 - Le cache PWA contient **32 ressources** et refuse de se déclarer complet si une ressource de précache manque.
@@ -33,6 +33,7 @@
 | Audio iOS | `interrupted` et `suspended` bloqués, timeout de `resume()`, hard recovery et impulsion silencieuse couverts par des tests dédiés. |
 | Verified Runs | Ticket serveur, capture différée, moteur Edge synchronisé, relecture autoritaire et résolution atomique `verified/rejected`. |
 | Leaderboard | RPC publique sans session, uniquement runs `verified`, meilleur score unique par joueur et absence de données replay exposées. |
+| Player stats | Agrégats lifetime privés, backfill autoritaire, trigger `verified`, causes de mort et absence totale de stats dans la soumission client. |
 
 ## Smoke test navigateur
 
@@ -129,3 +130,10 @@ Ils vérifient aussi qu’une nouvelle soumission ne peut pas être mise en file
 Les tests dédiés valident que la RPC `get_leaderboard()` est appelable sans session Discord et n'envoie aucun header `Authorization`. Ils vérifient également que la migration SQL filtre strictement `status = 'verified'`, choisit un seul meilleur score par `player_id`, accorde l'exécution à `anon`/`authenticated` et ne publie aucun champ de replay interne.
 
 Le parser frontend refuse les joueurs dupliqués et les rangs/scores/timestamps invalides. Un contrôle statique garantit enfin que le classement vit dans une modale dédiée, que la mention de connexion reste visible pour les visiteurs et que le bouton SCORES original ouvre directement cette modale.
+
+
+## Statistiques joueur persistantes (v0.2.7.3b-dev3)
+
+Les tests dédiés valident que `public.player_stats` reste privée, que son backfill ne lit que les runs `status = 'verified'`, et que les compteurs de carrière sont dérivés de `verified_score`, `collision` et `resolved_at` autoritaires. Ils vérifient aussi le trigger sur la transition vers `verified`, l'incrément unique du nombre de parties/score cumulé et les trois causes de mort (`upper-pipe`, `lower-pipe`, `ground`).
+
+Le contrat de soumission classée est désormais fermé : seuls `schema`, `run_id`, `physics_version`, `terminal_tick` et `taps` sont acceptés. Toute tentative d'ajouter une statistique ou un autre champ est rejetée avant la simulation.

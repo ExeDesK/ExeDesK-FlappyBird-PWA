@@ -19,6 +19,13 @@ const INT32_MAX = 2147483647;
 const PREPARE_GUARD_TICKS = 1000;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const COLLISIONS = new Set(['ground', 'upper-pipe', 'lower-pipe']);
+const VERIFIED_RUN_SUBMISSION_KEYS = new Set([
+  'schema',
+  'run_id',
+  'physics_version',
+  'terminal_tick',
+  'taps',
+]);
 
 function requireObject(value, label) {
   if (!value || typeof value !== 'object' || Array.isArray(value)) {
@@ -147,13 +154,10 @@ export function parseVerifiedRunSubmission(payload) {
     throw new TypeError('Schéma de soumission de run non supporté.');
   }
 
-  if (
-    'seed' in value ||
-    'score' in value ||
-    'collision' in value ||
-    'player_id' in value
-  ) {
-    throw new TypeError('La soumission contient un champ réservé au serveur.');
+  for (const key of Object.keys(value)) {
+    if (!VERIFIED_RUN_SUBMISSION_KEYS.has(key)) {
+      throw new TypeError('La soumission contient un champ réservé au serveur ou non autorisé.');
+    }
   }
 
   return createVerifiedRunSubmission(value);
