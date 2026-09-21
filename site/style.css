@@ -434,7 +434,7 @@ body {
   font-size: 11px;
 }
 
-.settings label:last-child {
+.settings label:last-of-type {
   border-bottom: 0;
 }
 
@@ -450,6 +450,15 @@ body {
   font-weight: 700;
   line-height: 1.25;
   text-transform: none;
+}
+
+
+.settings .performance-hint {
+  margin: 6px 0 2px;
+  padding: 0 2px;
+  color: #806438;
+  font-size: 8px;
+  line-height: 1.45;
 }
 
 .settings select {

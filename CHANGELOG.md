@@ -1,3 +1,10 @@
+## v0.2.7.3b-dev5.8 - iOS ProMotion guidance
+
+- Ajout d'une note explicative dans `Options → Jeu → Performance` pour les appareils iPhone/iPad ProMotion.
+- La note explique qu'iOS/WebKit peut limiter les mises à jour de page autour de 60 Hz et indique où désactiver `Prefer Page Rendering Updates near 60fps` pour profiter de la cadence native lorsque l'appareil le permet.
+- Aucun popup ni changement automatique de réglage système : l'information reste discrète et non bloquante dans les options.
+- Aucun changement de la physique `flappy13-physics-v1`, de `requestAnimationFrame`, des Verified Runs ou de Supabase.
+
 ## v0.2.7.3b-dev5.7 - iOS ProMotion / rAF cleanup
 
 - Retour à `requestAnimationFrame` comme unique pilote de présentation sur toutes les plateformes.

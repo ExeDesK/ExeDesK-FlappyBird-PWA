@@ -17,3 +17,9 @@ Quand l'utilisateur désactive ce flag et que le matériel/WebKit l'autorise, `r
 - pas de `preventDefault()` dans le hot path tactile ;
 - copie légère de la trace d'entrée sans `structuredClone()` au tap ;
 - physique inchangée à 60 Hz.
+
+## Indication intégrée dans les options
+
+À partir de `v0.2.7.3b-dev5.8`, la section `Options → Jeu → Performance` affiche une note discrète pour les appareils iPhone/iPad ProMotion. Elle indique que WebKit peut préférer des mises à jour de page proches de 60 Hz et précise le chemin du réglage `Prefer Page Rendering Updates near 60fps`.
+
+La PWA ne modifie jamais ce réglage système elle-même.
