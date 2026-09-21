@@ -8,8 +8,8 @@ L'objectif n'est pas de produire un simple clone « inspiré de » Flappy Bird, 
 
 Le gameplay fonctionne entièrement côté client, sans framework, et peut être installé comme une application sur Windows, iPhone/iPad et Android. Les fonctions communautaires utilisent un backend Supabase facultatif : aucun compte n'est nécessaire pour jouer.
 
-> **État du projet : bêta — v0.2.7.3b-dev5.8**
-> Sur iPhone/iPad ProMotion, une note dans les options Performance indique le réglage Safari permettant de lever la préférence de rendu proche de 60 Hz.
+> **État du projet : bêta — v0.2.7.3b-dev5.9**
+> Sur iPhone/iPad ProMotion, un statut dynamique dans les options Performance mesure la cadence rAF sur iOS : il confirme la haute fréquence lorsqu’elle est active, sinon il propose le réglage Safari et un tutoriel au timecode utile.
 
 ---
 

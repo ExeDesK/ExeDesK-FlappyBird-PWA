@@ -82,7 +82,7 @@
         <button id="close-options" class="close-options" aria-label="Fermer">X</button>
       </header>
 
-      <p class="version">BETA 0.2.7.3b-dev5.8</p>
+      <p class="version">BETA 0.2.7.3b-dev5.9</p>
       <p id="offline-status" class="status-card">Préparation du mode hors ligne...</p>
 
       <section class="menu-card account-card" aria-labelledby="account-title">
@@ -136,11 +136,15 @@
             <input id="performance-mode" type="checkbox">
           </label>
 
-          <p class="hint performance-hint">
-            Sur iPhone/iPad ProMotion, iOS peut limiter le rendu web à environ 60 Hz.
-            Pour une fluidité maximale, désactivez <strong>Prefer Page Rendering Updates near 60fps</strong>
-            dans Réglages → Apps → Safari → Avancé → Feature Flags.
-          </p>
+          <div id="ios-promotion-hint" class="hint performance-hint" hidden>
+            <p id="ios-promotion-status" class="performance-hint-status"></p>
+            <p id="ios-promotion-help" class="performance-hint-help">
+              Sur un écran ProMotion, iOS peut limiter le rendu web à environ 60 Hz.
+              Pour une fluidité maximale, désactivez <strong>Prefer Page Rendering Updates near 60fps</strong>
+              dans Réglages → Apps → Safari → Avancé → Feature Flags.
+              <a href="https://www.youtube.com/watch?v=0ZesazGpAVM&amp;t=37s" target="_blank" rel="noopener noreferrer">Voir le tuto « Enable That Hidden 120 hz Mode On Your iPhone »</a>.
+            </p>
+          </div>
         </div>
 
         <p class="parity-note">
@@ -207,7 +211,7 @@
         <button id="close-leaderboard" class="close-options" type="button" aria-label="Fermer le classement">X</button>
       </header>
 
-      <p class="version">BETA 0.2.7.3b-dev5.8</p>
+      <p class="version">BETA 0.2.7.3b-dev5.9</p>
 
       <div class="leaderboard-toolbar">
         <p id="leaderboard-status" class="hint">Chargement du classement...</p>

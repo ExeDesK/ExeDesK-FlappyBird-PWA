@@ -23,7 +23,7 @@ import {
 } from './verified-run-client.js';
 import { createCanonicalRunGame } from './verified-runs.js';
 
-const VERSION = '0.2.7.3b-dev5.8';
+const VERSION = '0.2.7.3b-dev5.9';
 const BEST_SCORE_KEY = 'flappy13-personal-best-v1';
 const SETTINGS_KEY = 'flappy13-settings-v1';
 const LAST_VERSION_KEY = 'flappy13-last-version-v1';
@@ -174,6 +174,66 @@ $('sound').checked = settings.sound;
 $('aspect').value = settings.aspect;
 $('performance-mode').checked = settings.performance;
 audio.muted = !settings.sound;
+
+function isAppleTouchDevice() {
+  const ua = navigator.userAgent || '';
+  return /iPhone|iPad|iPod/i.test(ua)
+    || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+}
+
+async function measureNativeRafHz({ samples = 90 } = {}) {
+  return new Promise((resolve) => {
+    const deltas = [];
+    let previous = 0;
+
+    const sample = (now) => {
+      if (previous > 0) {
+        const delta = now - previous;
+        if (delta > 0 && delta < 100) {
+          deltas.push(delta);
+        }
+      }
+      previous = now;
+
+      if (deltas.length >= samples) {
+        const sorted = [...deltas].sort((a, b) => a - b);
+        const median = sorted[Math.floor(sorted.length / 2)];
+        resolve(median > 0 ? 1000 / median : 0);
+        return;
+      }
+
+      requestAnimationFrame(sample);
+    };
+
+    requestAnimationFrame(sample);
+  });
+}
+
+async function updateIosPromotionHint() {
+  const hint = $('ios-promotion-hint');
+  const status = $('ios-promotion-status');
+  const help = $('ios-promotion-help');
+  if (!hint || !status || !help || !isAppleTouchDevice()) {
+    return;
+  }
+
+  hint.hidden = false;
+  status.textContent = 'Mesure de la fréquence d’affichage…';
+
+  const hz = await measureNativeRafHz();
+  const roundedHz = Math.round(hz);
+
+  if (hz >= 90) {
+    hint.classList.add('is-active');
+    status.textContent = `✓ Haute fréquence active (~${roundedHz} Hz). ProMotion est bien exploité par Safari.`;
+    return;
+  }
+
+  hint.classList.remove('is-active');
+  status.textContent = `Cadence web détectée : ~${roundedHz || 60} Hz.`;
+}
+
+updateIosPromotionHint();
 
 function toast(text, ms = 4500) {
   $('toast').textContent = text;

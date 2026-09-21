@@ -54,6 +54,19 @@ test('Settings expose parity statement and GitHub link', () => {
   assert.match(html, /https:\/\/github\.com\/ExeDesK\/FlappyBird-PWA/);
 });
 
+test('iOS ProMotion guidance is dynamic and links to the timestamped tutorial', () => {
+  const html = read('site/index.html');
+  const main = read('site/src/main.js');
+
+  assert.match(html, /id="ios-promotion-hint"[\s\S]*hidden/);
+  assert.match(html, /youtube\.com\/watch\?v=0ZesazGpAVM&amp;t=37s/);
+  assert.match(html, /Enable That Hidden 120 hz Mode On Your iPhone/);
+  assert.match(main, /isAppleTouchDevice/);
+  assert.match(main, /measureNativeRafHz/);
+  assert.match(main, /hz >= 90/);
+  assert.match(main, /Haute fréquence active/);
+});
+
 test('authenticated PLAY requests a verified ticket and offers an explicit unranked fallback', () => {
   const main = read('site/src/main.js');
   const html = read('site/index.html');

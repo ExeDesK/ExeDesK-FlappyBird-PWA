@@ -1,3 +1,12 @@
+## v0.2.7.3b-dev5.9 - Dynamic iOS ProMotion guidance
+
+- Le conseil ProMotion de `Options → Jeu → Performance` est désormais affiché uniquement sur iPhone/iPad/iPadOS.
+- Mesure automatique de la cadence réelle `requestAnimationFrame` côté Safari.
+- À partir d'environ 90 Hz, le message d'aide est remplacé par une confirmation `Haute fréquence active` avec la cadence mesurée.
+- À environ 60 Hz, le conseil reste affiché avec le chemin du flag `Prefer Page Rendering Updates near 60fps`.
+- Ajout du tutoriel vidéo `Enable That Hidden 120 hz Mode On Your iPhone`, directement au timecode 37 s.
+- Aucun changement du moteur, des Verified Runs ou du backend Supabase.
+
 ## v0.2.7.3b-dev5.8 - iOS ProMotion guidance
 
 - Ajout d'une note explicative dans `Options → Jeu → Performance` pour les appareils iPhone/iPad ProMotion.

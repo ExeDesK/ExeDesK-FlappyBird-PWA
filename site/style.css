@@ -461,6 +461,30 @@ body {
   line-height: 1.45;
 }
 
+.settings .performance-hint p {
+  margin: 0;
+}
+
+.settings .performance-hint-help {
+  margin-top: 3px !important;
+}
+
+.settings .performance-hint a {
+  color: inherit;
+  font-weight: 800;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.settings .performance-hint.is-active .performance-hint-status {
+  color: #3d6b35;
+  font-weight: 800;
+}
+
+.settings .performance-hint.is-active .performance-hint-help {
+  display: none;
+}
+
 .settings select {
   max-width: 168px;
   min-height: 34px;
