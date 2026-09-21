@@ -51,6 +51,51 @@ export function parseLeaderboardRows(payload, { maxRows = LEADERBOARD_MAX_ROWS }
   return rows;
 }
 
+
+export function parseLeaderboardContext(payload) {
+  const raw = Array.isArray(payload) ? payload[0] : payload;
+  if (!raw || typeof raw !== 'object') {
+    throw new Error('Invalid personal leaderboard response.');
+  }
+
+  const playerId = raw.player_id;
+  const verifiedRunsCount = Number(raw.verified_runs_count);
+  const rank = raw.global_rank == null ? null : Number(raw.global_rank);
+  const bestScore = raw.best_score == null ? null : Number(raw.best_score);
+  const bestScoreAt = raw.best_score_at == null ? null : String(raw.best_score_at);
+
+  if (!isUuid(playerId)) {
+    throw new Error('Invalid personal leaderboard player.');
+  }
+  if (!Number.isInteger(verifiedRunsCount) || verifiedRunsCount < 0) {
+    throw new Error('Invalid personal leaderboard run count.');
+  }
+
+  if (verifiedRunsCount === 0) {
+    if (rank !== null || bestScore !== null || bestScoreAt !== null) {
+      throw new Error('Invalid unranked personal leaderboard state.');
+    }
+  } else {
+    if (!Number.isInteger(rank) || rank < 1) {
+      throw new Error('Invalid personal leaderboard rank.');
+    }
+    if (!Number.isInteger(bestScore) || bestScore < 0 || bestScore > 2147483647) {
+      throw new Error('Invalid personal leaderboard score.');
+    }
+    if (!bestScoreAt || Number.isNaN(Date.parse(bestScoreAt))) {
+      throw new Error('Invalid personal leaderboard timestamp.');
+    }
+  }
+
+  return {
+    player_id: playerId,
+    global_rank: rank,
+    best_score: bestScore,
+    verified_runs_count: verifiedRunsCount,
+    best_score_at: bestScoreAt,
+  };
+}
+
 export function leaderboardName(row) {
   return row?.display_name || row?.username || 'Joueur';
 }

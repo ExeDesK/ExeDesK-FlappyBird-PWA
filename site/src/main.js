@@ -23,7 +23,7 @@ import {
 } from './verified-run-client.js';
 import { createCanonicalRunGame } from './verified-runs.js';
 
-const VERSION = '0.2.7.3b-dev4';
+const VERSION = '0.2.7.3b-dev5';
 const BEST_SCORE_KEY = 'flappy13-personal-best-v1';
 const SETTINGS_KEY = 'flappy13-settings-v1';
 const LAST_VERSION_KEY = 'flappy13-last-version-v1';
@@ -97,6 +97,11 @@ let leaderboardRows = [];
 let leaderboardState = 'idle';
 let leaderboardPromise = null;
 let leaderboardLoadedAt = 0;
+let leaderboardContext = null;
+let leaderboardContextState = 'idle';
+let leaderboardContextPromise = null;
+let leaderboardContextLoadedAt = 0;
+let leaderboardContextPlayerId = null;
 const LEADERBOARD_STALE_MS = 60 * 1000;
 
 const touchRecords = new Map();
@@ -394,8 +399,10 @@ async function flushVerifiedRunQueue({ reason = 'manual', notify = false } = {})
     if (highestVerifiedScore >= 0) {
       saveBest(highestVerifiedScore);
       leaderboardLoadedAt = 0;
+      leaderboardContextLoadedAt = 0;
       if (leaderboardDialog.open && navigator.onLine) {
         void loadLeaderboard({ force: true });
+        void loadLeaderboardContext({ force: true });
       }
     }
 
@@ -570,15 +577,109 @@ function leaderboardSignedIn(state = auth.snapshot()) {
     && ['signed_in', 'offline', 'loading'].includes(state.status);
 }
 
+function currentLeaderboardPlayerId(state = auth.snapshot()) {
+  return state.user?.id || state.profile?.id || null;
+}
+
+function formatLeaderboardDate(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return '';
+  }
+
+  return new Intl.DateTimeFormat('fr-FR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+  }).format(date);
+}
+
+function resetLeaderboardContext(playerId = null) {
+  leaderboardContext = null;
+  leaderboardContextState = 'idle';
+  leaderboardContextPromise = null;
+  leaderboardContextLoadedAt = 0;
+  leaderboardContextPlayerId = playerId;
+}
+
+function renderLeaderboardContext(state = auth.snapshot()) {
+  const card = $('leaderboard-player-card');
+  const status = $('leaderboard-player-status');
+  const rank = $('leaderboard-player-rank');
+  const bestScore = $('leaderboard-player-best');
+  const runs = $('leaderboard-player-runs');
+  const recordDate = $('leaderboard-player-record-date');
+  const signedIn = leaderboardSignedIn(state);
+  const currentPlayerId = currentLeaderboardPlayerId(state);
+  const hasContext = Boolean(
+    leaderboardContext
+    && currentPlayerId
+    && leaderboardContext.player_id === currentPlayerId,
+  );
+
+  card.hidden = !signedIn;
+  if (!signedIn) {
+    return;
+  }
+
+  rank.textContent = '—';
+  bestScore.textContent = '—';
+  runs.textContent = '—';
+  recordDate.textContent = 'Chargement de vos statistiques vérifiées...';
+
+  if (!auth.configured) {
+    status.textContent = 'INDISPONIBLE';
+    recordDate.textContent = 'Statistiques personnelles indisponibles sur cette build.';
+    return;
+  }
+
+  if (!navigator.onLine && !hasContext) {
+    status.textContent = 'HORS CONNEXION';
+    recordDate.textContent = 'Vos statistiques seront chargées au retour du réseau.';
+    return;
+  }
+
+  if (leaderboardContextState === 'loading' && !hasContext) {
+    status.textContent = 'CHARGEMENT...';
+    return;
+  }
+
+  if (leaderboardContextState === 'error' && !hasContext) {
+    status.textContent = 'INDISPONIBLE';
+    recordDate.textContent = 'Impossible de charger votre classement pour le moment.';
+    return;
+  }
+
+  if (!hasContext) {
+    status.textContent = 'EN ATTENTE';
+    return;
+  }
+
+  const count = leaderboardContext.verified_runs_count;
+  runs.textContent = String(count);
+
+  if (count === 0) {
+    status.textContent = 'PAS ENCORE CLASSÉ';
+    recordDate.textContent = 'Terminez une run vérifiée pour entrer dans le classement.';
+    return;
+  }
+
+  rank.textContent = `#${leaderboardContext.global_rank}`;
+  bestScore.textContent = String(leaderboardContext.best_score);
+  status.textContent = navigator.onLine ? 'RUNS VÉRIFIÉS' : 'DERNIÈRE LECTURE';
+  recordDate.textContent = `Record · ${formatLeaderboardDate(leaderboardContext.best_score_at)}`;
+}
+
 function renderLeaderboard(state = auth.snapshot()) {
   const list = $('leaderboard-list');
   const empty = $('leaderboard-empty');
   const status = $('leaderboard-status');
   const refresh = $('refresh-leaderboard');
-  const currentPlayerId = state.user?.id || state.profile?.id || null;
+  const currentPlayerId = currentLeaderboardPlayerId(state);
 
   $('leaderboard-login-hint').hidden = leaderboardSignedIn(state);
   refresh.disabled = !auth.configured || !navigator.onLine || leaderboardState === 'loading';
+  renderLeaderboardContext(state);
 
   if (!auth.configured) {
     status.textContent = 'Classement indisponible sur cette build.';
@@ -590,10 +691,10 @@ function renderLeaderboard(state = auth.snapshot()) {
     status.textContent = 'Classement indisponible pour le moment.';
   } else if (leaderboardState === 'loaded') {
     status.textContent = leaderboardRows.length
-      ? `Top ${leaderboardRows.length} \u00b7 meilleur score v\u00e9rifi\u00e9 par joueur.`
-      : 'Aucun score v\u00e9rifi\u00e9 pour le moment.';
+      ? `Top ${leaderboardRows.length} · meilleur score vérifié par joueur.`
+      : 'Aucun score vérifié pour le moment.';
   } else {
-    status.textContent = 'Classement public des runs v\u00e9rifi\u00e9s.';
+    status.textContent = 'Classement public des runs vérifiés.';
   }
 
   list.replaceChildren();
@@ -682,15 +783,15 @@ async function loadLeaderboard({ force = false, notify = false } = {}) {
       leaderboardRows = await auth.fetchLeaderboard({ limit: 100 });
       leaderboardState = 'loaded';
       leaderboardLoadedAt = Date.now();
-          if (notify) {
-        toast('Classement actualis\u00e9.');
+      if (notify) {
+        toast('Classement actualisé.');
       }
       return leaderboardRows;
     } catch (error) {
       leaderboardState = 'error';
       console.warn('[Leaderboard] Chargement impossible.', error);
       if (notify) {
-        toast('Impossible d\u2019actualiser le classement.');
+        toast('Impossible d’actualiser le classement.');
       }
       return leaderboardRows;
     } finally {
@@ -700,6 +801,83 @@ async function loadLeaderboard({ force = false, notify = false } = {}) {
   })();
 
   return leaderboardPromise;
+}
+
+async function loadLeaderboardContext({ force = false } = {}) {
+  const state = auth.snapshot();
+  const playerId = currentLeaderboardPlayerId(state);
+
+  if (!leaderboardSignedIn(state) || !auth.session || !playerId) {
+    resetLeaderboardContext(null);
+    renderLeaderboard(state);
+    return null;
+  }
+
+  if (leaderboardContextPlayerId !== playerId) {
+    resetLeaderboardContext(playerId);
+  }
+
+  if (leaderboardContextPromise) {
+    return leaderboardContextPromise;
+  }
+
+  if (!auth.configured || !navigator.onLine) {
+    if (!leaderboardContext) {
+      leaderboardContextState = 'error';
+    }
+    renderLeaderboard(state);
+    return leaderboardContext;
+  }
+
+  if (
+    !force
+    && leaderboardContextState === 'loaded'
+    && leaderboardContext?.player_id === playerId
+    && Date.now() - leaderboardContextLoadedAt < LEADERBOARD_STALE_MS
+  ) {
+    renderLeaderboard(state);
+    return leaderboardContext;
+  }
+
+  leaderboardContextState = 'loading';
+  renderLeaderboard(state);
+
+  const requestPlayerId = playerId;
+  const requestPromise = (async () => {
+    try {
+      const context = await auth.fetchMyLeaderboardContext();
+      if (context.player_id !== requestPlayerId) {
+        throw new Error('Classement personnel reçu pour un autre joueur.');
+      }
+
+      const activePlayerId = currentLeaderboardPlayerId(auth.snapshot());
+      if (
+        activePlayerId !== requestPlayerId
+        || leaderboardContextPlayerId !== requestPlayerId
+      ) {
+        return null;
+      }
+
+      leaderboardContext = context;
+      leaderboardContextState = 'loaded';
+      leaderboardContextLoadedAt = Date.now();
+      return context;
+    } catch (error) {
+      if (leaderboardContextPlayerId === requestPlayerId) {
+        leaderboardContextState = 'error';
+      }
+      console.warn('[Leaderboard] Contexte personnel indisponible.', error);
+      return leaderboardContext?.player_id === requestPlayerId ? leaderboardContext : null;
+    } finally {
+      if (leaderboardContextPromise === requestPromise) {
+        leaderboardContextPromise = null;
+      }
+      renderLeaderboard();
+    }
+  })();
+
+  leaderboardContextPromise = requestPromise;
+  return requestPromise;
 }
 
 function accountDisplayName(state) {
@@ -769,8 +947,24 @@ $('account-avatar').addEventListener('error', () => {
 });
 
 auth.onChange(state => {
+  const playerId = currentLeaderboardPlayerId(state);
+  const playerChanged = playerId !== leaderboardContextPlayerId;
+  if (playerChanged) {
+    resetLeaderboardContext(playerId);
+  }
+
   renderAccount(state);
   renderLeaderboard(state);
+
+  if (
+    playerChanged
+    && playerId
+    && auth.session
+    && navigator.onLine
+    && leaderboardDialog.open
+  ) {
+    void loadLeaderboardContext({ force: true });
+  }
 });
 renderAccount();
 renderLeaderboard();
@@ -794,6 +988,7 @@ $('discord-logout').onclick = async () => {
 
 $('refresh-leaderboard').onclick = () => {
   void loadLeaderboard({ force: true, notify: true });
+  void loadLeaderboardContext({ force: true });
 };
 
 function resize() {
@@ -972,6 +1167,7 @@ function openLeaderboard({ force = false } = {}) {
   clearInput();
   clock.reset();
   void loadLeaderboard({ force });
+  void loadLeaderboardContext({ force });
 }
 
 function closeLeaderboard() {
@@ -1883,6 +2079,7 @@ window.addEventListener('online', () => {
   });
   if (leaderboardDialog.open) {
     void loadLeaderboard({ force: true });
+    void loadLeaderboardContext({ force: true });
   } else {
     renderLeaderboard();
   }
@@ -2025,9 +2222,13 @@ async function boot() {
       },
       auth: () => auth.snapshot(),
       leaderboard: () => structuredClone(leaderboardRows),
+      leaderboardContext: () => structuredClone(leaderboardContext),
       openLeaderboard: () => openLeaderboard({ force: true }),
       closeLeaderboard,
-      refreshLeaderboard: () => loadLeaderboard({ force: true }),
+      refreshLeaderboard: () => Promise.all([
+        loadLeaderboard({ force: true }),
+        loadLeaderboardContext({ force: true }),
+      ]),
       verifiedRun: () => verifiedRunRecorder?.snapshot() ?? structuredClone(lastVerifiedRun),
       pendingVerifiedRuns() {
         try {

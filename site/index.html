@@ -82,7 +82,7 @@
         <button id="close-options" class="close-options" aria-label="Fermer">X</button>
       </header>
 
-      <p class="version">BETA 0.2.7.3b-dev4</p>
+      <p class="version">BETA 0.2.7.3b-dev5</p>
       <p id="offline-status" class="status-card">Préparation du mode hors ligne...</p>
 
       <section class="menu-card account-card" aria-labelledby="account-title">
@@ -201,7 +201,7 @@
         <button id="close-leaderboard" class="close-options" type="button" aria-label="Fermer le classement">X</button>
       </header>
 
-      <p class="version">BETA 0.2.7.3b-dev4</p>
+      <p class="version">BETA 0.2.7.3b-dev5</p>
 
       <div class="leaderboard-toolbar">
         <p id="leaderboard-status" class="hint">Chargement du classement...</p>
@@ -211,6 +211,32 @@
       <p id="leaderboard-login-hint" class="hint leaderboard-login-hint">
         Se connecter pour apparaître sur le classement.
       </p>
+
+      <section id="leaderboard-player-card" class="leaderboard-player-card" aria-labelledby="leaderboard-player-title" hidden>
+        <div class="leaderboard-player-heading">
+          <strong id="leaderboard-player-title">VOTRE CLASSEMENT</strong>
+          <span id="leaderboard-player-status">Chargement...</span>
+        </div>
+
+        <div class="leaderboard-player-metrics">
+          <div class="leaderboard-player-metric">
+            <span>RANG</span>
+            <strong id="leaderboard-player-rank">—</strong>
+          </div>
+          <div class="leaderboard-player-metric">
+            <span>RECORD</span>
+            <strong id="leaderboard-player-best">—</strong>
+          </div>
+          <div class="leaderboard-player-metric">
+            <span>RUNS</span>
+            <strong id="leaderboard-player-runs">—</strong>
+          </div>
+        </div>
+
+        <p id="leaderboard-player-record-date" class="leaderboard-player-record-date">
+          Pas encore classé.
+        </p>
+      </section>
 
       <div class="leaderboard-scroll">
         <ol id="leaderboard-list" class="leaderboard-list" aria-live="polite"></ol>

@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.2.7.3b-dev5 - Personal leaderboard context
+
+- Ajout d'une carte `VOTRE CLASSEMENT` dans la modale pour les joueurs connectés, sans modifier l'accès public au Top 100.
+- Affichage du rang global réel même hors Top 100, du record vérifié historique, du nombre lifetime de runs vérifiées et de la date du record.
+- Un joueur connecté sans run vérifiée est affiché `Pas encore classé` sans créer de faux score ou de faux rang.
+- Ajout de la RPC authentifiée `get_my_leaderboard_context()` : aucun `player_id` n'est accepté en entrée, l'identité provient exclusivement de `auth.uid()`.
+- La RPC lit uniquement `player_stats`, reste inaccessible à `anon` et n'expose aucun replay, seed, taps, collision détaillée ou autre donnée privée.
+- Le rang suit le même ordre déterministe que le leaderboard : score décroissant, date du record croissante, puis `player_id`.
+- Ajout de l'index partiel `player_stats_rank_idx` pour le calcul de rang des joueurs classés.
+- Rafraîchissement conjoint du Top 100 et du contexte personnel après validation d'un run, retour réseau ou action `ACTUALISER`.
+- Ajout de `supabase/007_personal_leaderboard_context.sql` et de tests de sécurité/validation dédiés.
+- Validation automatisée : **120/120 tests Node** passent.
+
 ## v0.2.7.3b-dev4 - Verified Runs retention
 
 - Activation de la rétention serveur des runs vérifiées : conservation des **50 parties vérifiées les plus récemment commencées** par joueur, plus du **meilleur run historique** lorsqu'il ne fait plus partie de cette fenêtre.

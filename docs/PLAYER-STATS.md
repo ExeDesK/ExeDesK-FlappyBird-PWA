@@ -1,4 +1,4 @@
-# Player Stats — contrat v0.2.7.3b-dev4
+# Player Stats — contrat v0.2.7.3b-dev5
 
 ## Objectif
 
@@ -109,3 +109,20 @@ supabase/005_player_stats.sql
 ```
 
 `v0.2.7.3b-dev4` ajoute ensuite `supabase/006_verified_run_retention.sql`. Aucune nouvelle Edge Function et aucun secret ne sont nécessaires pour cette phase : la rétention est entièrement déclenchée dans PostgreSQL après validation autoritaire.
+
+
+## Lecture personnelle limitée — v0.2.7.3b-dev5
+
+`supabase/007_personal_leaderboard_context.sql` ajoute `public.get_my_leaderboard_context()`. Cette RPC authentifiée expose uniquement les champs nécessaires à la carte personnelle du leaderboard :
+
+```text
+player_id
+global_rank
+best_score
+verified_runs_count
+best_score_at
+```
+
+Elle n'accepte aucun identifiant joueur fourni par le client et utilise `auth.uid()` comme seule identité. Les autres agrégats lifetime (`total_score`, causes de mort, bornes temporelles, etc.) restent privés pour les phases suivantes.
+
+Un index partiel `player_stats_rank_idx` accélère l'ordre du classement personnel sur les joueurs effectivement classés. Aucun trigger de statistiques, aucune Edge Function et aucun secret ne changent dans cette phase.

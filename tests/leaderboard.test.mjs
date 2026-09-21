@@ -118,3 +118,117 @@ test('leaderboard UI is public, dedicated, explains sign-in, and the original sc
   assert.match(css, /#leaderboard-dialog\[open\]/);
   assert.match(css, /#leaderboard-dialog::backdrop/);
 });
+
+test('personal leaderboard payload validates ranked and unranked states', async () => {
+  const { parseLeaderboardContext } = await import('../site/src/leaderboard.js');
+  const playerId = '323e4567-e89b-12d3-a456-426614174000';
+
+  assert.deepEqual(parseLeaderboardContext([{
+    player_id: playerId,
+    global_rank: 42,
+    best_score: 184,
+    verified_runs_count: 736,
+    best_score_at: '2026-09-20T20:00:00.000Z',
+  }]), {
+    player_id: playerId,
+    global_rank: 42,
+    best_score: 184,
+    verified_runs_count: 736,
+    best_score_at: '2026-09-20T20:00:00.000Z',
+  });
+
+  assert.deepEqual(parseLeaderboardContext([{
+    player_id: playerId,
+    global_rank: null,
+    best_score: null,
+    verified_runs_count: 0,
+    best_score_at: null,
+  }]), {
+    player_id: playerId,
+    global_rank: null,
+    best_score: null,
+    verified_runs_count: 0,
+    best_score_at: null,
+  });
+
+  assert.throws(() => parseLeaderboardContext([{
+    player_id: playerId,
+    global_rank: 1,
+    best_score: 10,
+    verified_runs_count: 0,
+    best_score_at: null,
+  }]), /unranked/i);
+});
+
+test('personal leaderboard RPC is authenticated and never accepts a player id', async () => {
+  const restoreNavigator = installNavigator(true);
+  const previousFetch = globalThis.fetch;
+  let request = null;
+  globalThis.fetch = async (input, init = {}) => {
+    request = { url: String(input), init };
+    return new Response(JSON.stringify([{
+      player_id: '323e4567-e89b-12d3-a456-426614174000',
+      global_rank: 42,
+      best_score: 184,
+      verified_runs_count: 736,
+      best_score_at: '2026-09-20T20:00:00.000Z',
+    }]), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  };
+
+  try {
+    const auth = new AuthClient({ ...config, storage: new MemoryStorage() });
+    auth.session = {
+      accessToken: 'access',
+      refreshToken: 'refresh',
+      tokenType: 'bearer',
+      expiresAt: Date.now() + 3600000,
+    };
+    auth.user = { id: '323e4567-e89b-12d3-a456-426614174000' };
+
+    const result = await auth.fetchMyLeaderboardContext();
+    assert.equal(result.global_rank, 42);
+    assert.equal(result.best_score, 184);
+    assert.equal(request.url, 'https://project-ref.supabase.co/rest/v1/rpc/get_my_leaderboard_context');
+    assert.equal(request.init.method, 'POST');
+    assert.equal(request.init.headers.Authorization, 'Bearer access');
+    assert.deepEqual(JSON.parse(request.init.body), {});
+  } finally {
+    globalThis.fetch = previousFetch;
+    restoreNavigator();
+  }
+});
+
+test('personal leaderboard SQL derives caller identity from auth.uid and is not anonymous', async () => {
+  const sql = await readFile(new URL('../supabase/007_personal_leaderboard_context.sql', import.meta.url), 'utf8');
+  assert.match(sql, /create or replace function public\.get_my_leaderboard_context\(\)/i);
+  assert.match(sql, /auth\.uid\(\)/i);
+  assert.match(sql, /from public\.player_stats as ps/i);
+  assert.match(sql, /row_number\(\) over/i);
+  assert.match(sql, /ps\.best_score desc/i);
+  assert.match(sql, /ps\.best_score_at asc/i);
+  assert.match(sql, /ps\.player_id asc/i);
+  assert.match(sql, /grant execute on function public\.get_my_leaderboard_context\(\) to authenticated, service_role/i);
+  assert.match(sql, /revoke all on function public\.get_my_leaderboard_context\(\) from public, anon/i);
+  assert.match(sql, /get_my_leaderboard_context\(\)\s*returns table/i);
+});
+
+test('leaderboard modal contains a dedicated personal context card for signed-in players', async () => {
+  const html = await readFile(new URL('../site/index.html', import.meta.url), 'utf8');
+  const main = await readFile(new URL('../site/src/main.js', import.meta.url), 'utf8');
+  const css = await readFile(new URL('../site/style.css', import.meta.url), 'utf8');
+
+  assert.match(html, /id="leaderboard-player-card"/);
+  assert.match(html, /VOTRE CLASSEMENT/);
+  assert.match(html, /id="leaderboard-player-rank"/);
+  assert.match(html, /id="leaderboard-player-best"/);
+  assert.match(html, /id="leaderboard-player-runs"/);
+  assert.match(html, /id="leaderboard-player-record-date"/);
+  assert.match(main, /auth\.fetchMyLeaderboardContext\(\)/);
+  assert.match(main, /PAS ENCORE CLASSÉ/);
+  assert.match(main, /leaderboardContext\.global_rank/);
+  assert.match(css, /\.leaderboard-player-card/);
+  assert.match(css, /\.leaderboard-player-metrics/);
+});

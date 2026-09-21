@@ -1,8 +1,8 @@
-# Rapport de tests - v0.2.7.3b-dev4
+# Rapport de tests - v0.2.7.3b-dev5
 
 ## Résultat
 
-- **116/116 tests Node passent** avec `npm test`.
+- **120/120 tests Node passent** avec `npm test`.
 - Le bundle concaténé utilisé par le smoke test passe le contrôle de syntaxe JavaScript.
 - Le smoke test Chromium n’a pas été relancé dans cet environnement, où Playwright Python et Chromium ne sont pas installés.
 - Le cache PWA contient **32 ressources** et refuse de se déclarer complet si une ressource de précache manque.
@@ -35,6 +35,7 @@
 | Leaderboard | RPC publique sans session, uniquement runs `verified`, meilleur score unique par joueur et absence de données replay exposées. |
 | Player stats | Agrégats lifetime privés, backfill autoritaire, trigger `verified`, causes de mort et absence totale de stats dans la soumission client. |
 | Rétention | 50 runs vérifiées les plus récemment commencées + record historique, purge serveur privée et sérialisation concurrente par joueur. |
+| Contexte personnel | RPC authentifiée basée sur `auth.uid()`, rang global hors Top 100, record/count/date vérifiés et état non classé. |
 
 ## Smoke test navigateur
 
@@ -151,3 +152,10 @@ Les tests de rétention vérifient que `006_verified_run_retention.sql` :
 - déclenche la purge uniquement lors de l'entrée dans l'état `verified` ;
 - garde les fonctions de maintenance inaccessibles à `anon` et `authenticated` ;
 - applique une fois la même règle aux historiques déjà présents lors de la migration.
+
+
+## Contexte personnel du leaderboard (v0.2.7.3b-dev5)
+
+Les tests dédiés vérifient que `007_personal_leaderboard_context.sql` calcule le rang depuis `player_stats`, reprend le même tri global que le leaderboard et ne permet jamais à `anon` d'appeler la RPC. La fonction ne prend aucun `player_id` en paramètre : l'identité provient de `auth.uid()`.
+
+Le client valide strictement les deux états autorisés (classé / non classé), envoie le JWT Supabase pour la RPC personnelle et affiche dans la modale la carte `VOTRE CLASSEMENT` avec rang, record, compteur lifetime et date du record.

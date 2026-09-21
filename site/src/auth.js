@@ -1,4 +1,8 @@
-import { parseLeaderboardRows, LEADERBOARD_MAX_ROWS } from './leaderboard.js';
+import {
+  LEADERBOARD_MAX_ROWS,
+  parseLeaderboardContext,
+  parseLeaderboardRows,
+} from './leaderboard.js';
 import {
   createVerifiedRunSubmission,
   parseRunTicket,
@@ -437,6 +441,41 @@ export class AuthClient {
     }
 
     return parseLeaderboardRows(await response.json(), { maxRows: normalizedLimit });
+  }
+
+
+  async fetchMyLeaderboardContext() {
+    if (!this.configured || !this.session) {
+      throw new Error('Connexion requise pour charger votre classement.');
+    }
+
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      const error = new Error('Classement personnel indisponible hors connexion.');
+      error.code = 'offline';
+      throw error;
+    }
+
+    const accessToken = await this._validAccessToken();
+    const response = await fetch(`${this.url}/rest/v1/rpc/get_my_leaderboard_context`, {
+      method: 'POST',
+      headers: {
+        ...this._authHeaders(accessToken),
+        'Content-Type': 'application/json',
+      },
+      body: '{}',
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({}));
+      const error = new Error(
+        body?.message || body?.hint || body?.details || `Classement personnel HTTP ${response.status}`,
+      );
+      error.status = response.status;
+      throw error;
+    }
+
+    return parseLeaderboardContext(await response.json());
   }
 
   async startVerifiedRun() {

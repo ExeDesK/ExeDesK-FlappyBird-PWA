@@ -8,7 +8,7 @@ The goal is not to create another Flappy Bird-inspired clone, but to **reproduce
 
 Gameplay runs entirely client-side without a framework and can be installed as an application on Windows, iPhone/iPad and Android. Optional community features use Supabase; no account is required to play.
 
-> **Project status: beta — v0.2.7.3b-dev4**
+> **Project status: beta — v0.2.7.3b-dev5**
 
 ---
 
@@ -25,6 +25,7 @@ Gameplay runs entirely client-side without a framework and can be installed as a
 - Cross-device best-score sync that always keeps the highest value.
 - Verified Runs: server-issued ticket/seed, deterministic capture, self-healing local queue, deferred submission, and authoritative replay before a score is accepted or rejected.
 - Public global leaderboard in a dedicated modal: readable without an account, built only from verified runs, with one best score per player.
+- Authenticated personal leaderboard context: true global rank, verified record, lifetime verified-run count and record date, even outside the Top 100.
 - Authoritative lifetime statistics in Supabase (`player_stats`): verified run count, cumulative score, historical record and death causes, with no player statistics sent by the client.
 - Verified replay retention: **50 most recently started runs + the historical best run** per player, bounding detailed storage while preserving the record and a useful recent window for short-term statistics.
 - **Original** and **Adapted** display modes.

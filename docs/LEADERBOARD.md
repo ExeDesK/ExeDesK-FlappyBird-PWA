@@ -1,4 +1,4 @@
-# Leaderboard - contrat v0.2.7.3b-dev4
+# Leaderboard - contrat v0.2.7.3b-dev5
 
 ## Objectif
 
@@ -64,3 +64,19 @@ Le navigateur n'envoie aucune statistique. `run-submit` ne reçoit que les entr�
 Depuis `v0.2.7.3b-dev4`, `supabase/006_verified_run_retention.sql` borne l'historique détaillé à **50 runs vérifiées récentes + le record historique**. Le Top 100 reste exact : le meilleur run de chaque joueur est toujours préservé, même lorsqu'il est sorti de la fenêtre récente.
 
 La fenêtre récente est ordonnée par `issued_at`, c'est-à-dire le moment où le ticket a été créé et la partie réellement démarrée. Une soumission différée après une période hors ligne ne modifie donc pas artificiellement l'ordre des parties récentes.
+
+
+## Contexte personnel — v0.2.7.3b-dev5
+
+Un joueur connecté voit une carte `VOTRE CLASSEMENT` au-dessus du Top 100 avec :
+
+- son rang global réel, même s'il est hors du Top 100 ;
+- son meilleur score vérifié historique ;
+- son nombre lifetime de runs vérifiées ;
+- la date de son record.
+
+Ces données proviennent de `public.player_stats` via `public.get_my_leaderboard_context()`. La RPC ne prend **aucun `player_id` en paramètre** : elle déduit exclusivement le joueur courant avec `auth.uid()`. Elle est exécutable par `authenticated` et `service_role`, jamais par `anon`.
+
+Le rang utilise le même ordre global que le leaderboard : `best_score DESC`, `best_score_at ASC`, puis `player_id ASC`. Un joueur connecté sans aucune run vérifiée reçoit un contexte non classé (`verified_runs_count = 0`, rang/record/date nuls) et l'interface affiche `Pas encore classé`.
+
+Le Top 100 reste public et indépendant de cette RPC personnelle. La table `player_stats` reste inaccessible directement au navigateur.
