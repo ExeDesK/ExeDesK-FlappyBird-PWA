@@ -1116,3 +1116,22 @@ noscript {
 .account-hint {
   margin-top: 9px;
 }
+
+
+.frame-driver-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--pixel-font);
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.frame-driver-control select {
+  min-height: 32px;
+  border: 2px solid var(--flappy-brown-dark);
+  border-radius: 0;
+  background: var(--flappy-cream);
+  color: var(--flappy-brown-dark);
+  font: inherit;
+}

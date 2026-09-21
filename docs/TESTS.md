@@ -1,8 +1,8 @@
-# Rapport de tests - v0.2.7.3b-dev5.2
+# Rapport de tests - v0.2.7.3b-dev5.3
 
 ## Résultat
 
-- **125/125 tests Node passent** avec `npm test`.
+- **127/127 tests Node passent** avec `npm test`.
 - Le bundle concaténé utilisé par le smoke test passe le contrôle de syntaxe JavaScript.
 - Le smoke test Chromium n’a pas été relancé dans cet environnement, où Playwright Python et Chromium ne sont pas installés.
 - Le cache PWA contient **32 ressources** et refuse de se déclarer complet si une ressource de précache manque.
@@ -171,4 +171,13 @@ Les contrôles dédiés vérifient que le canvas n'est plus focusable, que le to
 
 Le profiler corrèle désormais un tap au prochain `requestAnimationFrame` et mesure le `delta` de la frame contenant ce tap, ce qui permet de vérifier directement si les frames longues iOS sont liées au contact même lorsque le handler JavaScript est quasi nul.
 
-Validation complète : **125/125 tests Node** passent.
+Validation complète : **127/127 tests Node** passent.
+
+
+## Contournement scheduler iOS (v0.2.7.3b-dev5.3)
+
+- `AUTO` sélectionne `timer` sur iOS WebKit et `rAF` ailleurs.
+- Le sélecteur diagnostic permet de forcer `AUTO`, `rAF` ou `TIMER 60 Hz` sans redéploiement.
+- `FixedClock(60)` reste l'unique horloge de simulation ; le pilote de frame n'altère pas les constantes physiques ni le format Verified Runs.
+- Le profiler expose `frameDriver`/`driverFps` et conserve les champs historiques pour compatibilité des exports.
+- Validation complète : **127/127 tests Node** passent.

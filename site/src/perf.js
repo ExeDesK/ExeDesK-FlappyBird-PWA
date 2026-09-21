@@ -13,11 +13,13 @@ export class PerfProfiler {
     this.tapToRafTimes = [];
     this.tapFrameDeltas = [];
     this.result = null;
+    this.frameDriver = 'raf';
   }
 
-  start(now = performance.now()) {
+  start(now = performance.now(), frameDriver = 'raf') {
     this.active = true;
     this.startedAt = now;
+    this.frameDriver = frameDriver === 'timer' ? 'timer' : 'raf';
     this.lastRaf = null;
     this.samples.length = 0;
     this.steps.length = 0;
@@ -112,8 +114,10 @@ export class PerfProfiler {
 
     const result = {
       durationMs: totalMs,
+      frameDriver: this.frameDriver,
       frames,
       rafFps: frames * 1000 / totalMs,
+      driverFps: frames * 1000 / totalMs,
       deltaAvg: frames ? sum(this.samples) / frames : 0,
       deltaP50: percentile(deltas, 0.50),
       deltaP95: percentile(deltas, 0.95),
@@ -165,13 +169,13 @@ export class PerfProfiler {
 
     return [
       `Profil ${(result.durationMs / 1000).toFixed(1)} s`,
-      `rAF ${result.rafFps.toFixed(1)} fps`,
+      `driver ${result.frameDriver ?? 'raf'} ${result.driverFps?.toFixed?.(1) ?? result.rafFps.toFixed(1)} fps`,
       `delta moy ${result.deltaAvg.toFixed(2)} ms | p95 ${result.deltaP95.toFixed(2)} | p99 ${result.deltaP99.toFixed(2)} | max ${result.deltaMax.toFixed(2)}`,
       `>20 ms ${result.over20} (${percentage(result.over20, result.frames)}%) | >25 ms ${result.over25} | >33 ms ${result.over33}`,
       `render moy ${result.renderAvg.toFixed(2)} ms | p95 ${result.renderP95.toFixed(2)} | max ${result.renderMax.toFixed(2)}`,
       `tap ${result.tapCount} | moy ${result.tapAvg.toFixed(3)} ms | p95 ${result.tapP95.toFixed(3)} | max ${result.tapMax.toFixed(3)}`,
       `audio wing ${result.audioCount} | moy ${result.audioAvg.toFixed(3)} ms | p95 ${result.audioP95.toFixed(3)} | max ${result.audioMax.toFixed(3)}`,
-      `tap→rAF ${result.tapRafCount} | moy ${result.tapToRafAvg.toFixed(2)} ms | p95 ${result.tapToRafP95.toFixed(2)} | max ${result.tapToRafMax.toFixed(2)}`,
+      `tap→frame ${result.tapRafCount} | moy ${result.tapToRafAvg.toFixed(2)} ms | p95 ${result.tapToRafP95.toFixed(2)} | max ${result.tapToRafMax.toFixed(2)}`,
       `frame avec tap moy ${result.tapFrameDeltaAvg.toFixed(2)} ms | p95 ${result.tapFrameDeltaP95.toFixed(2)} | max ${result.tapFrameDeltaMax.toFixed(2)} | >25 ${result.tapFramesOver25}`,
       `ticks/rAF 0:${result.steps0} 1:${result.steps1} 2+:${result.steps2plus} | max ${result.maxSteps}`,
     ].join('\n');

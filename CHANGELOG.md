@@ -1,5 +1,16 @@
 # Changelog
 
+## v0.2.7.3b-dev5.3 - iOS frame-driver workaround
+
+- Les profils iPhone `dev5.2` confirment un hitch WebKit parfaitement corrélé au contact : chaque tap mesuré produit une frame d'environ 30–31 ms alors que le handler et le rendu restent quasi nuls.
+- Ajout d'un pilote de frame alternatif `timer` à 60 Hz afin de contourner les retards `requestAnimationFrame` documentés par WebKit pendant les événements tactiles.
+- En mode `AUTO`, iPhone/iPad WebKit utilisent le pilote `timer`; Android et desktop conservent `requestAnimationFrame`.
+- Ajout d'un sélecteur diagnostic `AUTO / rAF / TIMER 60 Hz` pour comparer les deux pilotes dans une seule build.
+- La simulation reste assurée par `FixedClock(60)` : aucun changement des constantes physiques, du format Verified Runs ou de `flappy13-physics-v1`.
+- Le profiler exporte désormais le pilote actif et affiche `tap→frame` afin que les métriques restent exactes avec les deux modes.
+- La boucle timer est arrêtée lorsque la page est masquée et redémarrée au retour au premier plan.
+- Aucun changement Supabase.
+
 ## v0.2.7.3b-dev5.2 - iOS touch frame-pacing hotfix
 
 - Suppression de la focusabilité du canvas de jeu (`tabindex`) : les contrôles clavier restent globaux via `window`, sans provoquer de changement de focus lors d'un tap iOS.

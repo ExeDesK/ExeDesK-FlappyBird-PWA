@@ -81,7 +81,7 @@
         <button id="close-options" class="close-options" aria-label="Fermer">X</button>
       </header>
 
-      <p class="version">BETA 0.2.7.3b-dev5.2</p>
+      <p class="version">BETA 0.2.7.3b-dev5.3</p>
       <p id="offline-status" class="status-card">Préparation du mode hors ligne...</p>
 
       <section class="menu-card account-card" aria-labelledby="account-title">
@@ -200,7 +200,7 @@
         <button id="close-leaderboard" class="close-options" type="button" aria-label="Fermer le classement">X</button>
       </header>
 
-      <p class="version">BETA 0.2.7.3b-dev5.2</p>
+      <p class="version">BETA 0.2.7.3b-dev5.3</p>
 
       <div class="leaderboard-toolbar">
         <p id="leaderboard-status" class="hint">Chargement du classement...</p>
@@ -257,6 +257,14 @@
       </div>
 
       <div class="perf-actions">
+        <label class="frame-driver-control">
+          <span>PILOTE FRAME</span>
+          <select id="frame-driver" aria-label="Pilote de frame">
+            <option value="auto">AUTO (TIMER SUR iOS)</option>
+            <option value="raf">rAF</option>
+            <option value="timer">TIMER 60 Hz</option>
+          </select>
+        </label>
         <button id="profile">Profiler 10 s</button>
         <button id="export-perf" disabled>Exporter perf</button>
       </div>

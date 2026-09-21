@@ -8,7 +8,7 @@ L'objectif n'est pas de produire un simple clone « inspiré de » Flappy Bird, 
 
 Le gameplay fonctionne entièrement côté client, sans framework, et peut être installé comme une application sur Windows, iPhone/iPad et Android. Les fonctions communautaires utilisent un backend Supabase facultatif : aucun compte n'est nécessaire pour jouer.
 
-> **État du projet : bêta — v0.2.7.3b-dev5.2**
+> **État du projet : bêta — v0.2.7.3b-dev5.3**
 
 ---
 
@@ -32,6 +32,7 @@ Le gameplay fonctionne entièrement côté client, sans framework, et peut être
 - Extension dynamique du ciel et du sol sur les écrans plus hauts que le format original.
 - Mode Performance pour limiter le supersampling sur les appareils à fort DPR.
 - Interpolation visuelle pour réduire les micro-saccades liées au `requestAnimationFrame` des navigateurs mobiles.
+- Sur iOS WebKit, le mode `AUTO` utilise un pilote timer 60 Hz afin de contourner les hitches tactiles `requestAnimationFrame` mesurés sur iPhone.
 - Supersampling du rendu pour améliorer notamment la rotation de l'oiseau sur les écrans Retina.
 - Profiler intégré pour diagnostiquer le frame pacing et les performances.
 - Chemin de tap iOS optimisé : canvas non focusable, aucun `preventDefault()` tactile, aucune lecture de layout, focus/capture tactile ou tentative de verrouillage d’orientation à chaque flap ; `touch-action: none` gère les gestes navigateur.

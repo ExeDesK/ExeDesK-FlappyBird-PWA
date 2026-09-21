@@ -4,6 +4,11 @@ import test from 'node:test';
 
 import { Audio } from '../site/src/audio.js';
 import { PerfProfiler } from '../site/src/perf.js';
+import {
+  isIOSWebKitEnvironment,
+  normalizeFrameDriverPreference,
+  resolveFrameDriver,
+} from '../site/src/frame-driver.js';
 
 class RunningContext {
   constructor() {
@@ -42,7 +47,7 @@ test('running audio context uses the steady-state unlock fast path', () => {
 
 test('profiler reports tap and wing audio hot-path timing', () => {
   const profiler = new PerfProfiler(100);
-  profiler.start(0);
+  profiler.start(0, 'raf');
   profiler.tap(0.12);
   profiler.tap(0.30);
   profiler.audio(0.08);
@@ -81,7 +86,7 @@ test('touch pointerdown avoids synchronous WebKit-heavy operations', () => {
 
 test('profiler correlates a tap with the next delayed animation frame', () => {
   const profiler = new PerfProfiler(1000);
-  profiler.start(0);
+  profiler.start(0, 'raf');
   profiler.frame(0, 1, 0.2);
   profiler.markTap(4);
   profiler.frame(30, 2, 0.2);
@@ -91,7 +96,7 @@ test('profiler correlates a tap with the next delayed animation frame', () => {
   assert.equal(result.tapToRafMax, 26);
   assert.equal(result.tapFrameDeltaMax, 30);
   assert.equal(result.tapFramesOver25, 1);
-  assert.match(profiler.format(), /tap→rAF 1/);
+  assert.match(profiler.format(), /tap→frame 1/);
   assert.match(profiler.format(), /frame avec tap/);
 });
 
@@ -103,4 +108,37 @@ test('game canvas is not focusable and relies on touch-action for touch gestures
   assert.doesNotMatch(canvas, /tabindex=/);
   assert.match(css, /#game[\s\S]*?touch-action:\s*none/);
   assert.match(css, /#game[\s\S]*?-webkit-touch-callout:\s*none/);
+});
+
+
+test('auto frame driver uses timer on iOS WebKit and rAF elsewhere', () => {
+  const ios = {
+    userAgent: 'Mozilla/5.0 (iPhone; CPU iPhone OS 18_7 like Mac OS X) AppleWebKit/605.1.15 Mobile/15E148 Safari/604.1',
+    platform: 'iPhone',
+    maxTouchPoints: 5,
+  };
+  const desktop = {
+    userAgent: 'Mozilla/5.0 Chrome/140.0.0.0 Safari/537.36',
+    platform: 'Win32',
+    maxTouchPoints: 0,
+  };
+
+  assert.equal(isIOSWebKitEnvironment(ios), true);
+  assert.equal(resolveFrameDriver('auto', ios), 'timer');
+  assert.equal(resolveFrameDriver('auto', desktop), 'raf');
+  assert.equal(resolveFrameDriver('raf', ios), 'raf');
+  assert.equal(resolveFrameDriver('timer', desktop), 'timer');
+  assert.equal(normalizeFrameDriverPreference('wat'), 'auto');
+});
+
+test('main loop offers a timer driver without changing the fixed simulation clock', () => {
+  const source = fs.readFileSync(new URL('../site/src/main.js', import.meta.url), 'utf8');
+  const html = fs.readFileSync(new URL('../site/index.html', import.meta.url), 'utf8');
+
+  assert.match(source, /resolveFrameDriver/);
+  assert.match(source, /setInterval\(\(\) =>/);
+  assert.match(source, /FRAME_DRIVER_PERIOD_MS/);
+  assert.match(source, /new FixedClock\(60\)/);
+  assert.match(html, /id="frame-driver"/);
+  assert.match(html, /AUTO \(TIMER SUR iOS\)/);
 });

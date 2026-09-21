@@ -9,6 +9,11 @@ import {
   renderQualityScale,
 } from './display.js';
 import { Game } from './game.js';
+import {
+  FRAME_DRIVER_AUTO,
+  normalizeFrameDriverPreference,
+  resolveFrameDriver,
+} from './frame-driver.js';
 import { leaderboardName } from './leaderboard.js';
 import { PerfProfiler } from './perf.js';
 import {
@@ -23,7 +28,7 @@ import {
 } from './verified-run-client.js';
 import { createCanonicalRunGame } from './verified-runs.js';
 
-const VERSION = '0.2.7.3b-dev5.2';
+const VERSION = '0.2.7.3b-dev5.3';
 const BEST_SCORE_KEY = 'flappy13-personal-best-v1';
 const SETTINGS_KEY = 'flappy13-settings-v1';
 const LAST_VERSION_KEY = 'flappy13-last-version-v1';
@@ -39,6 +44,8 @@ const SUPABASE_PUBLISHABLE_KEY = typeof runtimeConfig.supabasePublishableKey ===
 const UPDATE_CHECK_INTERVAL_MS = 15 * 60 * 1000;
 const UPDATE_PROBE_TIMEOUT_MS = 3500;
 const MAX_REPLAY_INPUTS = 30000;
+const FRAME_DRIVER_HZ = 60;
+const FRAME_DRIVER_PERIOD_MS = 1000 / FRAME_DRIVER_HZ;
 
 const $ = id => document.getElementById(id);
 const query = new URLSearchParams(location.search);
@@ -71,7 +78,9 @@ let reloadOnControllerChange = false;
 let lastUpdateToastVersion = null;
 let lastPerfResult = null;
 let cachedDebugState = null;
-let rafCount = 0;
+let frameCallbackCount = 0;
+let frameLoopGeneration = 0;
+let frameTimerId = null;
 let tickCount = 0;
 let statsAt = 0;
 let previousCommands = null;
@@ -154,6 +163,7 @@ const settings = {
   sound: true,
   aspect: defaultAspectForCapabilities({ desktop: desktopDefault }),
   performance: false,
+  frameDriver: FRAME_DRIVER_AUTO,
 };
 
 try {
@@ -171,6 +181,8 @@ try {
     if (typeof saved.performance === 'boolean') {
       settings.performance = saved.performance;
     }
+
+    settings.frameDriver = normalizeFrameDriverPreference(saved.frameDriver);
   }
 } catch {
   // Invalid/missing settings simply fall back to defaults.
@@ -179,7 +191,54 @@ try {
 $('sound').checked = settings.sound;
 $('aspect').value = settings.aspect;
 $('performance-mode').checked = settings.performance;
+$('frame-driver').value = settings.frameDriver;
 audio.muted = !settings.sound;
+
+function frameDriverEnvironment() {
+  return {
+    userAgent: navigator.userAgent,
+    platform: navigator.platform,
+    maxTouchPoints: navigator.maxTouchPoints,
+  };
+}
+
+function activeFrameDriver() {
+  return resolveFrameDriver(settings.frameDriver, frameDriverEnvironment());
+}
+
+function stopFrameLoop() {
+  frameLoopGeneration++;
+  if (frameTimerId !== null) {
+    clearInterval(frameTimerId);
+    frameTimerId = null;
+  }
+}
+
+function startFrameLoop() {
+  stopFrameLoop();
+  const generation = frameLoopGeneration;
+  const driver = activeFrameDriver();
+  clock.reset();
+
+  if (driver === 'timer') {
+    frameTimerId = setInterval(() => {
+      if (generation !== frameLoopGeneration || document.hidden) {
+        return;
+      }
+      animate(performance.now());
+    }, FRAME_DRIVER_PERIOD_MS);
+    return;
+  }
+
+  const rafLoop = now => {
+    if (generation !== frameLoopGeneration || document.hidden) {
+      return;
+    }
+    animate(now);
+    requestAnimationFrame(rafLoop);
+  };
+  requestAnimationFrame(rafLoop);
+}
 
 function toast(text, ms = 4500) {
   $('toast').textContent = text;
@@ -1375,14 +1434,18 @@ document.addEventListener('visibilitychange', () => {
   clearInput();
   clock.reset();
 
-  if (!document.hidden) {
-    audio.recover('visibility-visible');
-    tryLockPortrait();
-    updateOrientationGuard();
+  if (document.hidden) {
+    stopFrameLoop();
+    return;
+  }
 
-    if (swRegistration && navigator.onLine) {
-      checkForUpdates({ silent: true, reason: 'foreground' });
-    }
+  startFrameLoop();
+  audio.recover('visibility-visible');
+  tryLockPortrait();
+  updateOrientationGuard();
+
+  if (swRegistration && navigator.onLine) {
+    checkForUpdates({ silent: true, reason: 'foreground' });
   }
 });
 
@@ -1430,6 +1493,14 @@ $('performance-mode').onchange = () => {
       ? 'Mode Performance : rendu interne plafonné à ×2.'
       : 'Mode Performance désactivé.',
   );
+};
+
+$('frame-driver').onchange = () => {
+  settings.frameDriver = normalizeFrameDriverPreference($('frame-driver').value);
+  saveSettings();
+  startFrameLoop();
+  $('perf-output').textContent = `Pilote actif : ${activeFrameDriver()}. Lancez un nouveau profil.`;
+  toast(`Pilote de frame : ${activeFrameDriver()}.`);
 };
 
 $('sound').onchange = () => {
@@ -1597,10 +1668,11 @@ function perfText(result = lastPerfResult) {
 }
 
 function startProfiler() {
-  profiler.start(performance.now());
+  profiler.start(performance.now(), activeFrameDriver());
   lastPerfResult = null;
   $('perf-output').textContent = 'Profil en cours pendant 10 s…';
   $('profile').disabled = true;
+  $('frame-driver').disabled = true;
 }
 
 function downloadJson(filename, data) {
@@ -1685,7 +1757,7 @@ $('copy-audio').onclick = copyAudioDiagnostics;
 $('export-audio').onclick = exportAudioDiagnostics;
 
 function animate(now) {
-  rafCount++;
+  frameCallbackCount++;
 
   if (
     game &&
@@ -1712,6 +1784,7 @@ function animate(now) {
       lastPerfResult = result;
       $('perf-output').textContent = perfText(result);
       $('profile').disabled = false;
+      $('frame-driver').disabled = false;
       $('export-perf').disabled = false;
     }
   } else {
@@ -1725,7 +1798,7 @@ function animate(now) {
 
       $('stats').textContent = [
         `${snapshot.state} | tick ${snapshot.frame}`,
-        `updates/s ${Math.round(tickCount * 1000 / elapsed)} | rAF/s ${Math.round(rafCount * 1000 / elapsed)}`,
+        `updates/s ${Math.round(tickCount * 1000 / elapsed)} | frame/s ${Math.round(frameCallbackCount * 1000 / elapsed)} | ${activeFrameDriver()}`,
         `seed ${snapshot.seed}`,
         `bird (${snapshot.bird.x}, ${snapshot.bird.y})`,
         `v=${snapshot.bird.velocity.toFixed(7)} | rot=${snapshot.bird.rotation.toFixed(4)}`,
@@ -1746,10 +1819,9 @@ function animate(now) {
 
     statsAt = now;
     tickCount = 0;
-    rafCount = 0;
+    frameCallbackCount = 0;
   }
 
-  requestAnimationFrame(animate);
 }
 
 function replayData() {
@@ -2227,7 +2299,7 @@ async function boot() {
     cachedDebugState = debug ? game.snapshot() : null;
     render();
     tryLockPortrait();
-    requestAnimationFrame(animate);
+    startFrameLoop();
 
     authInit.then(async state => {
       renderAccount(auth.snapshot());
