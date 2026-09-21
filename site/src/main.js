@@ -23,7 +23,7 @@ import {
 } from './verified-run-client.js';
 import { createCanonicalRunGame } from './verified-runs.js';
 
-const VERSION = '0.2.7.3b-dev5.9';
+const VERSION = '0.2.7.3b-dev6';
 const BEST_SCORE_KEY = 'flappy13-personal-best-v1';
 const SETTINGS_KEY = 'flappy13-settings-v1';
 const LAST_VERSION_KEY = 'flappy13-last-version-v1';
@@ -102,6 +102,11 @@ let leaderboardContextState = 'idle';
 let leaderboardContextPromise = null;
 let leaderboardContextLoadedAt = 0;
 let leaderboardContextPlayerId = null;
+let playerPerformanceStats = null;
+let playerPerformanceState = 'idle';
+let playerPerformancePromise = null;
+let playerPerformanceLoadedAt = 0;
+let playerPerformancePlayerId = null;
 const LEADERBOARD_STALE_MS = 60 * 1000;
 
 const touchRecords = new Map();
@@ -460,9 +465,11 @@ async function flushVerifiedRunQueue({ reason = 'manual', notify = false } = {})
       saveBest(highestVerifiedScore);
       leaderboardLoadedAt = 0;
       leaderboardContextLoadedAt = 0;
+      playerPerformanceLoadedAt = 0;
       if (leaderboardDialog.open && navigator.onLine) {
         void loadLeaderboard({ force: true });
         void loadLeaderboardContext({ force: true });
+        void loadPlayerPerformanceStats({ force: true });
       }
     }
 
@@ -730,6 +737,55 @@ function renderLeaderboardContext(state = auth.snapshot()) {
   recordDate.textContent = `Record · ${formatLeaderboardDate(leaderboardContext.best_score_at)}`;
 }
 
+function resetPlayerPerformanceStats(playerId = null) {
+  playerPerformanceStats = null;
+  playerPerformanceState = 'idle';
+  playerPerformancePromise = null;
+  playerPerformanceLoadedAt = 0;
+  playerPerformancePlayerId = playerId;
+}
+
+function formatStat(value, digits = 1) {
+  if (value == null || !Number.isFinite(Number(value))) return '—';
+  return Number(value).toFixed(digits).replace(/\.0$/, '');
+}
+
+function renderPlayerPerformanceStats(state = auth.snapshot()) {
+  const card = $('leaderboard-stats-card');
+  const status = $('leaderboard-stats-status');
+  const playerId = currentLeaderboardPlayerId(state);
+  const signedIn = leaderboardSignedIn(state);
+  const hasStats = Boolean(playerPerformanceStats && playerPerformanceStats.player_id === playerId);
+  card.hidden = !signedIn;
+  if (!signedIn) return;
+
+  const ids = [
+    'stats-career-average','stats-total-score','stats-trend',
+    'stats-10-average','stats-10-best','stats-10-median','stats-10-regularity',
+    'stats-25-average','stats-25-best','stats-25-median','stats-25-regularity',
+    'stats-50-average','stats-50-best','stats-50-median','stats-50-regularity',
+  ];
+  for (const id of ids) $(id).textContent = '—';
+
+  if (playerPerformanceState === 'loading' && !hasStats) { status.textContent = 'CHARGEMENT...'; return; }
+  if (playerPerformanceState === 'error' && !hasStats) { status.textContent = 'INDISPONIBLE'; return; }
+  if (!hasStats) { status.textContent = 'EN ATTENTE'; return; }
+
+  status.textContent = navigator.onLine ? 'RUNS VÉRIFIÉS' : 'DERNIÈRE LECTURE';
+  $('stats-career-average').textContent = formatStat(playerPerformanceStats.career_average);
+  $('stats-total-score').textContent = String(playerPerformanceStats.total_score);
+  const trend = playerPerformanceStats.recent_50_vs_career_pct;
+  $('stats-trend').textContent = trend == null ? '—' : `${trend >= 0 ? '+' : ''}${formatStat(trend)}%`;
+
+  for (const size of [10, 25, 50]) {
+    const windowStats = playerPerformanceStats[`recent_${size}`];
+    $(`stats-${size}-average`).textContent = formatStat(windowStats.average);
+    $(`stats-${size}-best`).textContent = windowStats.best == null ? '—' : String(windowStats.best);
+    $(`stats-${size}-median`).textContent = formatStat(windowStats.median);
+    $(`stats-${size}-regularity`).textContent = formatStat(windowStats.stddev);
+  }
+}
+
 function renderLeaderboard(state = auth.snapshot()) {
   const list = $('leaderboard-list');
   const empty = $('leaderboard-empty');
@@ -740,6 +796,7 @@ function renderLeaderboard(state = auth.snapshot()) {
   $('leaderboard-login-hint').hidden = leaderboardSignedIn(state);
   refresh.disabled = !auth.configured || !navigator.onLine || leaderboardState === 'loading';
   renderLeaderboardContext(state);
+  renderPlayerPerformanceStats(state);
 
   if (!auth.configured) {
     status.textContent = 'Classement indisponible sur cette build.';
@@ -940,6 +997,53 @@ async function loadLeaderboardContext({ force = false } = {}) {
   return requestPromise;
 }
 
+async function loadPlayerPerformanceStats({ force = false } = {}) {
+  const state = auth.snapshot();
+  const playerId = currentLeaderboardPlayerId(state);
+
+  if (!leaderboardSignedIn(state) || !auth.session || !playerId) {
+    resetPlayerPerformanceStats(null);
+    renderLeaderboard(state);
+    return null;
+  }
+  if (playerPerformancePlayerId !== playerId) resetPlayerPerformanceStats(playerId);
+  if (playerPerformancePromise) return playerPerformancePromise;
+  if (!auth.configured || !navigator.onLine) {
+    if (!playerPerformanceStats) playerPerformanceState = 'error';
+    renderLeaderboard(state);
+    return playerPerformanceStats;
+  }
+  if (!force && playerPerformanceState === 'loaded'
+      && playerPerformanceStats?.player_id === playerId
+      && Date.now() - playerPerformanceLoadedAt < LEADERBOARD_STALE_MS) {
+    return playerPerformanceStats;
+  }
+
+  playerPerformanceState = 'loading';
+  renderLeaderboard(state);
+  const requestPlayerId = playerId;
+  const requestPromise = (async () => {
+    try {
+      const stats = await auth.fetchMyPlayerPerformanceStats();
+      if (stats.player_id !== requestPlayerId) throw new Error('Statistiques reçues pour un autre joueur.');
+      if (currentLeaderboardPlayerId(auth.snapshot()) !== requestPlayerId || playerPerformancePlayerId !== requestPlayerId) return null;
+      playerPerformanceStats = stats;
+      playerPerformanceState = 'loaded';
+      playerPerformanceLoadedAt = Date.now();
+      return stats;
+    } catch (error) {
+      if (playerPerformancePlayerId === requestPlayerId) playerPerformanceState = 'error';
+      console.warn('[Leaderboard] Statistiques personnelles indisponibles.', error);
+      return playerPerformanceStats?.player_id === requestPlayerId ? playerPerformanceStats : null;
+    } finally {
+      if (playerPerformancePromise === requestPromise) playerPerformancePromise = null;
+      renderLeaderboard();
+    }
+  })();
+  playerPerformancePromise = requestPromise;
+  return requestPromise;
+}
+
 function accountDisplayName(state) {
   return state.profile?.display_name || state.profile?.username || state.user?.user_metadata?.name || 'Joueur';
 }
@@ -1011,6 +1115,7 @@ auth.onChange(state => {
   const playerChanged = playerId !== leaderboardContextPlayerId;
   if (playerChanged) {
     resetLeaderboardContext(playerId);
+    resetPlayerPerformanceStats(playerId);
   }
 
   renderAccount(state);
@@ -1024,6 +1129,7 @@ auth.onChange(state => {
     && leaderboardDialog.open
   ) {
     void loadLeaderboardContext({ force: true });
+    void loadPlayerPerformanceStats({ force: true });
   }
 });
 renderAccount();
@@ -1049,6 +1155,7 @@ $('discord-logout').onclick = async () => {
 $('refresh-leaderboard').onclick = () => {
   void loadLeaderboard({ force: true, notify: true });
   void loadLeaderboardContext({ force: true });
+  void loadPlayerPerformanceStats({ force: true });
 };
 
 function resize() {
@@ -1229,6 +1336,7 @@ function openLeaderboard({ force = false } = {}) {
   clock.reset();
   void loadLeaderboard({ force });
   void loadLeaderboardContext({ force });
+  void loadPlayerPerformanceStats({ force });
 }
 
 function closeLeaderboard() {

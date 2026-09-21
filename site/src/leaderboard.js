@@ -96,6 +96,62 @@ export function parseLeaderboardContext(payload) {
   };
 }
 
+export function parsePlayerPerformanceStats(payload) {
+  const raw = Array.isArray(payload) ? payload[0] : payload;
+  if (!raw || typeof raw !== 'object') {
+    throw new Error('Invalid player performance response.');
+  }
+
+  const playerId = raw.player_id;
+  const runCount = Number(raw.verified_runs_count);
+  const totalScore = Number(raw.total_score);
+  if (!isUuid(playerId)) throw new Error('Invalid player performance player.');
+  if (!Number.isInteger(runCount) || runCount < 0) throw new Error('Invalid player performance run count.');
+  if (!Number.isInteger(totalScore) || totalScore < 0) throw new Error('Invalid player performance total score.');
+
+  const nullableNumber = (value, name, { integer = false, min = 0 } = {}) => {
+    if (value == null) return null;
+    const number = Number(value);
+    if (!Number.isFinite(number) || number < min || (integer && !Number.isInteger(number))) {
+      throw new Error(`Invalid player performance ${name}.`);
+    }
+    return number;
+  };
+
+  const windows = {};
+  for (const size of [10, 25, 50]) {
+    const count = nullableNumber(raw[`recent_${size}_count`], `${size} count`, { integer: true });
+    const average = nullableNumber(raw[`recent_${size}_average`], `${size} average`);
+    const best = nullableNumber(raw[`recent_${size}_best`], `${size} best`, { integer: true });
+    const median = nullableNumber(raw[`recent_${size}_median`], `${size} median`);
+    const stddev = nullableNumber(raw[`recent_${size}_stddev`], `${size} stddev`);
+    if (count === 0 && [average, best, median, stddev].some((value) => value !== null)) {
+      throw new Error(`Invalid empty ${size}-run window.`);
+    }
+    windows[size] = { count, average, best, median, stddev };
+  }
+
+  const careerAverage = nullableNumber(raw.career_average, 'career average');
+  const bestScore = nullableNumber(raw.best_score, 'best score', { integer: true });
+  const trendPct = raw.recent_50_vs_career_pct == null
+    ? null
+    : nullableNumber(raw.recent_50_vs_career_pct, 'trend', { min: -Infinity });
+
+  return {
+    player_id: playerId,
+    verified_runs_count: runCount,
+    total_score: totalScore,
+    career_average: careerAverage,
+    best_score: bestScore,
+    first_verified_run_at: raw.first_verified_run_at == null ? null : String(raw.first_verified_run_at),
+    last_verified_run_at: raw.last_verified_run_at == null ? null : String(raw.last_verified_run_at),
+    recent_10: windows[10],
+    recent_25: windows[25],
+    recent_50: windows[50],
+    recent_50_vs_career_pct: trendPct,
+  };
+}
+
 export function leaderboardName(row) {
   return row?.display_name || row?.username || 'Joueur';
 }

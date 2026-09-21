@@ -82,7 +82,7 @@
         <button id="close-options" class="close-options" aria-label="Fermer">X</button>
       </header>
 
-      <p class="version">BETA 0.2.7.3b-dev5.9</p>
+      <p class="version">BETA 0.2.7.3b-dev6</p>
       <p id="offline-status" class="status-card">Préparation du mode hors ligne...</p>
 
       <section class="menu-card account-card" aria-labelledby="account-title">
@@ -211,7 +211,7 @@
         <button id="close-leaderboard" class="close-options" type="button" aria-label="Fermer le classement">X</button>
       </header>
 
-      <p class="version">BETA 0.2.7.3b-dev5.9</p>
+      <p class="version">BETA 0.2.7.3b-dev6</p>
 
       <div class="leaderboard-toolbar">
         <p id="leaderboard-status" class="hint">Chargement du classement...</p>
@@ -246,6 +246,35 @@
         <p id="leaderboard-player-record-date" class="leaderboard-player-record-date">
           Pas encore classé.
         </p>
+      </section>
+
+      <section id="leaderboard-stats-card" class="leaderboard-stats-card" aria-labelledby="leaderboard-stats-title" hidden>
+        <div class="leaderboard-player-heading">
+          <strong id="leaderboard-stats-title">VOS STATISTIQUES</strong>
+          <span id="leaderboard-stats-status">Chargement...</span>
+        </div>
+
+        <div class="leaderboard-career-grid">
+          <div class="leaderboard-stat-box"><span>MOY. CARRIÈRE</span><strong id="stats-career-average">—</strong></div>
+          <div class="leaderboard-stat-box"><span>POINTS TOTAL</span><strong id="stats-total-score">—</strong></div>
+          <div class="leaderboard-stat-box"><span>TENDANCE 50</span><strong id="stats-trend">—</strong></div>
+        </div>
+
+        <div class="leaderboard-window-table" role="table" aria-label="Statistiques récentes">
+          <div class="leaderboard-window-row leaderboard-window-head" role="row">
+            <span>FENÊTRE</span><span>MOY.</span><span>BEST</span><span>MÉDIANE</span><span>RÉGUL.</span>
+          </div>
+          <div class="leaderboard-window-row" role="row">
+            <strong>10</strong><span id="stats-10-average">—</span><span id="stats-10-best">—</span><span id="stats-10-median">—</span><span id="stats-10-regularity">—</span>
+          </div>
+          <div class="leaderboard-window-row" role="row">
+            <strong>25</strong><span id="stats-25-average">—</span><span id="stats-25-best">—</span><span id="stats-25-median">—</span><span id="stats-25-regularity">—</span>
+          </div>
+          <div class="leaderboard-window-row" role="row">
+            <strong>50</strong><span id="stats-50-average">—</span><span id="stats-50-best">—</span><span id="stats-50-median">—</span><span id="stats-50-regularity">—</span>
+          </div>
+        </div>
+        <p class="leaderboard-stats-note">RÉGUL. = ÉCART-TYPE · PLUS BAS = PLUS RÉGULIER</p>
       </section>
 
       <div class="leaderboard-scroll">

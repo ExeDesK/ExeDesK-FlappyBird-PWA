@@ -1,4 +1,15 @@
-## v0.2.7.3b-dev5.9 - Dynamic iOS ProMotion guidance
+## v0.2.7.3b-dev6 - Career & Recent Stats
+
+- Ajout d’une RPC authentifiée `get_my_player_performance_stats()` basée exclusivement sur les données autoritaires.
+- Statistiques carrière lifetime depuis `player_stats` : nombre de runs, total de points, moyenne historique et record.
+- Statistiques court terme calculées sur les 10, 25 et 50 dernières runs vérifiées retenues : moyenne, meilleur score, médiane et écart-type.
+- Ajout d’une tendance `50 dernières vs carrière` exprimée en pourcentage.
+- Les fenêtres récentes sont ordonnées par `issued_at`; le vieux record conservé par la rétention ne pollue pas les 50 dernières.
+- Nouvelle carte `VOS STATISTIQUES` dans la modale classement, réservée au joueur connecté.
+- Aucun score ni statistique n’est envoyé par le client ; tout est dérivé côté Supabase.
+- Ajout des tests de sécurité, contrat RPC et affichage des statistiques.
+
+## v0.2.7.3b-dev6 - Dynamic iOS ProMotion guidance
 
 - Le conseil ProMotion de `Options → Jeu → Performance` est désormais affiché uniquement sur iPhone/iPad/iPadOS.
 - Mesure automatique de la cadence réelle `requestAnimationFrame` côté Safari.

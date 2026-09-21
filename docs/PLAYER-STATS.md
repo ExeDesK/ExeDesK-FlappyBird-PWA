@@ -126,3 +126,15 @@ best_score_at
 Elle n'accepte aucun identifiant joueur fourni par le client et utilise `auth.uid()` comme seule identité. Les autres agrégats lifetime (`total_score`, causes de mort, bornes temporelles, etc.) restent privés pour les phases suivantes.
 
 Un index partiel `player_stats_rank_idx` accélère l'ordre du classement personnel sur les joueurs effectivement classés. Aucun trigger de statistiques, aucune Edge Function et aucun secret ne changent dans cette phase.
+
+
+## v0.2.7.3b-dev6 — Career & Recent Stats
+
+`get_my_player_performance_stats()` expose uniquement au joueur authentifié :
+
+- mémoire carrière depuis `player_stats` (`verified_runs_count`, `total_score`, moyenne, record) ;
+- fenêtres récentes 10 / 25 / 50 depuis `verified_runs` conservées ;
+- moyenne, meilleur score, médiane et écart-type (`stddev_pop`) par fenêtre ;
+- tendance 50 dernières vs moyenne carrière.
+
+Les fenêtres sont ordonnées par `issued_at DESC, run_id DESC`. Le record historique éventuellement conservé comme 51e ligne par la politique de rétention n'entre donc pas dans les 50 dernières. Le navigateur ne fournit aucun score, compteur ou agrégat.

@@ -2,6 +2,7 @@ import {
   LEADERBOARD_MAX_ROWS,
   parseLeaderboardContext,
   parseLeaderboardRows,
+  parsePlayerPerformanceStats,
 } from './leaderboard.js';
 import {
   createVerifiedRunSubmission,
@@ -476,6 +477,40 @@ export class AuthClient {
     }
 
     return parseLeaderboardContext(await response.json());
+  }
+
+  async fetchMyPlayerPerformanceStats() {
+    if (!this.configured || !this.session) {
+      throw new Error('Connexion requise pour charger vos statistiques.');
+    }
+
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      const error = new Error('Statistiques indisponibles hors connexion.');
+      error.code = 'offline';
+      throw error;
+    }
+
+    const accessToken = await this._validAccessToken();
+    const response = await fetch(`${this.url}/rest/v1/rpc/get_my_player_performance_stats`, {
+      method: 'POST',
+      headers: {
+        ...this._authHeaders(accessToken),
+        'Content-Type': 'application/json',
+      },
+      body: '{}',
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      const body = await response.json().catch(() => ({}));
+      const error = new Error(
+        body?.message || body?.hint || body?.details || `Statistiques HTTP ${response.status}`,
+      );
+      error.status = response.status;
+      throw error;
+    }
+
+    return parsePlayerPerformanceStats(await response.json());
   }
 
   async startVerifiedRun() {

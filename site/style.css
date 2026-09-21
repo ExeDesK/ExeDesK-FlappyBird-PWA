@@ -1148,3 +1148,56 @@ noscript {
 .account-hint {
   margin-top: 9px;
 }
+
+.leaderboard-stats-card[hidden] { display: none; }
+.leaderboard-stats-card {
+  margin-top: 8px;
+  padding: 8px;
+  border: 3px solid #9a814a;
+  background: #fff0bd;
+  box-shadow: inset 0 -2px 0 #dbc47e;
+}
+.leaderboard-career-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 6px;
+  margin-top: 7px;
+}
+.leaderboard-stat-box {
+  min-width: 0;
+  padding: 5px 3px;
+  border: 2px solid #9a814a;
+  background: #fff8dc;
+  text-align: center;
+}
+.leaderboard-stat-box span, .leaderboard-stat-box strong { display: block; }
+.leaderboard-stat-box span { color: #806438; font-size: 5px; }
+.leaderboard-stat-box strong { margin-top: 3px; color: var(--flappy-brown-dark); font-size: 10px; }
+.leaderboard-window-table {
+  display: grid;
+  gap: 3px;
+  margin-top: 7px;
+}
+.leaderboard-window-row {
+  display: grid;
+  grid-template-columns: 44px repeat(4, minmax(0, 1fr));
+  align-items: center;
+  gap: 3px;
+  padding: 4px;
+  border: 1px solid #bca25f;
+  background: #fff8dc;
+  font-size: 6px;
+  text-align: center;
+}
+.leaderboard-window-head {
+  background: #dcc77e;
+  color: #5f4a25;
+  font-size: 5px;
+}
+.leaderboard-stats-note {
+  margin: 6px 0 0;
+  color: #806438;
+  font-size: 5px;
+  line-height: 1.35;
+  text-align: center;
+}

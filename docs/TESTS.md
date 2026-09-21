@@ -159,3 +159,10 @@ Les tests de rétention vérifient que `006_verified_run_retention.sql` :
 Les tests dédiés vérifient que `007_personal_leaderboard_context.sql` calcule le rang depuis `player_stats`, reprend le même tri global que le leaderboard et ne permet jamais à `anon` d'appeler la RPC. La fonction ne prend aucun `player_id` en paramètre : l'identité provient de `auth.uid()`.
 
 Le client valide strictement les deux états autorisés (classé / non classé), envoie le JWT Supabase pour la RPC personnelle et affiche dans la modale la carte `VOTRE CLASSEMENT` avec rang, record, compteur lifetime et date du record.
+
+
+## v0.2.7.3b-dev6
+
+- Suite Node : **125/125 tests**.
+- Nouveau fichier `tests/player-performance.test.mjs`.
+- Vérifie la RPC authentifiée, l'absence de `player_id` client, les fenêtres 10/25/50, l'usage exclusif des runs `verified`, l'ordre `issued_at`, médiane/écart-type et l'UI de statistiques.

@@ -80,3 +80,8 @@ Ces données proviennent de `public.player_stats` via `public.get_my_leaderboard
 Le rang utilise le même ordre global que le leaderboard : `best_score DESC`, `best_score_at ASC`, puis `player_id ASC`. Un joueur connecté sans aucune run vérifiée reçoit un contexte non classé (`verified_runs_count = 0`, rang/record/date nuls) et l'interface affiche `Pas encore classé`.
 
 Le Top 100 reste public et indépendant de cette RPC personnelle. La table `player_stats` reste inaccessible directement au navigateur.
+
+
+## Statistiques personnelles — dev6
+
+La modale classement affiche désormais, pour le joueur connecté, un bloc `VOS STATISTIQUES` alimenté par `get_my_player_performance_stats()`. Il compare la carrière aux fenêtres 10 / 25 / 50 de runs vérifiées, sans rendre ces statistiques accessibles anonymement.
