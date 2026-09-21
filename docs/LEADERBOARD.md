@@ -1,4 +1,4 @@
-# Leaderboard - contrat v0.2.7.3b-dev3
+# Leaderboard - contrat v0.2.7.3b-dev4
 
 ## Objectif
 
@@ -54,6 +54,13 @@ La PWA reste jouable hors connexion, mais le classement global est une donnée c
 
 ## Statistiques lifetime autoritaires
 
-Depuis `v0.2.7.3b-dev3`, `supabase/005_player_stats.sql` maintient une mémoire longue par joueur dans `public.player_stats`. Cette table ne remplace pas la source du Top 100 pour cette phase : `get_leaderboard()` continue de lire les meilleurs `verified_runs`. Elle prépare le rang personnel, les statistiques carrière et la future politique de rétention.
+Depuis `v0.2.7.3b-dev3`, `supabase/005_player_stats.sql` maintient une mémoire longue par joueur dans `public.player_stats`. Cette table ne remplace pas la source du Top 100 : `get_leaderboard()` continue de lire les meilleurs `verified_runs`. Depuis `dev4`, le meilleur run reste explicitement conservé par la rétention, ce qui maintient le classement exact tout en bornant l'historique détaillé.
 
 Le navigateur n'envoie aucune statistique. `run-submit` ne reçoit que les entrées du replay ; après relecture autoritaire, la transition de la ligne `verified_runs` vers `verified` déclenche PostgreSQL, qui agrège lui-même le score et la collision recalculés. `player_stats` reste inaccessible directement à `anon` et `authenticated`.
+
+
+## Rétention des runs vérifiées
+
+Depuis `v0.2.7.3b-dev4`, `supabase/006_verified_run_retention.sql` borne l'historique détaillé à **50 runs vérifiées récentes + le record historique**. Le Top 100 reste exact : le meilleur run de chaque joueur est toujours préservé, même lorsqu'il est sorti de la fenêtre récente.
+
+La fenêtre récente est ordonnée par `issued_at`, c'est-à-dire le moment où le ticket a été créé et la partie réellement démarrée. Une soumission différée après une période hors ligne ne modifie donc pas artificiellement l'ordre des parties récentes.

@@ -1,5 +1,18 @@
 # Changelog
 
+## v0.2.7.3b-dev4 - Verified Runs retention
+
+- Activation de la rétention serveur des runs vérifiées : conservation des **50 parties vérifiées les plus récemment commencées** par joueur, plus du **meilleur run historique** lorsqu'il ne fait plus partie de cette fenêtre.
+- La notion de « dernière run » utilise `issued_at` (début réel du run) et non `resolved_at`, afin qu'une partie terminée hors ligne puis soumise plus tard ne remonte pas artificiellement dans l'historique récent.
+- Le record historique est sélectionné avec le même départage déterministe que le leaderboard : score décroissant, premier `resolved_at`, puis `run_id`.
+- La purge est exécutée automatiquement côté PostgreSQL après chaque transition autoritaire vers `verified`; le client ne déclenche ni ne pilote aucune suppression.
+- Ajout d'un verrou transactionnel par joueur pour sérialiser deux validations concurrentes et maintenir une borne stable de 50 ou 51 runs vérifiées détaillées.
+- Les statistiques lifetime de `player_stats` sont persistées avant la rétention et ne dépendent plus de la présence des anciennes lignes détaillées.
+- Migration initiale des historiques existants : chaque joueur déjà présent est ramené à 50 runs récentes, plus son record historique éventuel.
+- Les tickets `issued` et les runs `rejected` ne sont jamais touchés par cette politique de rétention.
+- Ajout de `supabase/006_verified_run_retention.sql`, de `docs/RETENTION.md` et de tests dédiés.
+- Validation automatisée : **116/116 tests Node** passent.
+
 ## v0.2.7.3b-dev3 - Persistent authoritative player stats
 
 - Ajout de `public.player_stats`, table privée d'agrégats lifetime dérivés exclusivement des runs autoritairement vérifiés.

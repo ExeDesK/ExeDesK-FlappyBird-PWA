@@ -1,8 +1,8 @@
-# Player Stats — contrat v0.2.7.3b-dev3
+# Player Stats — contrat v0.2.7.3b-dev4
 
 ## Objectif
 
-`public.player_stats` fournit la mémoire longue des joueurs sans dépendre de la conservation indéfinie de toutes les runs détaillées. Elle prépare la politique de rétention prévue pour la suite de `v0.2.7.3b` : garder les 50 dernières runs vérifiées et le meilleur run historique, tout en conservant les statistiques de carrière.
+`public.player_stats` fournit la mémoire longue des joueurs sans dépendre de la conservation indéfinie de toutes les runs détaillées. Depuis `v0.2.7.3b-dev4`, cette mémoire longue permet d'appliquer la rétention détaillée : garder les 50 dernières runs vérifiées et le meilleur run historique, tout en conservant les statistiques de carrière complètes.
 
 ## Autorité des données
 
@@ -69,7 +69,7 @@ Le même départage que le leaderboard est utilisé :
 2. si égalité, `resolved_at` le plus ancien ;
 3. si nécessaire, `run_id` le plus petit pour rendre le choix déterministe.
 
-`best_run_id` référence `verified_runs`. La future rétention devra toujours préserver ce run en plus des 50 plus récents.
+`best_run_id` référence `verified_runs`. La rétention `006_verified_run_retention.sql` préserve toujours ce record en plus des 50 runs les plus récemment commencées lorsqu’il est plus ancien.
 
 ## Idempotence
 
@@ -89,7 +89,7 @@ Le trigger ne s'exécute pour les statistiques que lors de l'entrée dans l'éta
 
 `supabase/005_player_stats.sql` initialise les joueurs existants depuis l'ensemble des `verified_runs` présents au moment de la migration.
 
-Le backfill utilise `ON CONFLICT DO NOTHING` volontairement. Une fois la future rétention active, réexécuter la migration ne doit jamais recalculer une carrière à partir des seules 50 runs restantes et écraser les compteurs lifetime.
+Le backfill utilise `ON CONFLICT DO NOTHING` volontairement. Une fois la rétention active, réexécuter la migration ne doit jamais recalculer une carrière à partir des seules runs détaillées restantes et écraser les compteurs lifetime.
 
 ## Accès
 
@@ -108,4 +108,4 @@ Après les migrations précédentes, exécuter :
 supabase/005_player_stats.sql
 ```
 
-Aucune nouvelle Edge Function et aucun secret ne sont nécessaires pour `v0.2.7.3b-dev3`. `run-submit` doit toutefois être redéployée, car son module partagé de validation refuse désormais tout champ supplémentaire dans la soumission. Le trigger observe ensuite la ligne `verified_runs` écrite par cette fonction.
+`v0.2.7.3b-dev4` ajoute ensuite `supabase/006_verified_run_retention.sql`. Aucune nouvelle Edge Function et aucun secret ne sont nécessaires pour cette phase : la rétention est entièrement déclenchée dans PostgreSQL après validation autoritaire.

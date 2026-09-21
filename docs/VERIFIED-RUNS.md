@@ -185,3 +185,13 @@ Les deux fonctions conservent la vérification JWT par défaut : ne pas utiliser
 - la résolution `verified/rejected`, le hash canonique et les retries idempotents ;
 - la synchronisation exacte du moteur partagé avec l’Edge Function ;
 - l’isolation RLS de la table et la génération serveur de la seed.
+
+
+## Rétention détaillée — v0.2.7.3b-dev4
+
+Les runs `verified` ne sont plus conservées indéfiniment. Après chaque nouvelle validation autoritaire, PostgreSQL conserve pour le joueur :
+
+- les 50 runs vérifiées les plus récemment **commencées** (`issued_at`) ;
+- le meilleur run historique avec le même départage déterministe que le leaderboard.
+
+Le résultat est donc de 50 lignes si le record fait partie des 50 dernières, ou 51 lignes au maximum s'il est plus ancien. `player_stats` conserve les agrégats lifetime avant toute purge. Les lignes `issued` et `rejected` ne sont pas concernées par cette politique.
