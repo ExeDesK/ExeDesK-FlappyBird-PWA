@@ -1,11 +1,14 @@
 import { COS, F, SIN } from './math.js';
-import { themedSpriteName } from './themes.js';
+import {
+  effectiveDayNight,
+  themeDefinition,
+  themeLandScrollMode,
+  themedSpriteName,
+  validateThemeCatalog,
+} from './themes.js';
 
 const LOGICAL_WIDTH = 288;
 const LOGICAL_HEIGHT = 512;
-const LAND_COLOR = 'rgb(222, 216, 149)';
-const SKY_DAY_COLOR = 'rgb(78, 192, 202)';
-const SKY_NIGHT_COLOR = 'rgb(0, 135, 147)';
 const ORIGINAL_LAND_SCROLL_PERIOD = 24;
 
 function loadImage(url, label) {
@@ -92,9 +95,10 @@ function parseJsonAtlas(manifest, image) {
 export async function loadAtlas() {
   const atlasImageUrl = new URL('../assets/atlas.png', import.meta.url);
   const customImageUrl = new URL('../assets/customatlas.png', import.meta.url);
-  const [response, customResponse, image, customImage] = await Promise.all([
+  const [response, customResponse, themesResponse, image, customImage] = await Promise.all([
     fetch(new URL('../assets/atlas.txt', import.meta.url)),
     fetch(new URL('../assets/customatlas.json', import.meta.url)),
+    fetch(new URL('../assets/themes.json', import.meta.url)),
     loadImage(atlasImageUrl, 'atlas.png'),
     loadImage(customImageUrl, 'customatlas.png'),
   ]);
@@ -107,13 +111,19 @@ export async function loadAtlas() {
     throw new Error(`Custom atlas : HTTP ${customResponse.status}`);
   }
 
+  if (!themesResponse.ok) {
+    throw new Error(`Themes : HTTP ${themesResponse.status}`);
+  }
+
   const sprites = parseLegacyAtlas(await response.text(), image);
   const manifest = await customResponse.json();
+  const themes = validateThemeCatalog(await themesResponse.json());
   const customSprites = parseJsonAtlas(manifest, customImage);
 
   return {
     image,
     sprites,
+    themes,
     custom: {
       image: customImage,
       imageUrl: customImageUrl.href,
@@ -185,7 +195,7 @@ export class Renderer {
     this.bottomPad = 0;
     this.adapted = false;
     this.theme = { theme: 'original', variant: 'auto' };
-    this.franceLandScroll = {
+    this.landScroll = {
       pair: null,
       previous: 0,
       current: 0,
@@ -195,31 +205,32 @@ export class Renderer {
 
 
   setTheme(theme = {}) {
+    const requestedTheme = typeof theme.theme === 'string' ? theme.theme : 'original';
     this.theme = {
-      theme: theme.theme === 'france' ? 'france' : 'original',
+      theme: this.atlas.themes?.themes?.[requestedTheme] ? requestedTheme : 'original',
       variant: theme.variant === 'day' || theme.variant === 'night' ? theme.variant : 'auto',
     };
 
-    // The original ground only exposes a 24 px repeating phase. The France
-    // sewer artwork is a full 336 px strip, so keep a renderer-only
-    // continuous phase that is reset whenever a visual theme is activated.
-    this.franceLandScroll.pair = null;
-    this.franceLandScroll.previous = 0;
-    this.franceLandScroll.current = 0;
+    // The native ground exposes a 24 px repeating phase. Themes using the
+    // `defilement` land mode convert that phase into a renderer-only continuous
+    // offset so a full-width strip can scroll before it wraps.
+    this.landScroll.pair = null;
+    this.landScroll.previous = 0;
+    this.landScroll.current = 0;
   }
 
-  franceLandX(previousX, currentX, interpolation) {
+  continuousLandX(previousX, currentX, interpolation) {
     const pair = `${previousX}:${currentX}`;
 
-    if (this.franceLandScroll.pair !== pair) {
+    if (this.landScroll.pair !== pair) {
       const isRunReset =
         currentX === 0 &&
         previousX !== 0 &&
         previousX !== -(ORIGINAL_LAND_SCROLL_PERIOD - 2);
 
       if (isRunReset) {
-        this.franceLandScroll.previous = 0;
-        this.franceLandScroll.current = 0;
+        this.landScroll.previous = 0;
+        this.landScroll.current = 0;
       } else {
         const delta = cyclicDelta(
           previousX,
@@ -227,22 +238,22 @@ export class Renderer {
           ORIGINAL_LAND_SCROLL_PERIOD,
         );
 
-        this.franceLandScroll.previous = this.franceLandScroll.current;
-        this.franceLandScroll.current += delta;
+        this.landScroll.previous = this.landScroll.current;
+        this.landScroll.current += delta;
       }
 
-      this.franceLandScroll.pair = pair;
+      this.landScroll.pair = pair;
     }
 
     return lerp(
-      this.franceLandScroll.previous,
-      this.franceLandScroll.current,
+      this.landScroll.previous,
+      this.landScroll.current,
       interpolation,
     );
   }
 
   spriteFor(name) {
-    const resolvedName = themedSpriteName(name, this.theme);
+    const resolvedName = themedSpriteName(name, this.theme, this.atlas.themes);
     const customSprite = this.atlas.custom?.sprites?.[resolvedName];
 
     if (customSprite) {
@@ -355,8 +366,7 @@ export class Renderer {
         continue;
       }
 
-      const resolved = themedSpriteName(command.name, this.theme);
-      return resolved.endsWith('_night') ? 'night' : 'day';
+      return effectiveDayNight(command.name, this.theme.variant);
     }
 
     return this.theme.variant === 'night' ? 'night' : 'day';
@@ -376,16 +386,16 @@ export class Renderer {
       return;
     }
 
-    const france = this.theme.theme === 'france';
-    context.fillStyle = france
-      ? (background === 'night' ? 'rgb(7, 27, 69)' : 'rgb(19, 58, 126)')
-      : (background === 'night' ? SKY_NIGHT_COLOR : SKY_DAY_COLOR);
+    const definition = themeDefinition(this.theme, this.atlas.themes);
+    context.fillStyle = background === 'night'
+      ? definition.fill.skyNight
+      : definition.fill.skyDay;
 
     if (this.topPad > 0) {
       context.fillRect(0, 0, LOGICAL_WIDTH, this.topPad + 0.5);
     }
 
-    context.fillStyle = france ? 'rgb(42, 49, 39)' : LAND_COLOR;
+    context.fillStyle = definition.fill.land;
 
     if (this.bottomPad > 0) {
       context.fillRect(
@@ -460,7 +470,7 @@ export class Renderer {
     const width = command.w ?? sprite.w;
     const height = command.h ?? sprite.h;
 
-    if (command.key === 'land' && resolved.name === 'land_france' && !angle) {
+    if (command.key === 'land' && themeLandScrollMode(this.theme, this.atlas.themes) === 'defilement' && !angle) {
       const period = width;
       const normalized = ((x % period) + period) % period;
       const left = normalized === 0 ? 0 : normalized - period;
@@ -663,8 +673,8 @@ export class Renderer {
         Number.isFinite(command.x)
       ) {
         if (command.key === 'land') {
-          x = this.theme.theme === 'france'
-            ? this.franceLandX(previousCommand.x, command.x, interpolation)
+          x = themeLandScrollMode(this.theme, this.atlas.themes) === 'defilement'
+            ? this.continuousLandX(previousCommand.x, command.x, interpolation)
             : cyclicLerp(
                 previousCommand.x,
                 command.x,

@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 2,
+  "selection": {
+    "pools": {
+      "country": {
+        "chance": 0.03333333333333333
+      }
+    }
+  },
+  "themes": {
+    "original": {
+      "label": "Original",
+      "base": true,
+      "backgroundDay": "bg_day",
+      "backgroundNight": "bg_night",
+      "pipeUp": "pipe_up",
+      "pipeDown": "pipe_down",
+      "bird0": "bird{color}_0",
+      "bird1": "bird{color}_1",
+      "bird2": "bird{color}_2",
+      "land": {
+        "sprite": "land",
+        "scrollMode": "original"
+      },
+      "fill": {
+        "skyDay": "rgb(78, 192, 202)",
+        "skyNight": "rgb(0, 135, 147)",
+        "land": "rgb(222, 216, 149)"
+      }
+    },
+    "france": {
+      "label": "France",
+      "pool": "country",
+      "weight": 1,
+      "backgroundDay": "bg_france_day",
+      "backgroundNight": "bg_france_night",
+      "pipeUp": "pipe_france_up",
+      "pipeDown": "pipe_france_down",
+      "bird0": "bird_france_0",
+      "bird1": "bird_france_1",
+      "bird2": "bird_france_2",
+      "land": {
+        "sprite": "land_france",
+        "scrollMode": "defilement"
+      },
+      "fill": {
+        "skyDay": "rgb(19, 58, 126)",
+        "skyNight": "rgb(7, 27, 69)",
+        "land": "rgb(42, 49, 39)"
+      }
+    }
+  }
+}

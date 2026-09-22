@@ -11,7 +11,12 @@ import {
 import { Game } from './game.js';
 import { leaderboardName } from './leaderboard.js';
 import { PerfProfiler } from './perf.js';
-import { effectiveDayNight, resolveRunTheme } from './themes.js';
+import {
+  effectiveDayNight,
+  resolveRunTheme,
+  themeDefinition,
+  themeEntries,
+} from './themes.js';
 import {
   VerifiedRunRecorder,
   enqueueVerifiedRun,
@@ -24,7 +29,7 @@ import {
 } from './verified-run-client.js';
 import { createCanonicalRunGame } from './verified-runs.js';
 
-const VERSION = '0.2.7.3b-dev6.3.1';
+const VERSION = '0.2.7.3b-dev6.3.2';
 const BEST_SCORE_KEY = 'flappy13-personal-best-v1';
 const SETTINGS_KEY = 'flappy13-settings-v1';
 const LAST_VERSION_KEY = 'flappy13-last-version-v1';
@@ -42,6 +47,7 @@ const UPDATE_PROBE_TIMEOUT_MS = 3500;
 const MAX_REPLAY_INPUTS = 30000;
 const PLAY_FADE_SECONDS = 0.5;
 const PLAY_FADE_MIN_MS = PLAY_FADE_SECONDS * 1000;
+const UTILITY_ATLAS_SCALE = 2;
 
 const $ = id => document.getElementById(id);
 const query = new URLSearchParams(location.search);
@@ -61,6 +67,7 @@ const profiler = new PerfProfiler(10000);
 
 let game;
 let renderer;
+let themeCatalog = null;
 let paused = false;
 let debug = false;
 let themeControls = { mode: 'auto', variant: 'day' };
@@ -1370,10 +1377,32 @@ function updateThemeDebugStatus() {
 
   variantRow.hidden = themeControls.mode === 'auto';
   const dayNight = currentThemeDayNight() === 'night' ? 'NUIT' : 'JOUR';
-  const themeName = activeVisualTheme.theme === 'france' ? 'FRANCE' : 'ORIGINAL';
+  const themeName = themeCatalog
+    ? themeDefinition(activeVisualTheme, themeCatalog).label.toUpperCase()
+    : activeVisualTheme.theme.toUpperCase();
   status.textContent = themeControls.mode === 'auto'
     ? `AUTO → ${themeName} · ${dayNight}`
     : `${themeName} · ${dayNight}`;
+}
+
+function populateThemeDebugOptions() {
+  const select = $('debug-theme');
+  if (!select || !themeCatalog) {
+    return;
+  }
+
+  select.replaceChildren();
+  const auto = document.createElement('option');
+  auto.value = 'auto';
+  auto.textContent = 'Auto';
+  select.append(auto);
+
+  for (const [id, definition] of themeEntries(themeCatalog)) {
+    const option = document.createElement('option');
+    option.value = id;
+    option.textContent = definition.label;
+    select.append(option);
+  }
 }
 
 function applyVisualTheme(theme) {
@@ -1390,6 +1419,7 @@ function resolveSelectedVisualTheme() {
   return resolveRunTheme({
     mode: themeControls.mode,
     variant: themeControls.variant,
+    catalog: themeCatalog,
   });
 }
 
@@ -1422,11 +1452,11 @@ function setUtilityAtlasIcon(mode) {
     return;
   }
 
-  icon.style.width = `${sprite.w}px`;
-  icon.style.height = `${sprite.h}px`;
+  icon.style.width = `${sprite.w * UTILITY_ATLAS_SCALE}px`;
+  icon.style.height = `${sprite.h * UTILITY_ATLAS_SCALE}px`;
   icon.style.backgroundImage = `url("${custom.imageUrl}")`;
-  icon.style.backgroundSize = `${custom.image.width}px ${custom.image.height}px`;
-  icon.style.backgroundPosition = `-${sprite.x}px -${sprite.y}px`;
+  icon.style.backgroundSize = `${custom.image.width * UTILITY_ATLAS_SCALE}px ${custom.image.height * UTILITY_ATLAS_SCALE}px`;
+  icon.style.backgroundPosition = `-${sprite.x * UTILITY_ATLAS_SCALE}px -${sprite.y * UTILITY_ATLAS_SCALE}px`;
 }
 
 function syncUtilityVisibility() {
@@ -2542,12 +2572,14 @@ async function boot() {
       audio.preload(),
     ]);
 
+    themeCatalog = atlas.themes;
     renderer = new Renderer(canvas, atlas);
     game = new Game({
       seed,
       best,
       onEvent: handleGameEvent,
     });
+    populateThemeDebugOptions();
     $('debug-theme').value = themeControls.mode;
     $('debug-theme-variant').value = themeControls.variant;
     selectVisualThemeForMenu();

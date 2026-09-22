@@ -1,4 +1,4 @@
-const BUILD = '0.2.7.3b-dev6.3.1';
+const BUILD = '0.2.7.3b-dev6.3.2';
 const PREFIX = `flappy13-${encodeURIComponent(self.registration.scope)}-`;
 const CACHE = `${PREFIX}${BUILD}`;
 const ASSETS = [
@@ -7,6 +7,7 @@ const ASSETS = [
   './assets/atlas.txt',
   './assets/customatlas.json',
   './assets/customatlas.png',
+  './assets/themes.json',
   './assets/sounds/sfx_die.ogg',
   './assets/sounds/sfx_die.wav',
   './assets/sounds/sfx_hit.ogg',
