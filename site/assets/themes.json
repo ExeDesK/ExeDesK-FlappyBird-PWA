@@ -48,6 +48,27 @@
         "skyNight": "rgb(7, 27, 69)",
         "land": "rgb(42, 49, 39)"
       }
+    },
+    "vietnam": {
+      "label": "Vietnam",
+      "pool": "country",
+      "weight": 1,
+      "backgroundDay": "bg_vietnam_day",
+      "backgroundNight": "bg_vietnam_night",
+      "pipeUp": "pipe_vietnam_up",
+      "pipeDown": "pipe_vietnam_down",
+      "bird0": "bird_vietnam_0",
+      "bird1": "bird_vietnam_1",
+      "bird2": "bird_vietnam_2",
+      "land": {
+        "sprite": "land_vietnam",
+        "scrollMode": "defilement"
+      },
+      "fill": {
+        "skyDay": "rgb(62, 167, 252)",
+        "skyNight": "rgb(72, 71, 141)",
+        "land": "rgb(100, 89, 73)"
+      }
     }
   }
 }

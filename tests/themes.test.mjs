@@ -28,7 +28,7 @@ validateThemeCatalog(catalog);
 
 test('Theme catalog defines a base theme and a 1/30 country pool', () => {
   assert.equal(catalog.schemaVersion, 2);
-  assert.deepEqual(themeEntries(catalog).map(([id]) => id), ['original', 'france']);
+  assert.deepEqual(themeEntries(catalog).map(([id]) => id), ['original', 'france', 'vietnam']);
   assert.equal(baseThemeId(catalog), 'original');
   assert.equal(catalog.themes.original.base, true);
   assert.deepEqual(catalog.selection.pools, {
@@ -36,13 +36,15 @@ test('Theme catalog defines a base theme and a 1/30 country pool', () => {
   });
   assert.equal(catalog.themes.france.pool, 'country');
   assert.equal(catalog.themes.france.weight, 1);
+  assert.equal(catalog.themes.vietnam.pool, 'country');
+  assert.equal(catalog.themes.vietnam.weight, 1);
 });
 
 test('Auto keeps the country pool at exactly 1/30 independently of its theme count', () => {
   assert.equal(chooseAutoTheme(sequenceRandom([0, 0]), catalog), 'france');
   assert.equal(
     chooseAutoTheme(sequenceRandom([(1 / 30) - Number.EPSILON, 0.999]), catalog),
-    'france',
+    'vietnam',
   );
   assert.equal(chooseAutoTheme(() => 1 / 30, catalog), 'original');
   assert.equal(chooseAutoTheme(() => 0.999, catalog), 'original');
@@ -74,13 +76,15 @@ test('Theme weights are relative only inside their pool', () => {
   validateThemeCatalog(weighted);
 
   assert.equal(chooseAutoTheme(sequenceRandom([0, 0]), weighted), 'france');
-  assert.equal(chooseAutoTheme(sequenceRandom([0, 0.249999]), weighted), 'france');
-  assert.equal(chooseAutoTheme(sequenceRandom([0, 0.25]), weighted), 'japan');
+  assert.equal(chooseAutoTheme(sequenceRandom([0, 0.199999]), weighted), 'france');
+  assert.equal(chooseAutoTheme(sequenceRandom([0, 0.2]), weighted), 'vietnam');
+  assert.equal(chooseAutoTheme(sequenceRandom([0, 0.399999]), weighted), 'vietnam');
+  assert.equal(chooseAutoTheme(sequenceRandom([0, 0.4]), weighted), 'japan');
   assert.equal(chooseAutoTheme(sequenceRandom([0, 0.999]), weighted), 'japan');
 
   weighted.themes.france.weight = 0;
   validateThemeCatalog(weighted);
-  assert.equal(chooseAutoTheme(sequenceRandom([0, 0]), weighted), 'japan');
+  assert.equal(chooseAutoTheme(sequenceRandom([0, 0]), weighted), 'vietnam');
   assert.ok(themeEntries(weighted).some(([id]) => id === 'france'));
 });
 
@@ -107,6 +111,14 @@ test('Theme JSON drives sprite remapping and land scroll mode', () => {
   assert.equal(themedSpriteName('bird0_2', france, catalog), 'bird_france_2');
   assert.equal(themedSpriteName('score_panel', france, catalog), 'score_panel');
   assert.equal(themeLandScrollMode(france, catalog), 'defilement');
+
+  const vietnam = { theme: 'vietnam', variant: 'night' };
+  assert.equal(themedSpriteName('bg_day', vietnam, catalog), 'bg_vietnam_night');
+  assert.equal(themedSpriteName('pipe_up', vietnam, catalog), 'pipe_vietnam_up');
+  assert.equal(themedSpriteName('pipe_down', vietnam, catalog), 'pipe_vietnam_down');
+  assert.equal(themedSpriteName('land', vietnam, catalog), 'land_vietnam');
+  assert.equal(themedSpriteName('bird1_1', vietnam, catalog), 'bird_vietnam_1');
+  assert.equal(themeLandScrollMode(vietnam, catalog), 'defilement');
 
   const original = { theme: 'original', variant: 'day' };
   assert.equal(themedSpriteName('bird2_0', original, catalog), 'bird2_0');
@@ -138,7 +150,7 @@ test('Theme catalog rejects invalid pool/base/scroll configurations', () => {
   assert.throws(() => validateThemeCatalog(overflow), /somme des chances/);
 });
 
-test('Custom atlas manifest contains every runtime France/button sprite', () => {
+test('Custom atlas manifest contains every runtime France/Vietnam/button sprite', () => {
   const required = [
     'bg_france_day',
     'bg_france_night',
@@ -148,6 +160,14 @@ test('Custom atlas manifest contains every runtime France/button sprite', () => 
     'bird_france_0',
     'bird_france_1',
     'bird_france_2',
+    'bg_vietnam_day',
+    'bg_vietnam_night',
+    'pipe_vietnam_down',
+    'pipe_vietnam_up',
+    'land_vietnam',
+    'bird_vietnam_0',
+    'bird_vietnam_1',
+    'bird_vietnam_2',
     'button_home',
     'button_options',
   ];
@@ -157,5 +177,5 @@ test('Custom atlas manifest contains every runtime France/button sprite', () => 
   }
 
   assert.equal(manifest.meta.image, 'customatlas.png');
-  assert.deepEqual(manifest.meta.size, { w: 918, h: 514 });
+  assert.deepEqual(manifest.meta.size, { w: 1714, h: 514 });
 });

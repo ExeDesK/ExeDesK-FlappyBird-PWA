@@ -8,7 +8,7 @@ The goal is not to create another Flappy Bird-inspired clone, but to **reproduce
 
 Gameplay runs entirely client-side without a framework and can be installed as an application on Windows, iPhone/iPad and Android. Optional community features use Supabase; no account is required to play.
 
-> **Project status: beta — v0.2.7.3b-dev6.3.2**
+> **Project status: beta — v0.2.7.3b-dev6.3.3**
 
 - Player statistics: career + 10 / 25 / 50-run windows derived only from verified runs.
 > On ProMotion iPhone/iPad devices, the Performance options include guidance for the Safari setting that can remove the near-60 Hz page-rendering preference.
@@ -39,8 +39,9 @@ Gameplay runs entirely client-side without a framework and can be installed as a
 - Built-in frame-pacing performance profiler.
 - Deterministic replay export for engine comparison.
 - Portrait orientation requested by the PWA, with an additional fallback when the browser refuses orientation locking.
-- Optional **France** visual theme (day/night Eiffel Tower, baguette pipes, Paris sewers and dedicated bird), currently a member of the `country` pool whose total Auto probability is fixed at **1 run out of 30**, and forceable from the diagnostic tools without changing physics.
-- Declarative `assets/themes.json` catalog: the base theme, Auto pools, each pool's global chance and each theme's relative `weight` are configured alongside backgrounds, pipes, bird frames, ground, adapted-fill colours and ground scroll mode. Adding more countries therefore does not increase the global `1/30` country-pool probability; the debug selector is generated from this catalog.
+- **France** and **Vietnam / Hanoi** country themes in the `country` pool: Eiffel Tower / baguettes / Paris sewers for France, railway Hanoi / bamboo scaffolding / dedicated bird for Vietnam. The country pool still has a global **1 in 30** Auto probability; with equal weights, each theme currently represents **1 in 60** runs.
+- Declarative `assets/themes.json` catalog: the base theme, Auto pools, each pool's global chance and each theme's relative `weight` are configured alongside backgrounds, pipes, bird frames, ground, adapted-fill colours and ground scroll mode. Adding more countries therefore does not increase the global `1/30` country-pool probability; the debug selector is fully generated from this catalog.
+- Diagnostic tools are split into collapsible sections, include an internal close control and keep browser-native dark selectors.
 - Complementary atlas versioned through `assets/customatlas.json`, kept separate from the original atlas to preserve the 1:1 reference assets and gameplay behaviour. Home / Options atlas buttons are now rendered at **2x** size.
 
 ---

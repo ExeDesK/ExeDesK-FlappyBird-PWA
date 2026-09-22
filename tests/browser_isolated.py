@@ -140,6 +140,8 @@ def main() -> None:
     args = parse_args()
     project_root = Path(__file__).resolve().parents[1]
     site_root = project_root / 'site'
+    theme_catalog = json.loads((site_root / 'assets' / 'themes.json').read_text(encoding='utf-8'))
+    expected_theme_options = ['auto', *theme_catalog['themes'].keys()]
     output = Path(args.output)
     output.mkdir(parents=True, exist_ok=True)
 
@@ -171,7 +173,7 @@ def main() -> None:
         assert page.eval_on_selector_all(
             '#debug-theme option',
             'options => options.map(option => option.value)',
-        ) == ['auto', 'original', 'france']
+        ) == expected_theme_options
         assert page.evaluate(
             "getComputedStyle(document.querySelector('#open-options')).width"
         ) == '68px'
@@ -240,8 +242,29 @@ def main() -> None:
         assert page.is_hidden('#account-signed-in')
         assert 'Flappy Bird 1.3' in page.locator('.parity-note').inner_text()
         page.screenshot(path=str(output / 'options.png'))
-        page.click('#close-options')
-        page.wait_for_timeout(100)
+
+        # Diagnostic tools are grouped into collapsible sections. Theme options
+        # are generated from themes.json and the panel can close itself.
+        page.click('#debug-access')
+        page.wait_for_selector('#diagnostic', state='visible')
+        assert page.locator('#diagnostic details.debug-section').count() == 6
+        assert page.eval_on_selector_all(
+            '#debug-theme option',
+            'options => options.map(option => option.value)',
+        ) == expected_theme_options
+        assert page.evaluate(
+            "getComputedStyle(document.querySelector('#diagnostic')).colorScheme"
+        ) == 'dark'
+        page.select_option('#debug-theme', 'vietnam')
+        assert not page.is_hidden('#debug-variant-row')
+        assert page.evaluate("flappy.theme().active.theme") == 'vietnam'
+        page.select_option('#debug-theme-variant', 'night')
+        assert page.evaluate("flappy.theme().active.variant") == 'night'
+        page.screenshot(path=str(output / 'diagnostic-vietnam.png'))
+        page.select_option('#debug-theme', 'auto')
+        page.screenshot(path=str(output / 'diagnostic.png'))
+        page.click('#debug-close')
+        page.wait_for_selector('#diagnostic', state='hidden')
 
         page.evaluate('flappy.pause(false)')
         page.keyboard.down('Space')

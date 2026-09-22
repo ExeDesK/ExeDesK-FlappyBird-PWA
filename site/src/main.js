@@ -13,6 +13,7 @@ import { leaderboardName } from './leaderboard.js';
 import { PerfProfiler } from './perf.js';
 import {
   effectiveDayNight,
+  normalizeThemeMode,
   resolveRunTheme,
   themeDefinition,
   themeEntries,
@@ -29,7 +30,7 @@ import {
 } from './verified-run-client.js';
 import { createCanonicalRunGame } from './verified-runs.js';
 
-const VERSION = '0.2.7.3b-dev6.3.2';
+const VERSION = '0.2.7.3b-dev6.3.3';
 const BEST_SCORE_KEY = 'flappy13-personal-best-v1';
 const SETTINGS_KEY = 'flappy13-settings-v1';
 const LAST_VERSION_KEY = 'flappy13-last-version-v1';
@@ -1391,18 +1392,25 @@ function populateThemeDebugOptions() {
     return;
   }
 
+  const requestedMode = themeControls.mode;
   select.replaceChildren();
+
   const auto = document.createElement('option');
   auto.value = 'auto';
   auto.textContent = 'Auto';
   select.append(auto);
 
+  // The debug list is intentionally data-driven: adding a theme to
+  // assets/themes.json is enough to expose it here on the next load.
   for (const [id, definition] of themeEntries(themeCatalog)) {
     const option = document.createElement('option');
     option.value = id;
     option.textContent = definition.label;
     select.append(option);
   }
+
+  themeControls.mode = normalizeThemeMode(requestedMode, themeCatalog);
+  select.value = themeControls.mode;
 }
 
 function applyVisualTheme(theme) {
@@ -1811,6 +1819,10 @@ $('debug-access').onclick = () => {
   if (enable) {
     closeOptions();
   }
+};
+
+$('debug-close').onclick = () => {
+  setDebug(false);
 };
 
 $('debug-theme').onchange = () => {
@@ -2580,7 +2592,6 @@ async function boot() {
       onEvent: handleGameEvent,
     });
     populateThemeDebugOptions();
-    $('debug-theme').value = themeControls.mode;
     $('debug-theme-variant').value = themeControls.variant;
     selectVisualThemeForMenu();
     setUtilityAtlasIcon('options');

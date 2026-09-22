@@ -1,3 +1,11 @@
+## v0.2.7.3b-dev6.3.3
+
+- `tests/themes.test.mjs` valide les assets et remappings France + Vietnam, le custom atlas `1714 × 514`, le pool `country` fixe à `1/30` et le partage pondéré entre les deux pays.
+- `tests/ci.test.mjs` verrouille le sélecteur de thème piloté par `themes.json`, les six sections `<details>`, la croix interne et l'absence de style clair spécifique sur les `<select>` du diagnostic.
+- Le smoke test Chromium construit sa liste attendue directement depuis `themes.json`, force `Vietnam / Nuit`, vérifie le rendu, puis ferme le panneau via sa croix interne.
+- Le Service Worker conserve **36 ressources runtime** : l'atlas et son manifest sont remplacés sans ajouter de nouveau fichier au précache.
+- Suite complète : `npm test` (**138/138**) + `python tests/browser_isolated.py` (**OK, 0 erreur page**).
+
 ## v0.2.7.3b-dev6.3.2
 
 - `tests/themes.test.mjs` valide désormais le schéma v2 de `assets/themes.json` : thème `base`, pool `country` à `1/30`, poids relatifs intra-pool, invariance de la probabilité du pool quand le nombre de pays augmente, remapping des sprites et modes de sol `original` / `defilement`.
@@ -14,13 +22,13 @@
 - Le smoke test Chromium isolé a été remis à niveau pour charger `themes.js` et `customatlas.png`/`customatlas.json` dans son environnement embarqué.
 - Suite complète : `npm test` (**134/134**) + `python tests/browser_isolated.py`.
 
-# Rapport de tests - v0.2.7.3b-dev6.3.2
+# Rapport de tests - v0.2.7.3b-dev6.3.3
 
 ## Résultat
 
-- **137/137 tests Node passent** avec `npm test`.
+- **138/138 tests Node passent** avec `npm test`.
 - Le bundle concaténé utilisé par le smoke test passe le contrôle de syntaxe JavaScript.
-- Le smoke test Chromium isolé passe sans erreur page et couvre le chargement du catalogue de thèmes ainsi que les boutons utilitaires x2.
+- Le smoke test Chromium isolé passe sans erreur page et couvre le catalogue dynamique, le thème Vietnam jour/nuit, le panneau diagnostic repliable et les boutons utilitaires x2.
 - Le cache PWA contient **36 ressources** et refuse de se déclarer complet si une ressource de précache manque.
 - `version.json` reste volontairement hors du cache du Service Worker afin de servir de sonde réseau réelle pour la mise à jour.
 - Les liens et ressources du site utilisent des chemins relatifs compatibles avec un projet GitHub Pages publié sous `/<repository>/`.

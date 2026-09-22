@@ -877,6 +877,39 @@ button {
   font: inherit;
 }
 
+#diagnostic {
+  position: fixed;
+  z-index: 12;
+  top: max(10px, env(safe-area-inset-top));
+  left: 10px;
+  width: min(360px, calc(100vw - 20px));
+  max-height: calc(100dvh - max(20px, env(safe-area-inset-top) + 10px));
+  overflow: auto;
+  padding: 12px;
+  border: 1px solid #46616d;
+  border-radius: 8px;
+  background: #00141bee;
+  color: #eee;
+  color-scheme: dark;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 11px;
+}
+
+.debug-header {
+  position: sticky;
+  z-index: 1;
+  top: -12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: -12px -12px 4px;
+  padding: 10px 12px;
+  border-bottom: 1px solid #46616d;
+  background: #00141b;
+  letter-spacing: 0.05em;
+}
+
 #diagnostic button {
   padding: 6px;
   border: 1px solid #455b62;
@@ -896,50 +929,94 @@ button {
   cursor: default;
 }
 
-#diagnostic button:focus-visible {
+#diagnostic button:focus-visible,
+#diagnostic summary:focus-visible {
   outline: 2px solid #73dde5;
   outline-offset: 3px;
 }
 
-#diagnostic {
-  position: fixed;
-  z-index: 2;
-  top: 50px;
-  left: 10px;
-  max-width: 280px;
-  padding: 12px;
-  border: 1px solid #46616d;
-  border-radius: 8px;
-  background: #00141bee;
-  color: #eee;
-  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-  font-size: 11px;
+#diagnostic .debug-close {
+  flex: 0 0 auto;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  font-size: 20px;
+  line-height: 1;
+}
+
+.debug-section {
+  border-bottom: 1px solid #29424c;
+}
+
+.debug-section > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 9px 2px;
+  color: #c8e7ee;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  cursor: pointer;
+  list-style: none;
+  user-select: none;
+}
+
+.debug-section > summary::-webkit-details-marker {
+  display: none;
+}
+
+.debug-section > summary::after {
+  content: '▸';
+  opacity: 0.8;
+}
+
+.debug-section[open] > summary::after {
+  content: '▾';
+}
+
+.debug-section-body {
+  padding: 0 2px 10px;
 }
 
 #diagnostic pre {
-  margin: 0 0 10px;
+  margin: 0;
   white-space: pre-wrap;
 }
 
 #diagnostic p {
-  margin: 9px 0 0;
+  margin: 8px 0 0;
   color: #a5cbd8;
 }
 
-#diagnostic button:disabled {
-  opacity: 0.45;
-  cursor: default;
+.debug-theme-controls {
+  display: grid;
+  gap: 8px;
 }
 
+.debug-theme-controls label {
+  display: grid;
+  grid-template-columns: minmax(80px, auto) 1fr;
+  align-items: center;
+  gap: 8px;
+}
+
+#debug-theme-status {
+  margin: 0;
+  font-size: 10px;
+  line-height: 1.4;
+}
+
+.debug-actions,
 #diagnostic .perf-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
-  margin-top: 8px;
 }
 
 #perf-output,
 #audio-status {
-  margin-top: 8px;
+  margin-top: 8px !important;
   padding-top: 8px;
   border-top: 1px solid #29424c;
   color: #c8e7ee;
@@ -1227,35 +1304,4 @@ noscript {
   .leaderboard-window-row { font-size: 9px; padding-block: 6px; }
   .leaderboard-window-head { font-size: 8px; }
   .leaderboard-stats-note { font-size: 8px; }
-}
-
-
-.debug-theme-controls {
-  display: grid;
-  gap: 8px;
-  margin: 10px 0;
-  padding: 10px;
-  border: 2px solid #6f4b22;
-  background: #fff6d8;
-}
-
-.debug-theme-controls label {
-  display: grid;
-  grid-template-columns: minmax(80px, auto) 1fr;
-  align-items: center;
-  gap: 8px;
-}
-
-.debug-theme-controls select {
-  min-width: 0;
-  padding: 6px 8px;
-  border: 2px solid #6f4b22;
-  background: #fffdf2;
-  font: inherit;
-}
-
-#debug-theme-status {
-  margin: 0;
-  font-size: 10px;
-  line-height: 1.4;
 }

@@ -1,3 +1,16 @@
+## v0.2.7.3b-dev6.3.3 - Vietnam theme & collapsible diagnostics
+
+- Intègre le nouveau `customatlas.png` / `customatlas.json` (1714 × 514) avec les assets **Vietnam / Hanoï** : backgrounds jour/nuit, échafaudages bambou, oiseau dédié et `land_vietnam`.
+- Ajoute `vietnam` au pool `country` avec `weight: 1`. Le pool reste globalement à **1/30** ; avec France et Vietnam de même poids, chacun représente donc **1/60** des runs en mode Auto.
+- Le thème Vietnam utilise `land.scrollMode: "defilement"` et reste purement visuel : aucune modification de physique, collision, RNG, replay ou Verified Runs.
+- Le sélecteur de thème du menu diagnostic est désormais entièrement généré depuis `assets/themes.json` : l'HTML ne contient plus aucune option de thème codée en dur. Tout thème valide ajouté au catalogue apparaît automatiquement au prochain chargement.
+- Refonte des outils de diagnostic en **six sections repliables** : état moteur, thème visuel, simulation/replay, performance, audio et raccourcis.
+- Ajoute une croix de fermeture directement dans le panneau de diagnostic.
+- Retire le style clair spécifique du sélecteur de thème ; le panneau déclare uniquement `color-scheme: dark` afin de conserver les contrôles natifs sombres du navigateur.
+- Le smoke test Chromium force également le thème Vietnam en variante Nuit et valide la fermeture interne du panneau.
+- Suite locale : `npm test` **138/138** + `python tests/browser_isolated.py` **OK, 0 erreur page**.
+- Aucun changement Supabase n'est requis.
+
 ## v0.2.7.3b-dev6.3.2 - Theme catalog & larger utility buttons
 
 - Agrandit les boutons utilitaires Home / Options à **x2** : sprites `26 × 28` affichés en `52 × 56`, avec une zone interactive portée à `68 × 68` sans modifier le custom atlas.

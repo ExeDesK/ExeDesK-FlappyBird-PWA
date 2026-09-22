@@ -18,7 +18,7 @@ La sélection Auto se fait en deux niveaux :
 2. si un pool est sélectionné, un thème de ce pool est tiré selon son `weight` relatif ;
 3. si aucun pool n'est sélectionné, le thème marqué `base: true` est utilisé.
 
-Avec le catalogue actuel, le pool `country` vaut exactement `1/30`. France est pour l'instant son seul membre, donc France apparaît elle aussi sur `1/30` des runs. Si dix pays de poids `1` sont ajoutés, le pool reste à `1/30` et chaque pays représente `1/300` de l'ensemble des runs.
+Avec le catalogue actuel, le pool `country` vaut exactement `1/30` et contient **France** et **Vietnam**, chacun avec `weight: 1`. Une fois le pool pays tiré, les deux thèmes ont donc chacun 50 % de chance d'être choisis, soit **1/60 de l'ensemble des runs**. Si dix pays de poids `1` sont présents, le pool reste à `1/30` et chaque pays représente `1/300` de l'ensemble des runs.
 
 Les probabilités des pools sont **absolues** et leur somme ne peut pas dépasser `1`. La partie restante revient automatiquement au thème de base. Cela permet d'ajouter plus tard d'autres pools sans faire varier la probabilité du pool `country`.
 
@@ -75,6 +75,27 @@ Les probabilités des pools sont **absolues** et leur somme ne peut pas dépasse
         "skyNight": "rgb(7, 27, 69)",
         "land": "rgb(42, 49, 39)"
       }
+    },
+    "vietnam": {
+      "label": "Vietnam",
+      "pool": "country",
+      "weight": 1,
+      "backgroundDay": "bg_vietnam_day",
+      "backgroundNight": "bg_vietnam_night",
+      "pipeUp": "pipe_vietnam_up",
+      "pipeDown": "pipe_vietnam_down",
+      "bird0": "bird_vietnam_0",
+      "bird1": "bird_vietnam_1",
+      "bird2": "bird_vietnam_2",
+      "land": {
+        "sprite": "land_vietnam",
+        "scrollMode": "defilement"
+      },
+      "fill": {
+        "skyDay": "rgb(62, 167, 252)",
+        "skyNight": "rgb(72, 71, 141)",
+        "land": "rgb(100, 89, 73)"
+      }
     }
   }
 }
@@ -129,14 +150,14 @@ Les clés `bird0`, `bird1` et `bird2` correspondent aux trois frames d'animation
 "bird0": "bird{color}_0"
 ```
 
-Le thème France n'utilise pas ce placeholder et remplace toutes les couleurs originales par son oiseau dédié.
+Les thèmes France et Vietnam n'utilisent pas ce placeholder et remplacent toutes les couleurs originales par leur oiseau dédié.
 
 ## Défilement du sol
 
 `land.scrollMode` accepte deux valeurs :
 
 - `original` : conserve la phase native du moteur Flappy Bird 1.3, avec wrap tous les 24 px ;
-- `defilement` : transforme cette phase native en offset visuel continu, puis répète la largeur complète du sprite de sol. C'est le mode utilisé par l'égout France de 336 px.
+- `defilement` : transforme cette phase native en offset visuel continu, puis répète la largeur complète du sprite de sol. C'est le mode utilisé par l'égout France et le sol ferroviaire Vietnam, tous deux en 336 px.
 
 Le mode `defilement` reste uniquement visuel : la variable `land` du moteur continue à fonctionner exactement comme dans l'APK.
 
@@ -149,3 +170,9 @@ Le mode `defilement` reste uniquement visuel : la variable `land` du moteur cont
 5. Lancer `npm test` et le smoke test Chromium.
 
 Il n'est pas nécessaire de modifier la probabilité `1/30` du pool `country` lorsque de nouveaux pays sont ajoutés. Le menu de diagnostic est généré depuis `themes.json` : tout nouveau thème valide apparaît automatiquement dans le sélecteur sans ajouter une option HTML à la main.
+
+## Menu de diagnostic
+
+Le sélecteur de thème est **entièrement piloté par `themes.json`**. Le HTML ne liste aucun pays : au chargement, `main.js` construit `Auto` puis une option pour chaque entrée valide du catalogue. Ajouter un thème au JSON suffit donc à le rendre disponible dans le menu de diagnostic.
+
+Le panneau de diagnostic est séparé en sections natives `<details>` repliables et dispose de sa propre croix de fermeture. Les `<select>` ne reçoivent pas de skin clair spécifique ; le panneau utilise `color-scheme: dark` afin de laisser le navigateur fournir son contrôle natif sombre.

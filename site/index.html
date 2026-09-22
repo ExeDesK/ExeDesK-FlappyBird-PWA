@@ -71,7 +71,7 @@
         <button id="close-options" class="close-options" aria-label="Fermer">X</button>
       </header>
 
-      <p class="version">BETA 0.2.7.3b-dev6.3.2</p>
+      <p class="version">BETA 0.2.7.3b-dev6.3.3</p>
       <p id="offline-status" class="status-card">Préparation du mode hors ligne...</p>
 
       <section class="menu-card account-card" aria-labelledby="account-title">
@@ -200,7 +200,7 @@
         <button id="close-leaderboard" class="close-options" type="button" aria-label="Fermer le classement">X</button>
       </header>
 
-      <p class="version">BETA 0.2.7.3b-dev6.3.2</p>
+      <p class="version">BETA 0.2.7.3b-dev6.3.3</p>
 
       <div class="leaderboard-toolbar">
         <p id="leaderboard-status" class="hint">Chargement du classement...</p>
@@ -282,44 +282,73 @@
     </dialog>
 
     <section id="diagnostic" hidden aria-label="Outils de vérification">
-      <pre id="stats"></pre>
-
-      <div class="debug-theme-controls">
-        <label>
-          <span>THÈME</span>
-          <select id="debug-theme">
-            <option value="auto">Auto</option>
-          </select>
-        </label>
-        <label id="debug-variant-row" hidden>
-          <span>VARIANTE</span>
-          <select id="debug-theme-variant">
-            <option value="day">Jour</option>
-            <option value="night">Nuit</option>
-          </select>
-        </label>
-        <p id="debug-theme-status">AUTO</p>
+      <div class="debug-header">
+        <strong>OUTILS DE DIAGNOSTIC</strong>
+        <button id="debug-close" class="debug-close" type="button" aria-label="Fermer les outils de diagnostic">×</button>
       </div>
 
-      <div>
-        <button id="pause">Pause</button>
-        <button id="step">+1 tick</button>
-        <button id="export">Exporter le replay</button>
-      </div>
+      <details class="debug-section" open>
+        <summary>ÉTAT DU MOTEUR</summary>
+        <div class="debug-section-body">
+          <pre id="stats"></pre>
+        </div>
+      </details>
 
-      <div class="perf-actions">
-        <button id="profile">Profiler 10 s</button>
-        <button id="export-perf" disabled>Exporter perf</button>
-      </div>
+      <details class="debug-section" open>
+        <summary>THÈME VISUEL</summary>
+        <div class="debug-section-body debug-theme-controls">
+          <label>
+            <span>THÈME</span>
+            <select id="debug-theme" aria-label="Thème visuel"></select>
+          </label>
+          <label id="debug-variant-row" hidden>
+            <span>VARIANTE</span>
+            <select id="debug-theme-variant" aria-label="Variante du thème">
+              <option value="day">Jour</option>
+              <option value="night">Nuit</option>
+            </select>
+          </label>
+          <p id="debug-theme-status">AUTO</p>
+        </div>
+      </details>
 
-      <pre id="perf-output">Aucun profil disponible.</pre>
+      <details class="debug-section">
+        <summary>SIMULATION &amp; REPLAY</summary>
+        <div class="debug-section-body debug-actions">
+          <button id="pause">Pause</button>
+          <button id="step">+1 tick</button>
+          <button id="export">Exporter le replay</button>
+        </div>
+      </details>
 
-      <pre id="audio-status">AUDIO en attente...</pre>
-      <div class="perf-actions">
-        <button id="copy-audio">Copier audio</button>
-        <button id="export-audio">Exporter audio</button>
-      </div>
-      <p>P : pause &middot; N : tick suivant</p>
+      <details class="debug-section">
+        <summary>PERFORMANCE</summary>
+        <div class="debug-section-body">
+          <div class="perf-actions">
+            <button id="profile">Profiler 10 s</button>
+            <button id="export-perf" disabled>Exporter perf</button>
+          </div>
+          <pre id="perf-output">Aucun profil disponible.</pre>
+        </div>
+      </details>
+
+      <details class="debug-section">
+        <summary>AUDIO</summary>
+        <div class="debug-section-body">
+          <pre id="audio-status">AUDIO en attente...</pre>
+          <div class="perf-actions">
+            <button id="copy-audio">Copier audio</button>
+            <button id="export-audio">Exporter audio</button>
+          </div>
+        </div>
+      </details>
+
+      <details class="debug-section">
+        <summary>RACCOURCIS</summary>
+        <div class="debug-section-body">
+          <p>P : pause &middot; N : tick suivant</p>
+        </div>
+      </details>
     </section>
 
     <noscript>

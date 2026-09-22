@@ -192,3 +192,18 @@ test('verified game swap paints a fully black cached frame before reveal fade', 
   assert.ok(renderBlack > currentCache, 'black cached scene should be rendered before reveal');
   assert.ok(reveal > renderBlack, 'reveal fade should start only after black frame is painted');
 });
+
+test('diagnostic theme selector is catalog-driven, dark-native and split into collapsible sections', () => {
+  const html = read('site/index.html');
+  const main = read('site/src/main.js');
+  const css = read('site/style.css');
+
+  assert.match(html, /<select id="debug-theme"[^>]*><\/select>/);
+  assert.match(main, /for \(const \[id, definition\] of themeEntries\(themeCatalog\)\)/);
+  assert.match(main, /select\.replaceChildren\(\)/);
+  assert.match(html, /id="debug-close"/);
+  assert.equal((html.match(/<details class="debug-section"/g) ?? []).length, 6);
+  assert.match(main, /\$\('debug-close'\)\.onclick = \(\) => \{\s*setDebug\(false\);/);
+  assert.match(css, /#diagnostic \{[\s\S]*color-scheme: dark;/);
+  assert.doesNotMatch(css, /\.debug-theme-controls select\s*\{/);
+});
