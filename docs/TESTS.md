@@ -1,3 +1,11 @@
+## v0.2.7.3b-dev6.3.2
+
+- `tests/themes.test.mjs` valide désormais le schéma v2 de `assets/themes.json` : thème `base`, pool `country` à `1/30`, poids relatifs intra-pool, invariance de la probabilité du pool quand le nombre de pays augmente, remapping des sprites et modes de sol `original` / `defilement`.
+- Le renderer n'a plus de branche France hardcodée pour les sprites ou le sol : le comportement est piloté par le catalogue de thèmes.
+- Le smoke test Chromium vérifie que le menu de debug est généré depuis le JSON (`Auto`, `Original`, `France`) et que les boutons Home / Options sont affichés en **52 × 56** dans une zone **68 × 68**.
+- Le Service Worker précache **36 ressources runtime**, dont `assets/themes.json`.
+- Suite complète : `npm test` (**137/137**) + `python tests/browser_isolated.py` (**OK, 0 erreur page**).
+
 ## v0.2.7.3b-dev6.3.1
 
 - Non-régression du sol France : l'offset visuel continue au travers du wrap natif `-22 → 0` au lieu de repartir au début de l'image toutes les 24 px.
@@ -6,14 +14,14 @@
 - Le smoke test Chromium isolé a été remis à niveau pour charger `themes.js` et `customatlas.png`/`customatlas.json` dans son environnement embarqué.
 - Suite complète : `npm test` (**134/134**) + `python tests/browser_isolated.py`.
 
-# Rapport de tests - v0.2.7.3b-dev5
+# Rapport de tests - v0.2.7.3b-dev6.3.2
 
 ## Résultat
 
-- **120/120 tests Node passent** avec `npm test`.
+- **137/137 tests Node passent** avec `npm test`.
 - Le bundle concaténé utilisé par le smoke test passe le contrôle de syntaxe JavaScript.
-- Le smoke test Chromium n’a pas été relancé dans cet environnement, où Playwright Python et Chromium ne sont pas installés.
-- Le cache PWA contient **32 ressources** et refuse de se déclarer complet si une ressource de précache manque.
+- Le smoke test Chromium isolé passe sans erreur page et couvre le chargement du catalogue de thèmes ainsi que les boutons utilitaires x2.
+- Le cache PWA contient **36 ressources** et refuse de se déclarer complet si une ressource de précache manque.
 - `version.json` reste volontairement hors du cache du Service Worker afin de servir de sonde réseau réelle pour la mise à jour.
 - Les liens et ressources du site utilisent des chemins relatifs compatibles avec un projet GitHub Pages publié sous `/<repository>/`.
 

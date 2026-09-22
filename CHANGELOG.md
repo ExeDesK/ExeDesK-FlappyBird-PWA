@@ -1,3 +1,15 @@
+## v0.2.7.3b-dev6.3.2 - Theme catalog & larger utility buttons
+
+- Agrandit les boutons utilitaires Home / Options à **x2** : sprites `26 × 28` affichés en `52 × 56`, avec une zone interactive portée à `68 × 68` sans modifier le custom atlas.
+- Ajoute `assets/themes.json`, catalogue déclaratif des thèmes. Chaque thème définit son libellé, ses backgrounds jour/nuit, ses tuyaux, ses trois frames d'oiseau, son sol, ses couleurs d'extension et son mode de défilement. Le thème `original` est déclaré comme thème `base` et reste le fallback Auto.
+- Le tirage Auto est désormais structuré en **pools** : le pool `country` possède une probabilité globale fixe de **1/30**, indépendante du nombre de pays. Les thèmes d'un pool portent un `weight` relatif (`1` par défaut) ; avec dix pays de même poids, chacun vaut donc `1/300` de l'ensemble des runs tandis que le pool pays reste à `1/30`. Un poids `0` conserve le thème dans le menu debug mais l'exclut du tirage Auto.
+- Le menu de diagnostic génère automatiquement la liste `Auto` + thèmes depuis `themes.json`; ajouter un thème ne nécessite plus d'ajouter une option HTML à la main.
+- Généralise le rendu du sol avec `land.scrollMode` : `original` conserve le wrap natif 24 px, `defilement` accumule un offset visuel continu et répète la largeur complète du sprite.
+- Supprime le remapping France hardcodé du renderer : backgrounds, tuyaux, oiseaux, sol et couleurs d'extension sont résolus depuis le catalogue.
+- Ajoute `docs/THEMES.md` pour documenter le schéma et la procédure d'ajout d'un thème.
+- Le Service Worker précache désormais `assets/themes.json` ; le bundle offline passe à **36 ressources runtime**.
+- Aucun changement de physique, collision, RNG gameplay, Verified Runs ou Supabase.
+
 ## v0.2.7.3b-dev6.3.1 - France sewer scroll hotfix
 
 - Corrige le saut visuel du sol « égouts parisiens » : le moteur original remet son offset de sol à zéro tous les 24 px, car le sprite 1.3 est lui-même périodique sur 24 px.

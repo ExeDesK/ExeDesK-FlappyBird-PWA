@@ -168,6 +168,19 @@ def main() -> None:
         assert not page.is_checked('#performance-mode')
         assert page.evaluate('[game.width, game.height]') == [576, 1024]
         assert page.is_disabled('#refresh-cache')
+        assert page.eval_on_selector_all(
+            '#debug-theme option',
+            'options => options.map(option => option.value)',
+        ) == ['auto', 'original', 'france']
+        assert page.evaluate(
+            "getComputedStyle(document.querySelector('#open-options')).width"
+        ) == '68px'
+        assert page.evaluate(
+            "document.querySelector('#utility-atlas-icon').style.width"
+        ) == '52px'
+        assert page.evaluate(
+            "document.querySelector('#utility-atlas-icon').style.height"
+        ) == '56px'
 
         page.evaluate('flappy.pause(); for (let i = 0; i < 60; i++) flappy.step();')
         assert page.evaluate('flappy.snapshot().state') == 'MENU'

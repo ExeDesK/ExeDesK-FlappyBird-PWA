@@ -8,7 +8,7 @@ The goal is not to create another Flappy Bird-inspired clone, but to **reproduce
 
 Gameplay runs entirely client-side without a framework and can be installed as an application on Windows, iPhone/iPad and Android. Optional community features use Supabase; no account is required to play.
 
-> **Project status: beta — v0.2.7.3b-dev6.3.1**
+> **Project status: beta — v0.2.7.3b-dev6.3.2**
 
 - Player statistics: career + 10 / 25 / 50-run windows derived only from verified runs.
 > On ProMotion iPhone/iPad devices, the Performance options include guidance for the Safari setting that can remove the near-60 Hz page-rendering preference.
@@ -39,8 +39,9 @@ Gameplay runs entirely client-side without a framework and can be installed as a
 - Built-in frame-pacing performance profiler.
 - Deterministic replay export for engine comparison.
 - Portrait orientation requested by the PWA, with an additional fallback when the browser refuses orientation locking.
-- Optional **France** visual theme (day/night Eiffel Tower, baguette pipes, Paris sewers and dedicated bird), selected roughly **1 run out of 30** in Auto mode and forceable from the diagnostic tools without changing physics. The France visuals shipped with `dev6.3.1` use the latest custom-atlas revision.
-- Complementary atlas versioned through `assets/customatlas.json`, kept separate from the original atlas to preserve the 1:1 reference assets and gameplay behaviour.
+- Optional **France** visual theme (day/night Eiffel Tower, baguette pipes, Paris sewers and dedicated bird), currently a member of the `country` pool whose total Auto probability is fixed at **1 run out of 30**, and forceable from the diagnostic tools without changing physics.
+- Declarative `assets/themes.json` catalog: the base theme, Auto pools, each pool's global chance and each theme's relative `weight` are configured alongside backgrounds, pipes, bird frames, ground, adapted-fill colours and ground scroll mode. Adding more countries therefore does not increase the global `1/30` country-pool probability; the debug selector is generated from this catalog.
+- Complementary atlas versioned through `assets/customatlas.json`, kept separate from the original atlas to preserve the 1:1 reference assets and gameplay behaviour. Home / Options atlas buttons are now rendered at **2x** size.
 
 ---
 
@@ -83,6 +84,7 @@ Detailed notes are available in:
 - [`docs/LEADERBOARD.md`](./docs/LEADERBOARD.md) (French)
 - [`docs/PLAYER-STATS.md`](./docs/PLAYER-STATS.md) (French)
 - [`docs/RETENTION.md`](./docs/RETENTION.md) (French)
+- [`docs/THEMES.md`](./docs/THEMES.md) (French)
 
 ---
 
@@ -113,7 +115,7 @@ The project is intentionally lightweight.
 
 ```text
 site/
-├── assets/                 Graphics and audio assets
+├── assets/                 Graphics/audio assets + custom atlas + themes.json
 ├── icons/                  PWA icons
 ├── src/
 │   ├── atlas.js            Canvas rendering, original/custom atlases and interpolation

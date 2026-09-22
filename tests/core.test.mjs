@@ -27,6 +27,10 @@ const reference = JSON.parse(
   readFileSync(new URL('./java-reference.json', import.meta.url)),
 );
 
+const themeCatalog = JSON.parse(
+  readFileSync(new URL('../site/assets/themes.json', import.meta.url)),
+);
+
 const bits = number => new Int32Array(new Float32Array([number]).buffer)[0];
 
 for (const { seed, values } of reference.random) {
@@ -421,12 +425,12 @@ test('Land interpolation crosses the 24 px wrap forward without visual rollback'
   assert.equal(cyclicLerp(-22, 0, 1, 24), 0);
 });
 
-test('France sewer keeps a continuous visual phase across the native 24 px land wrap', () => {
+test('Defilement land mode keeps a continuous visual phase across the native 24 px land wrap', () => {
   const renderer = {
-    franceLandScroll: { pair: null, previous: 0, current: 0 },
+    landScroll: { pair: null, previous: 0, current: 0 },
   };
-  const franceLandX = (previousX, currentX, interpolation = 1) =>
-    Renderer.prototype.franceLandX.call(
+  const continuousLandX = (previousX, currentX, interpolation = 1) =>
+    Renderer.prototype.continuousLandX.call(
       renderer,
       previousX,
       currentX,
@@ -435,12 +439,12 @@ test('France sewer keeps a continuous visual phase across the native 24 px land 
 
   let previousX = 0;
   for (const currentX of [-2, -4, -6, -8, -10, -12, -14, -16, -18, -20, -22, 0, -2]) {
-    franceLandX(previousX, currentX);
+    continuousLandX(previousX, currentX);
     previousX = currentX;
   }
 
-  assert.equal(renderer.franceLandScroll.current, -26);
-  assert.equal(franceLandX(0, -2, 0.5), -25);
+  assert.equal(renderer.landScroll.current, -26);
+  assert.equal(continuousLandX(0, -2, 0.5), -25);
 });
 
 test('France sewer renderer tiles the full 336 px strip instead of exposing a gap', () => {
@@ -460,6 +464,7 @@ test('France sewer renderer tiles the full 336 px strip instead of exposing a ga
   const renderer = new Renderer(canvas, {
     image: {},
     sprites: {},
+    themes: themeCatalog,
     custom: {
       image: customImage,
       sprites: {
@@ -634,7 +639,7 @@ test('Static update probe uses version.json instead of a dynamic health endpoint
     readFileSync(new URL('../site/version.json', import.meta.url), 'utf8'),
   );
 
-  assert.equal(version.version, '0.2.7.3b-dev6.3.1');
+  assert.equal(version.version, '0.2.7.3b-dev6.3.2');
   assert.match(main, /\.\/version\.json/);
   assert.doesNotMatch(main, /__health/);
 });
