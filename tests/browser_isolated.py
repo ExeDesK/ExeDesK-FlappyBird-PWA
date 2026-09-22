@@ -27,6 +27,7 @@ MODULE_ORDER = [
     'game.js',
     'verified-runs.js',
     'verified-run-client.js',
+    'themes.js',
     'atlas.js',
     'audio.js',
     'leaderboard.js',
@@ -83,13 +84,21 @@ def build_embedded_page(site_root: Path) -> tuple[str, str]:
             script = script.replace('LOGICAL_WIDTH', 'ATLAS_LOGICAL_WIDTH')
             script = script.replace('LOGICAL_HEIGHT', 'ATLAS_LOGICAL_HEIGHT')
 
-            # Replace the atlas URL assignment irrespective of whitespace or
-            # line wrapping introduced by source formatting.
+            # Images are normally loaded through static URLs. In this isolated
+            # set_content() harness, route both atlas images to embedded data
+            # URIs so Image() can load them without a real HTTP origin.
             script = re.sub(
-                r"image\.src\s*=\s*new URL\(\s*['\"]\.\./assets/atlas\.png['\"]\s*,\s*"
+                r"const atlasImageUrl = new URL\(\s*['\"]\.\./assets/atlas\.png['\"]\s*,\s*"
                 + re.escape(module_url)
-                + r"\s*\)(?:\.href)?\s*;",
-                "image.src = 'data:image/png;base64,' + __assets['/assets/atlas.png'];",
+                + r"\s*\);",
+                "const atlasImageUrl = 'data:image/png;base64,' + __assets['/assets/atlas.png'];",
+                script,
+            )
+            script = re.sub(
+                r"const customImageUrl = new URL\(\s*['\"]\.\./assets/customatlas\.png['\"]\s*,\s*"
+                + re.escape(module_url)
+                + r"\s*\);",
+                "const customImageUrl = 'data:image/png;base64,' + __assets['/assets/customatlas.png'];",
                 script,
             )
 
@@ -188,7 +197,7 @@ def main() -> None:
             'flappy.step({ touches: [{ x: 78, y: 375 }] });'
             'flappy.step();'
             'for (let i = 0; i < 65; i++) flappy.step();'
-            'flappy.step({ tap: { x: 144, y: 256 } });'
+            'flappy.step({ touches: [], tap: { x: 144, y: 256 } });'
             'for (let i = 0; i < 4; i++) flappy.step();'
         )
         assert page.evaluate('flappy.snapshot().state') == 'PLAYING'

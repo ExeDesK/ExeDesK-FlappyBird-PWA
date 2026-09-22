@@ -6,6 +6,7 @@ const LOGICAL_HEIGHT = 512;
 const LAND_COLOR = 'rgb(222, 216, 149)';
 const SKY_DAY_COLOR = 'rgb(78, 192, 202)';
 const SKY_NIGHT_COLOR = 'rgb(0, 135, 147)';
+const ORIGINAL_LAND_SCROLL_PERIOD = 24;
 
 function loadImage(url, label) {
   return new Promise((resolve, reject) => {
@@ -126,7 +127,7 @@ export function lerp(a, b, t) {
   return a + (b - a) * t;
 }
 
-export function cyclicLerp(a, b, t, period) {
+export function cyclicDelta(a, b, period) {
   let delta = b - a;
   const halfPeriod = period / 2;
 
@@ -136,6 +137,11 @@ export function cyclicLerp(a, b, t, period) {
     delta += period;
   }
 
+  return delta;
+}
+
+export function cyclicLerp(a, b, t, period) {
+  const delta = cyclicDelta(a, b, period);
   let value = a + delta * t;
 
   while (value <= -period) {
@@ -179,6 +185,11 @@ export class Renderer {
     this.bottomPad = 0;
     this.adapted = false;
     this.theme = { theme: 'original', variant: 'auto' };
+    this.franceLandScroll = {
+      pair: null,
+      previous: 0,
+      current: 0,
+    };
     this.updateCanvasDimensions();
   }
 
@@ -188,6 +199,46 @@ export class Renderer {
       theme: theme.theme === 'france' ? 'france' : 'original',
       variant: theme.variant === 'day' || theme.variant === 'night' ? theme.variant : 'auto',
     };
+
+    // The original ground only exposes a 24 px repeating phase. The France
+    // sewer artwork is a full 336 px strip, so keep a renderer-only
+    // continuous phase that is reset whenever a visual theme is activated.
+    this.franceLandScroll.pair = null;
+    this.franceLandScroll.previous = 0;
+    this.franceLandScroll.current = 0;
+  }
+
+  franceLandX(previousX, currentX, interpolation) {
+    const pair = `${previousX}:${currentX}`;
+
+    if (this.franceLandScroll.pair !== pair) {
+      const isRunReset =
+        currentX === 0 &&
+        previousX !== 0 &&
+        previousX !== -(ORIGINAL_LAND_SCROLL_PERIOD - 2);
+
+      if (isRunReset) {
+        this.franceLandScroll.previous = 0;
+        this.franceLandScroll.current = 0;
+      } else {
+        const delta = cyclicDelta(
+          previousX,
+          currentX,
+          ORIGINAL_LAND_SCROLL_PERIOD,
+        );
+
+        this.franceLandScroll.previous = this.franceLandScroll.current;
+        this.franceLandScroll.current += delta;
+      }
+
+      this.franceLandScroll.pair = pair;
+    }
+
+    return lerp(
+      this.franceLandScroll.previous,
+      this.franceLandScroll.current,
+      interpolation,
+    );
   }
 
   spriteFor(name) {
@@ -408,6 +459,29 @@ export class Renderer {
 
     const width = command.w ?? sprite.w;
     const height = command.h ?? sprite.h;
+
+    if (command.key === 'land' && resolved.name === 'land_france' && !angle) {
+      const period = width;
+      const normalized = ((x % period) + period) % period;
+      const left = normalized === 0 ? 0 : normalized - period;
+
+      for (const tileX of [left, left + period]) {
+        this.spriteTransform(tileX, y, 0, width, height);
+        context.drawImage(
+          image,
+          sprite.x,
+          sprite.y,
+          sprite.w,
+          sprite.h,
+          0,
+          0,
+          width,
+          height,
+        );
+      }
+      return;
+    }
+
     const rotated = this.spriteTransform(x, y, angle, width, height);
 
     if (rotated) {
@@ -589,7 +663,14 @@ export class Renderer {
         Number.isFinite(command.x)
       ) {
         if (command.key === 'land') {
-          x = cyclicLerp(previousCommand.x, command.x, interpolation, 24);
+          x = this.theme.theme === 'france'
+            ? this.franceLandX(previousCommand.x, command.x, interpolation)
+            : cyclicLerp(
+                previousCommand.x,
+                command.x,
+                interpolation,
+                ORIGINAL_LAND_SCROLL_PERIOD,
+              );
         } else if (
           command.key?.startsWith('pipe-') &&
           Math.abs(command.x - previousCommand.x) > 8

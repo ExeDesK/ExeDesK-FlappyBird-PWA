@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
-import { cyclicLerp, previousFor } from '../site/src/atlas.js';
+import { Renderer, cyclicLerp, previousFor } from '../site/src/atlas.js';
 import { FixedClock } from '../site/src/clock.js';
 import {
   compositeLandColor,
@@ -421,6 +421,69 @@ test('Land interpolation crosses the 24 px wrap forward without visual rollback'
   assert.equal(cyclicLerp(-22, 0, 1, 24), 0);
 });
 
+test('France sewer keeps a continuous visual phase across the native 24 px land wrap', () => {
+  const renderer = {
+    franceLandScroll: { pair: null, previous: 0, current: 0 },
+  };
+  const franceLandX = (previousX, currentX, interpolation = 1) =>
+    Renderer.prototype.franceLandX.call(
+      renderer,
+      previousX,
+      currentX,
+      interpolation,
+    );
+
+  let previousX = 0;
+  for (const currentX of [-2, -4, -6, -8, -10, -12, -14, -16, -18, -20, -22, 0, -2]) {
+    franceLandX(previousX, currentX);
+    previousX = currentX;
+  }
+
+  assert.equal(renderer.franceLandScroll.current, -26);
+  assert.equal(franceLandX(0, -2, 0.5), -25);
+});
+
+test('France sewer renderer tiles the full 336 px strip instead of exposing a gap', () => {
+  const transforms = [];
+  const draws = [];
+  const context = {
+    imageSmoothingEnabled: true,
+    setTransform: (...args) => transforms.push(args),
+    drawImage: (...args) => draws.push(args),
+  };
+  const canvas = {
+    width: 0,
+    height: 0,
+    getContext: () => context,
+  };
+  const customImage = {};
+  const renderer = new Renderer(canvas, {
+    image: {},
+    sprites: {},
+    custom: {
+      image: customImage,
+      sprites: {
+        land_france: { name: 'land_france', x: 581, y: 323, w: 336, h: 112 },
+      },
+    },
+  });
+
+  renderer.setTheme({ theme: 'france', variant: 'day' });
+  renderer.paintCommand(
+    { name: 'land', key: 'land', x: -100, y: 400, angle: 0, alpha: 1 },
+    -100,
+    400,
+    0,
+    1,
+  );
+
+  assert.equal(draws.length, 2);
+  assert.equal(draws[0][0], customImage);
+  assert.equal(draws[1][0], customImage);
+  assert.equal(transforms.at(-2)[4], -200);
+  assert.equal(transforms.at(-1)[4], 472);
+});
+
 test('Render identities follow a pipe across slot recycling', () => {
   const previous = [
     { name: 'pipe_up', key: 'pipe-7-up', x: 104 },
@@ -571,7 +634,7 @@ test('Static update probe uses version.json instead of a dynamic health endpoint
     readFileSync(new URL('../site/version.json', import.meta.url), 'utf8'),
   );
 
-  assert.equal(version.version, '0.2.7.3b-dev6.3');
+  assert.equal(version.version, '0.2.7.3b-dev6.3.1');
   assert.match(main, /\.\/version\.json/);
   assert.doesNotMatch(main, /__health/);
 });

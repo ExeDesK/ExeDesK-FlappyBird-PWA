@@ -1,3 +1,14 @@
+## v0.2.7.3b-dev6.3.1 - France sewer scroll hotfix
+
+- Corrige le saut visuel du sol « égouts parisiens » : le moteur original remet son offset de sol à zéro tous les 24 px, car le sprite 1.3 est lui-même périodique sur 24 px.
+- Le thème France conserve désormais un offset visuel continu côté renderer et fait défiler l'intégralité de la bande `land_france` de 336 px.
+- Deux copies adjacentes de la bande sont dessinées pendant le défilement afin d'assurer le bouclage horizontal sans zone vide lorsque la première copie sort de l'écran.
+- Le comportement 24 px original reste strictement inchangé pour le thème Original ; aucune donnée de physique, collision, seed ou Verified Run n'est modifiée.
+- Ajout de tests de non-régression sur la continuité au wrap 24 px et sur le tiling de la bande France.
+- Le smoke test Chromium isolé charge désormais aussi `themes.js` et le custom atlas embarqué, afin de couvrir le runtime ajouté en `dev6.3`.
+- Rafraîchit le `customatlas.png` France avec la dernière révision graphique fournie avant publication de `dev6.3.1` ; le manifest `customatlas.json` reste compatible et conserve les mêmes coordonnées de sprites.
+- Aucun changement Supabase n'est requis.
+
 ## v0.2.7.3b-dev6.3 - Custom atlas & France theme
 
 - Ajout d’un atlas graphique complémentaire `customatlas.png` et de son manifest JSON `customatlas.json`, chargé séparément de l’atlas original afin de préserver les ressources et coordonnées 1:1 de Flappy Bird 1.3.

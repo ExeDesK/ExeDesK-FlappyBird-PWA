@@ -1,3 +1,11 @@
+## v0.2.7.3b-dev6.3.1
+
+- Non-régression du sol France : l'offset visuel continue au travers du wrap natif `-22 → 0` au lieu de repartir au début de l'image toutes les 24 px.
+- Vérifie que `land_france` est rendu en deux tuiles adjacentes lorsque nécessaire, afin que la bande complète de 336 px puisse défiler sans trou.
+- Le test historique du `cyclicLerp(..., 24)` original reste inchangé et confirme que le thème Original conserve le comportement APK 1.3.
+- Le smoke test Chromium isolé a été remis à niveau pour charger `themes.js` et `customatlas.png`/`customatlas.json` dans son environnement embarqué.
+- Suite complète : `npm test` (**134/134**) + `python tests/browser_isolated.py`.
+
 # Rapport de tests - v0.2.7.3b-dev5
 
 ## Résultat

@@ -8,7 +8,7 @@ The goal is not to create another Flappy Bird-inspired clone, but to **reproduce
 
 Gameplay runs entirely client-side without a framework and can be installed as an application on Windows, iPhone/iPad and Android. Optional community features use Supabase; no account is required to play.
 
-> **Project status: beta — v0.2.7.3b-dev6.3**
+> **Project status: beta — v0.2.7.3b-dev6.3.1**
 
 - Player statistics: career + 10 / 25 / 50-run windows derived only from verified runs.
 > On ProMotion iPhone/iPad devices, the Performance options include guidance for the Safari setting that can remove the near-60 Hz page-rendering preference.
@@ -39,7 +39,7 @@ Gameplay runs entirely client-side without a framework and can be installed as a
 - Built-in frame-pacing performance profiler.
 - Deterministic replay export for engine comparison.
 - Portrait orientation requested by the PWA, with an additional fallback when the browser refuses orientation locking.
-- Optional **France** visual theme (day/night Eiffel Tower, baguette pipes, Paris sewers and dedicated bird), selected roughly **1 run out of 30** in Auto mode and forceable from the diagnostic tools without changing physics.
+- Optional **France** visual theme (day/night Eiffel Tower, baguette pipes, Paris sewers and dedicated bird), selected roughly **1 run out of 30** in Auto mode and forceable from the diagnostic tools without changing physics. The France visuals shipped with `dev6.3.1` use the latest custom-atlas revision.
 - Complementary atlas versioned through `assets/customatlas.json`, kept separate from the original atlas to preserve the 1:1 reference assets and gameplay behaviour.
 
 ---

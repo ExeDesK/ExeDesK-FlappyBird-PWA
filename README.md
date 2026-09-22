@@ -8,7 +8,7 @@ L'objectif n'est pas de produire un simple clone « inspiré de » Flappy Bird, 
 
 Le gameplay fonctionne entièrement côté client, sans framework, et peut être installé comme une application sur Windows, iPhone/iPad et Android. Les fonctions communautaires utilisent un backend Supabase facultatif : aucun compte n'est nécessaire pour jouer.
 
-> **État du projet : bêta — v0.2.7.3b-dev6.3**
+> **État du projet : bêta — v0.2.7.3b-dev6.3.1**
 
 - Statistiques joueur : carrière + fenêtres 10 / 25 / 50 calculées uniquement depuis les runs vérifiées.
 > Sur iPhone/iPad ProMotion, un statut dynamique dans les options Performance mesure la cadence rAF sur iOS : il confirme la haute fréquence lorsqu’elle est active, sinon il propose le réglage Safari et un tutoriel au timecode utile.
@@ -39,7 +39,7 @@ Le gameplay fonctionne entièrement côté client, sans framework, et peut être
 - Profiler intégré pour diagnostiquer le frame pacing et les performances.
 - Export de replays déterministes pour comparer le comportement du moteur.
 - Orientation portrait demandée par la PWA, avec protection supplémentaire si le navigateur refuse le verrouillage.
-- Thème graphique **France** optionnel (Tour Eiffel jour/nuit, baguettes, égouts, oiseau dédié), tiré environ **1 partie sur 30** en mode Auto et forçable depuis les outils de diagnostic sans modifier la physique.
+- Thème graphique **France** optionnel (Tour Eiffel jour/nuit, baguettes, égouts, oiseau dédié), tiré environ **1 partie sur 30** en mode Auto et forçable depuis les outils de diagnostic sans modifier la physique. Le visuel France publié avec `dev6.3.1` utilise la dernière révision du custom atlas.
 - Atlas complémentaire versionné par `assets/customatlas.json`, séparé de l’atlas original pour préserver la parité graphique et comportementale de référence.
 
 ---
