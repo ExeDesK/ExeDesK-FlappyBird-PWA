@@ -11,6 +11,7 @@ import {
 import { Game } from './game.js';
 import { leaderboardName } from './leaderboard.js';
 import { PerfProfiler } from './perf.js';
+import { effectiveDayNight, resolveRunTheme } from './themes.js';
 import {
   VerifiedRunRecorder,
   enqueueVerifiedRun,
@@ -23,7 +24,7 @@ import {
 } from './verified-run-client.js';
 import { createCanonicalRunGame } from './verified-runs.js';
 
-const VERSION = '0.2.7.3b-dev6.2.3';
+const VERSION = '0.2.7.3b-dev6.3';
 const BEST_SCORE_KEY = 'flappy13-personal-best-v1';
 const SETTINGS_KEY = 'flappy13-settings-v1';
 const LAST_VERSION_KEY = 'flappy13-last-version-v1';
@@ -62,6 +63,9 @@ let game;
 let renderer;
 let paused = false;
 let debug = false;
+let themeControls = { mode: 'auto', variant: 'day' };
+let activeVisualTheme = { mode: 'auto', theme: 'original', variant: 'auto' };
+let pendingVisualTheme = null;
 let installPrompt = null;
 let cacheInfo = null;
 let remoteVersion = null;
@@ -380,6 +384,7 @@ function installVerifiedGame(ticket) {
   lastInputSignature = '';
   cachedDebugState = debug ? game.snapshot() : null;
   lastUtilityVisibility = null;
+  activatePendingVisualTheme();
 
   // The canonical run has already been warmed up to READY, so its command list
   // may contain a visible scene. Pin the replacement Game to black AND pin the
@@ -630,6 +635,7 @@ function startUnrankedFromBlack(originGame) {
   }
 
   verifiedRunRecorder = null;
+  activatePendingVisualTheme();
   originGame.event(5);
   syncUtilityVisibility();
   clock.reset();
@@ -653,6 +659,8 @@ async function beginAuthenticatedPlay(originGame, mode, fadeStartedAt = null) {
         verifiedRunRecorder = null;
         allowUnrankedPlayOnce = true;
         originGame.play.pressed = true;
+      } else {
+        pendingVisualTheme = null;
       }
       return;
     }
@@ -679,6 +687,7 @@ async function beginAuthenticatedPlay(originGame, mode, fadeStartedAt = null) {
       if (proceed && game === originGame && originGame.play.active) {
         startUnrankedFromBlack(originGame);
       } else {
+        pendingVisualTheme = null;
         restoreMenuFromBlack(originGame);
       }
     }
@@ -1347,6 +1356,79 @@ function updateOrientationGuard() {
   setTimeout(scheduleResize, 80);
 }
 
+function currentThemeDayNight() {
+  return effectiveDayNight(game?.background ?? 'bg_day', activeVisualTheme.variant);
+}
+
+function updateThemeDebugStatus() {
+  const status = $('debug-theme-status');
+  const variantRow = $('debug-variant-row');
+
+  if (!status || !variantRow) {
+    return;
+  }
+
+  variantRow.hidden = themeControls.mode === 'auto';
+  const dayNight = currentThemeDayNight() === 'night' ? 'NUIT' : 'JOUR';
+  const themeName = activeVisualTheme.theme === 'france' ? 'FRANCE' : 'ORIGINAL';
+  status.textContent = themeControls.mode === 'auto'
+    ? `AUTO → ${themeName} · ${dayNight}`
+    : `${themeName} · ${dayNight}`;
+}
+
+function applyVisualTheme(theme) {
+  activeVisualTheme = theme;
+  renderer?.setTheme(theme);
+  updateThemeDebugStatus();
+
+  if (renderer && game) {
+    render();
+  }
+}
+
+function resolveSelectedVisualTheme() {
+  return resolveRunTheme({
+    mode: themeControls.mode,
+    variant: themeControls.variant,
+  });
+}
+
+function selectVisualThemeForMenu() {
+  pendingVisualTheme = null;
+  applyVisualTheme(resolveSelectedVisualTheme());
+}
+
+function prepareVisualThemeForRun() {
+  pendingVisualTheme = resolveSelectedVisualTheme();
+}
+
+function activatePendingVisualTheme() {
+  if (!pendingVisualTheme) {
+    return;
+  }
+
+  const nextTheme = pendingVisualTheme;
+  pendingVisualTheme = null;
+  applyVisualTheme(nextTheme);
+}
+
+function setUtilityAtlasIcon(mode) {
+  const icon = $('utility-atlas-icon');
+  const custom = renderer?.atlas?.custom;
+  const spriteName = mode === 'home' ? 'button_home' : 'button_options';
+  const sprite = custom?.sprites?.[spriteName];
+
+  if (!icon || !custom || !sprite) {
+    return;
+  }
+
+  icon.style.width = `${sprite.w}px`;
+  icon.style.height = `${sprite.h}px`;
+  icon.style.backgroundImage = `url("${custom.imageUrl}")`;
+  icon.style.backgroundSize = `${custom.image.width}px ${custom.image.height}px`;
+  icon.style.backgroundPosition = `-${sprite.x}px -${sprite.y}px`;
+}
+
 function syncUtilityVisibility() {
   const button = $('open-options');
   const state = game?.state ?? 'MENU';
@@ -1372,8 +1454,7 @@ function syncUtilityVisibility() {
     'aria-label',
     mode === 'home' ? 'Retourner à l’écran d’accueil' : 'Ouvrir les options',
   );
-  $('utility-menu-icon').hidden = mode !== 'options';
-  $('utility-home-icon').hidden = mode !== 'home';
+  setUtilityAtlasIcon(mode);
 }
 
 function returnToHome() {
@@ -1702,6 +1783,19 @@ $('debug-access').onclick = () => {
   }
 };
 
+$('debug-theme').onchange = () => {
+  themeControls.mode = $('debug-theme').value;
+  selectVisualThemeForMenu();
+};
+
+$('debug-theme-variant').onchange = () => {
+  themeControls.variant = $('debug-theme-variant').value;
+  if (themeControls.mode !== 'auto') {
+    selectVisualThemeForMenu();
+  }
+  updateThemeDebugStatus();
+};
+
 function syncPause() {
   $('pause').textContent = paused ? 'Reprendre' : 'Pause';
   clock.reset();
@@ -1746,6 +1840,10 @@ function cloneCommands(commands) {
 function interceptAuthenticatedPlay(input) {
   if (!isPlayRelease(game, input)) {
     return false;
+  }
+
+  if (!allowUnrankedPlayOnce) {
+    prepareVisualThemeForRun();
   }
 
   if (allowUnrankedPlayOnce) {
@@ -1798,7 +1896,14 @@ function tick(input = nextInput()) {
     lastInputSignature = signature;
   }
 
+  const stateBeforeTick = game.state;
   game.tick(input);
+
+  if (stateBeforeTick !== 'READY' && game.state === 'READY') {
+    activatePendingVisualTheme();
+  } else if (debug) {
+    updateThemeDebugStatus();
+  }
 
   const verifiedSubmission = verifiedRunRecorder?.afterTick(game);
   if (verifiedSubmission) {
@@ -2443,6 +2548,10 @@ async function boot() {
       best,
       onEvent: handleGameEvent,
     });
+    $('debug-theme').value = themeControls.mode;
+    $('debug-theme-variant').value = themeControls.variant;
+    selectVisualThemeForMenu();
+    setUtilityAtlasIcon('options');
 
     $('loading').hidden = true;
     setDebug(debug);
@@ -2493,6 +2602,7 @@ async function boot() {
         loadLeaderboardContext({ force: true }),
       ]),
       verifiedRun: () => verifiedRunRecorder?.snapshot() ?? structuredClone(lastVerifiedRun),
+      theme: () => structuredClone({ controls: themeControls, active: activeVisualTheme }),
       pendingVerifiedRuns() {
         try {
           return readPendingVerifiedRuns();

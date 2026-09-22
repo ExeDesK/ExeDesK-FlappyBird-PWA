@@ -8,7 +8,7 @@ The goal is not to create another Flappy Bird-inspired clone, but to **reproduce
 
 Gameplay runs entirely client-side without a framework and can be installed as an application on Windows, iPhone/iPad and Android. Optional community features use Supabase; no account is required to play.
 
-> **Project status: beta — v0.2.7.3b-dev6.2.3**
+> **Project status: beta — v0.2.7.3b-dev6.3**
 
 - Player statistics: career + 10 / 25 / 50-run windows derived only from verified runs.
 > On ProMotion iPhone/iPad devices, the Performance options include guidance for the Safari setting that can remove the near-60 Hz page-rendering preference.
@@ -39,6 +39,8 @@ Gameplay runs entirely client-side without a framework and can be installed as a
 - Built-in frame-pacing performance profiler.
 - Deterministic replay export for engine comparison.
 - Portrait orientation requested by the PWA, with an additional fallback when the browser refuses orientation locking.
+- Optional **France** visual theme (day/night Eiffel Tower, baguette pipes, Paris sewers and dedicated bird), selected roughly **1 run out of 30** in Auto mode and forceable from the diagnostic tools without changing physics.
+- Complementary atlas versioned through `assets/customatlas.json`, kept separate from the original atlas to preserve the 1:1 reference assets and gameplay behaviour.
 
 ---
 
@@ -114,7 +116,7 @@ site/
 ├── assets/                 Graphics and audio assets
 ├── icons/                  PWA icons
 ├── src/
-│   ├── atlas.js            Canvas rendering, atlas and interpolation
+│   ├── atlas.js            Canvas rendering, original/custom atlases and interpolation
 │   ├── audio.js            Audio handling
 │   ├── auth.js             Discord/Supabase auth and local session
 │   ├── clock.js            60 Hz simulation clock
@@ -124,6 +126,7 @@ site/
 │   ├── main.js             Input, PWA, options and main loop
 │   ├── math.js             Math, RNG, animation and tweens
 │   ├── perf.js             Performance profiler
+│   ├── themes.js           Visual theme selection/remapping
 │   └── verified-runs.js    Verified-run contract and simulation
 ├── config.example.js      Runtime configuration template (Supabase)
 ├── index.html

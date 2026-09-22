@@ -48,18 +48,7 @@
       title="Options (Echap)"
       aria-label="Ouvrir les options"
     >
-      <span id="utility-menu-icon" class="pixel-menu-icon" aria-hidden="true"></span>
-      <span id="utility-home-icon" class="pixel-home-icon" aria-hidden="true" hidden>
-        <svg viewBox="0 0 24 24" shape-rendering="crispEdges" focusable="false">
-          <g fill="currentColor">
-            <rect x="10" y="2" width="4" height="4"/>
-            <rect x="6" y="6" width="12" height="4"/>
-            <rect x="2" y="10" width="20" height="4"/>
-            <rect x="4" y="14" width="16" height="8"/>
-          </g>
-          <rect class="pixel-home-door" x="10" y="16" width="4" height="6"/>
-        </svg>
-      </span>
+      <span id="utility-atlas-icon" class="atlas-utility-icon" aria-hidden="true"></span>
     </button>
 
     <p id="toast" role="status" aria-live="polite" popover="manual" hidden></p>
@@ -82,7 +71,7 @@
         <button id="close-options" class="close-options" aria-label="Fermer">X</button>
       </header>
 
-      <p class="version">BETA 0.2.7.3b-dev6.2.3</p>
+      <p class="version">BETA 0.2.7.3b-dev6.3</p>
       <p id="offline-status" class="status-card">Préparation du mode hors ligne...</p>
 
       <section class="menu-card account-card" aria-labelledby="account-title">
@@ -211,7 +200,7 @@
         <button id="close-leaderboard" class="close-options" type="button" aria-label="Fermer le classement">X</button>
       </header>
 
-      <p class="version">BETA 0.2.7.3b-dev6.2.3</p>
+      <p class="version">BETA 0.2.7.3b-dev6.3</p>
 
       <div class="leaderboard-toolbar">
         <p id="leaderboard-status" class="hint">Chargement du classement...</p>
@@ -294,6 +283,25 @@
 
     <section id="diagnostic" hidden aria-label="Outils de vérification">
       <pre id="stats"></pre>
+
+      <div class="debug-theme-controls">
+        <label>
+          <span>THÈME</span>
+          <select id="debug-theme">
+            <option value="auto">Auto (France ~1/30)</option>
+            <option value="original">Original</option>
+            <option value="france">France</option>
+          </select>
+        </label>
+        <label id="debug-variant-row" hidden>
+          <span>VARIANTE</span>
+          <select id="debug-theme-variant">
+            <option value="day">Jour</option>
+            <option value="night">Nuit</option>
+          </select>
+        </label>
+        <p id="debug-theme-status">AUTO</p>
+      </div>
 
       <div>
         <button id="pause">Pause</button>

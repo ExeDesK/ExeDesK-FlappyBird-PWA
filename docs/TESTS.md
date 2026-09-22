@@ -187,6 +187,13 @@ Le client valide strictement les deux états autorisés (classé / non classé),
 - Non-régression : le remplacement par le jeu vérifié peint d'abord une frame entièrement noire avant de lancer le fade de révélation.
 
 
+## v0.2.7.3b-dev6.3
+
+- `tests/themes.test.mjs` verrouille le seuil Auto France à `1/30`, les modes forcés Original/France, les variantes Jour/Nuit et le remapping purement visuel des sprites.
+- Le test vérifie que `assets/customatlas.json` contient les dix sprites requis (fonds, tuyaux, sol, trois frames oiseau et deux boutons) et référence bien `customatlas.png` en `918 × 514`.
+- `tests/cache.test.mjs` vérifie maintenant **35 ressources runtime**, incluant `customatlas.png`, `customatlas.json` et `src/themes.js`, afin que le thème reste disponible hors ligne.
+- Les tests de physique et Verified Runs restent inchangés : le thème n’entre jamais dans l’état autoritaire de simulation.
+
 ## v0.2.7.3b-dev6.2.3
 
 - Non-régression : les caches d’interpolation `previousCommands` / `currentCommands` sont eux-mêmes initialisés avec un overlay noir opaque avant le fade retour.

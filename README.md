@@ -8,7 +8,7 @@ L'objectif n'est pas de produire un simple clone « inspiré de » Flappy Bird, 
 
 Le gameplay fonctionne entièrement côté client, sans framework, et peut être installé comme une application sur Windows, iPhone/iPad et Android. Les fonctions communautaires utilisent un backend Supabase facultatif : aucun compte n'est nécessaire pour jouer.
 
-> **État du projet : bêta — v0.2.7.3b-dev6.2.3**
+> **État du projet : bêta — v0.2.7.3b-dev6.3**
 
 - Statistiques joueur : carrière + fenêtres 10 / 25 / 50 calculées uniquement depuis les runs vérifiées.
 > Sur iPhone/iPad ProMotion, un statut dynamique dans les options Performance mesure la cadence rAF sur iOS : il confirme la haute fréquence lorsqu’elle est active, sinon il propose le réglage Safari et un tutoriel au timecode utile.
@@ -39,6 +39,8 @@ Le gameplay fonctionne entièrement côté client, sans framework, et peut être
 - Profiler intégré pour diagnostiquer le frame pacing et les performances.
 - Export de replays déterministes pour comparer le comportement du moteur.
 - Orientation portrait demandée par la PWA, avec protection supplémentaire si le navigateur refuse le verrouillage.
+- Thème graphique **France** optionnel (Tour Eiffel jour/nuit, baguettes, égouts, oiseau dédié), tiré environ **1 partie sur 30** en mode Auto et forçable depuis les outils de diagnostic sans modifier la physique.
+- Atlas complémentaire versionné par `assets/customatlas.json`, séparé de l’atlas original pour préserver la parité graphique et comportementale de référence.
 
 ---
 
@@ -111,10 +113,10 @@ Le projet est volontairement léger.
 
 ```text
 site/
-├── assets/                 Ressources graphiques et audio
+├── assets/                 Ressources graphiques/audio + customatlas.png/json
 ├── icons/                  Icônes de la PWA
 ├── src/
-│   ├── atlas.js            Rendu Canvas, atlas et interpolation
+│   ├── atlas.js            Rendu Canvas, atlas original + custom et interpolation
 │   ├── audio.js            Gestion audio
 │   ├── auth.js             Auth Discord/Supabase et session locale
 │   ├── clock.js            Horloge de simulation 60 Hz
@@ -124,6 +126,7 @@ site/
 │   ├── main.js             Entrées, PWA, options et cycle principal
 │   ├── math.js             Maths, RNG, animations et tweens
 │   ├── perf.js             Profiler de performances
+│   ├── themes.js           Sélection/remapping des thèmes visuels
 │   └── verified-runs.js    Contrat et simulation des runs vérifiés
 ├── config.example.js      Modèle de configuration runtime (Supabase)
 ├── index.html

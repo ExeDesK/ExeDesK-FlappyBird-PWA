@@ -1,4 +1,5 @@
 import { COS, F, SIN } from './math.js';
+import { themedSpriteName } from './themes.js';
 
 const LOGICAL_WIDTH = 288;
 const LOGICAL_HEIGHT = 512;
@@ -6,25 +7,18 @@ const LAND_COLOR = 'rgb(222, 216, 149)';
 const SKY_DAY_COLOR = 'rgb(78, 192, 202)';
 const SKY_NIGHT_COLOR = 'rgb(0, 135, 147)';
 
-export async function loadAtlas() {
-  const imagePromise = new Promise((resolve, reject) => {
+function loadImage(url, label) {
+  return new Promise((resolve, reject) => {
     const image = new Image();
     image.onload = () => resolve(image);
-    image.onerror = () => reject(new Error('Impossible de charger atlas.png'));
-    image.src = new URL('../assets/atlas.png', import.meta.url);
+    image.onerror = () => reject(new Error(`Impossible de charger ${label}`));
+    image.src = url;
   });
+}
 
-  const [response, image] = await Promise.all([
-    fetch(new URL('../assets/atlas.txt', import.meta.url)),
-    imagePromise,
-  ]);
-
-  if (!response.ok) {
-    throw new Error(`Atlas : HTTP ${response.status}`);
-  }
-
+function parseLegacyAtlas(text, image) {
   const sprites = {};
-  const lines = (await response.text()).trim().split(/\r?\n/);
+  const lines = text.trim().split(/\r?\n/);
 
   for (const line of lines) {
     const [name, ...values] = line.trim().split(/\s+/);
@@ -63,7 +57,69 @@ export async function loadAtlas() {
     };
   }
 
-  return { image, sprites };
+  return sprites;
+}
+
+function parseJsonAtlas(manifest, image) {
+  const sprites = {};
+
+  if (!manifest || typeof manifest !== 'object' || !manifest.frames) {
+    throw new Error('Manifest customatlas.json invalide');
+  }
+
+  for (const [name, entry] of Object.entries(manifest.frames)) {
+    const frame = entry?.frame;
+    const x = Number(frame?.x);
+    const y = Number(frame?.y);
+    const width = Number(frame?.w);
+    const height = Number(frame?.h);
+
+    if (![x, y, width, height].every(Number.isFinite)) {
+      throw new Error(`Sprite custom invalide : ${name}`);
+    }
+
+    if (x < 0 || y < 0 || x + width > image.width || y + height > image.height) {
+      throw new Error(`Sprite hors custom atlas : ${name}`);
+    }
+
+    sprites[name] = { name, x, y, w: width, h: height };
+  }
+
+  return sprites;
+}
+
+export async function loadAtlas() {
+  const atlasImageUrl = new URL('../assets/atlas.png', import.meta.url);
+  const customImageUrl = new URL('../assets/customatlas.png', import.meta.url);
+  const [response, customResponse, image, customImage] = await Promise.all([
+    fetch(new URL('../assets/atlas.txt', import.meta.url)),
+    fetch(new URL('../assets/customatlas.json', import.meta.url)),
+    loadImage(atlasImageUrl, 'atlas.png'),
+    loadImage(customImageUrl, 'customatlas.png'),
+  ]);
+
+  if (!response.ok) {
+    throw new Error(`Atlas : HTTP ${response.status}`);
+  }
+
+  if (!customResponse.ok) {
+    throw new Error(`Custom atlas : HTTP ${customResponse.status}`);
+  }
+
+  const sprites = parseLegacyAtlas(await response.text(), image);
+  const manifest = await customResponse.json();
+  const customSprites = parseJsonAtlas(manifest, customImage);
+
+  return {
+    image,
+    sprites,
+    custom: {
+      image: customImage,
+      imageUrl: customImageUrl.href,
+      sprites: customSprites,
+      manifest,
+    },
+  };
 }
 
 export function lerp(a, b, t) {
@@ -122,7 +178,32 @@ export class Renderer {
     this.topPad = 0;
     this.bottomPad = 0;
     this.adapted = false;
+    this.theme = { theme: 'original', variant: 'auto' };
     this.updateCanvasDimensions();
+  }
+
+
+  setTheme(theme = {}) {
+    this.theme = {
+      theme: theme.theme === 'france' ? 'france' : 'original',
+      variant: theme.variant === 'day' || theme.variant === 'night' ? theme.variant : 'auto',
+    };
+  }
+
+  spriteFor(name) {
+    const resolvedName = themedSpriteName(name, this.theme);
+    const customSprite = this.atlas.custom?.sprites?.[resolvedName];
+
+    if (customSprite) {
+      return {
+        name: resolvedName,
+        sprite: customSprite,
+        image: this.atlas.custom.image,
+      };
+    }
+
+    const sprite = this.atlas.sprites[resolvedName];
+    return sprite ? { name: resolvedName, sprite, image: this.atlas.image } : null;
   }
 
   get totalLogicalHeight() {
@@ -218,12 +299,19 @@ export class Renderer {
   }
 
   sceneBackground(commands) {
-    return commands.some(command => command?.name === 'bg_night')
-      ? 'bg_night'
-      : 'bg_day';
+    for (const command of commands) {
+      if (!command?.name?.startsWith('bg_')) {
+        continue;
+      }
+
+      const resolved = themedSpriteName(command.name, this.theme);
+      return resolved.endsWith('_night') ? 'night' : 'day';
+    }
+
+    return this.theme.variant === 'night' ? 'night' : 'day';
   }
 
-  clear(background = 'bg_day') {
+  clear(background = 'day') {
     const context = this.ctx;
     const totalHeight = this.totalLogicalHeight;
 
@@ -237,14 +325,16 @@ export class Renderer {
       return;
     }
 
-    context.fillStyle =
-      background === 'bg_night' ? SKY_NIGHT_COLOR : SKY_DAY_COLOR;
+    const france = this.theme.theme === 'france';
+    context.fillStyle = france
+      ? (background === 'night' ? 'rgb(7, 27, 69)' : 'rgb(19, 58, 126)')
+      : (background === 'night' ? SKY_NIGHT_COLOR : SKY_DAY_COLOR);
 
     if (this.topPad > 0) {
       context.fillRect(0, 0, LOGICAL_WIDTH, this.topPad + 0.5);
     }
 
-    context.fillStyle = LAND_COLOR;
+    context.fillStyle = france ? 'rgb(42, 49, 39)' : LAND_COLOR;
 
     if (this.bottomPad > 0) {
       context.fillRect(
@@ -301,11 +391,13 @@ export class Renderer {
     alpha = command.alpha,
   ) {
     const context = this.ctx;
-    const sprite = this.atlas.sprites[command.name];
+    const resolved = this.spriteFor(command.name);
 
-    if (!sprite) {
+    if (!resolved) {
       throw new Error(`Sprite absent : ${command.name}`);
     }
+
+    const { sprite, image } = resolved;
 
     if (alpha <= 0) {
       return;
@@ -320,7 +412,7 @@ export class Renderer {
 
     if (rotated) {
       context.drawImage(
-        this.atlas.image,
+        image,
         sprite.x,
         sprite.y,
         sprite.w,
@@ -334,7 +426,7 @@ export class Renderer {
     }
 
     context.drawImage(
-      this.atlas.image,
+      image,
       sprite.x,
       sprite.y,
       sprite.w,

@@ -1,3 +1,14 @@
+## v0.2.7.3b-dev6.3 - Custom atlas & France theme
+
+- Ajout d’un atlas graphique complémentaire `customatlas.png` et de son manifest JSON `customatlas.json`, chargé séparément de l’atlas original afin de préserver les ressources et coordonnées 1:1 de Flappy Bird 1.3.
+- Ajout du thème **France** : Tour Eiffel jour/nuit, tuyaux baguette, sol « égouts parisiens » et oiseau dédié. Le changement est strictement visuel : physique, hitboxes, RNG de gameplay, Verified Runs et `flappy13-physics-v1` restent inchangés.
+- En mode **Auto**, le thème France est tiré avec une probabilité de **1/30** à chaque nouvelle partie ; sinon le thème original est utilisé. La variante jour/nuit suit alors le fond choisi par le moteur original.
+- Les outils de diagnostic permettent de forcer `Auto`, `Original` ou `France`; pour les modes forcés, la variante `Jour` / `Nuit` est sélectionnable.
+- Les anciens pictogrammes CSS/SVG du bouton utilitaire ont été supprimés et remplacés par les sprites `button_options` / `button_home` du nouvel atlas.
+- Le Service Worker met désormais en cache le custom atlas, son manifest et le module de thèmes pour conserver le fonctionnement PWA hors ligne.
+- Ajout de tests sur le seuil 1/30, le remapping des sprites, les variantes forcées, le manifest et le cache PWA.
+- Aucun changement Supabase n’est requis.
+
 ## v0.2.7.3b-dev6.2.3 - Verified PLAY renderer cache flash fix
 
 - Corrige le flash restant lors du fade retour : les caches `previousCommands` / `currentCommands` contenaient encore une frame READY visible préparée avant le forçage du noir.
