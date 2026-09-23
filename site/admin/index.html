@@ -29,10 +29,13 @@
         <p class="eyebrow">ACCÈS PRIVÉ</p>
         <h2 id="gate-title">Connexion requise</h2>
         <p id="gate-message" class="muted">
-          Connecte-toi avec Discord. L'accès au dashboard est ensuite validé côté Supabase.
+          Connecte-toi avec Discord ou Google. L'accès au dashboard est ensuite validé côté Supabase.
         </p>
       </div>
-      <button id="sign-in" class="button primary" type="button">Connexion Discord</button>
+      <div class="gate-actions">
+        <button id="sign-in-discord" class="button primary" type="button">Connexion Discord</button>
+        <button id="sign-in-google" class="button secondary" type="button">Connexion Google</button>
+      </div>
     </section>
 
     <section id="dashboard" hidden>

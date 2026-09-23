@@ -2,7 +2,7 @@ import { AuthClient } from '../auth.js';
 import { AnalyticsClient } from './analytics-client.js';
 import { renderBarChart, renderLineChart } from './charts.js';
 
-const VERSION = '0.2.7.4b-dev9';
+const VERSION = '0.2.7.4b-dev10';
 const TICKS_PER_SECOND = 60;
 
 const config = globalThis.FLAPPY_CONFIG || {};
@@ -29,7 +29,8 @@ const ui = {
   gate: document.querySelector('#auth-gate'),
   gateTitle: document.querySelector('#gate-title'),
   gateMessage: document.querySelector('#gate-message'),
-  signIn: document.querySelector('#sign-in'),
+  signInDiscord: document.querySelector('#sign-in-discord'),
+  signInGoogle: document.querySelector('#sign-in-google'),
   signOut: document.querySelector('#sign-out'),
   dashboard: document.querySelector('#dashboard'),
   status: document.querySelector('#dashboard-status'),
@@ -114,7 +115,8 @@ function showGate(title, message, { allowLogin = true } = {}) {
   ui.signOut.hidden = true;
   ui.gateTitle.textContent = title;
   ui.gateMessage.textContent = message;
-  ui.signIn.hidden = !allowLogin;
+  ui.signInDiscord.hidden = !allowLogin;
+  ui.signInGoogle.hidden = !allowLogin;
 }
 
 function showDashboard() {
@@ -354,7 +356,7 @@ async function authorizeAndLoad() {
     if (!authorized) {
       showGate(
         'Accès refusé',
-        'Ce compte Discord est authentifié mais ne figure pas dans analytics_admins. Ajoute son UUID depuis le SQL Editor Supabase.',
+        'Ce compte est authentifié mais ne figure pas dans analytics_admins. Ajoute son UUID depuis le SQL Editor Supabase.',
         { allowLogin: false },
       );
       ui.signOut.hidden = false;
@@ -389,15 +391,23 @@ async function boot() {
     return;
   }
   if (state.status === 'error') {
-    showGate('Erreur de connexion', state.error || 'Impossible de restaurer la session Discord.');
+    showGate('Erreur de connexion', state.error || 'Impossible de restaurer la session.');
     return;
   }
-  showGate('Connexion requise', 'Connecte-toi avec Discord. L’accès est ensuite contrôlé par une allow-list Supabase.');
+  showGate('Connexion requise', 'Connecte-toi avec Discord ou Google. L’accès est ensuite contrôlé par une allow-list Supabase.');
 }
 
-ui.signIn.addEventListener('click', () => {
+ui.signInDiscord.addEventListener('click', () => {
   try {
     auth.signInWithDiscord();
+  } catch (error) {
+    showGate('Connexion impossible', error?.message || String(error));
+  }
+});
+
+ui.signInGoogle.addEventListener('click', () => {
+  try {
+    auth.signInWithProvider('google');
   } catch (error) {
     showGate('Connexion impossible', error?.message || String(error));
   }
@@ -406,7 +416,7 @@ ui.signIn.addEventListener('click', () => {
 ui.signOut.addEventListener('click', async () => {
   await auth.signOut();
   authorized = false;
-  showGate('Connexion requise', 'Session fermée. Connecte-toi avec Discord pour accéder aux Analytics.');
+  showGate('Connexion requise', 'Session fermée. Connecte-toi avec Discord ou Google pour accéder aux Analytics.');
 });
 
 ui.refresh.addEventListener('click', () => loadDashboard());

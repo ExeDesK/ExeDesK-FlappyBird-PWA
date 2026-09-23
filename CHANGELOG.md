@@ -1,3 +1,17 @@
+## v0.2.7.4b-dev10 - Google OAuth & account linking
+
+- Ajoute **SE CONNECTER AVEC GOOGLE** dans la modale Profil aux côtés de Discord, sans SDK Google ni secret OAuth dans le frontend.
+- La section Profil devient **CONNEXIONS** et affiche Discord + Google : le provider déjà présent est marqué **LIÉ**, le provider absent propose **LIER**.
+- Le linking Google passe par l’endpoint Supabase Auth authentifié `/auth/v1/user/identities/authorize` et conserve le même `auth.users.id`, donc le même profil, record, historique de runs et Analytics.
+- Les comptes Discord existants et la clé locale `flappy13-auth-v1` restent inchangés ; aucune migration de joueur n’est effectuée.
+- Ajoute un avertissement visible aux joueurs existants : pour un e-mail Google différent de Discord, il faut d’abord se connecter avec Discord puis utiliser **LIER** afin d’éviter la création d’un second profil.
+- Aucun merge destructif : si l’identité Google appartient déjà à un autre UUID Supabase, la liaison échoue et aucun compte n’est écrasé.
+- Le unlink reste implémenté côté Auth mais aucun bouton **DÉLIER** n’est encore exposé dans l’UI.
+- Verified Runs, score sync, leaderboard et Admin Analytics deviennent explicitement provider-agnostic ; le dashboard Admin propose lui aussi Discord ou Google puis applique la même allow-list par UUID.
+- Ajoute `docs/AUTH-GOOGLE.md` et met à jour `ACCOUNT-LINKING.md`, les README, l’architecture et les tests.
+- Aucun SQL ni Edge Function supplémentaire ; configuration Google Cloud + provider Google + **Allow manual linking** requise dans Supabase.
+- Validation : `npm test` **173/173**, `python tests/browser_isolated.py` **OK**, `python tests/admin_browser_isolated.py` **OK**.
+
 ## v0.2.7.4b-dev9 - Account linking foundation
 
 - Ajoute une couche d'**identity linking** provider-agnostic autour de Supabase Auth, sans ajouter de second provider dans l'interface.

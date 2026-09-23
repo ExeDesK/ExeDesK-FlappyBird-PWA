@@ -241,7 +241,7 @@ export class VerifiedPlayController {
     try {
       if (mode === 'warn-offline') {
         const proceed = await this.warning.ask(
-          'Vous êtes connecté à Discord, mais l’application est hors ligne. '
+          'Vous êtes connecté, mais l’application est hors ligne. '
           + 'Cette partie ne pourra pas être comptabilisée dans le classement.',
         );
 

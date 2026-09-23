@@ -17,7 +17,7 @@ Le profil et toute l'authentification utilisateur sont séparés des Options. `m
 
 Les sprites `button_home`, `button_options` et `button_profile` sont rendus en x1,75 depuis le custom atlas. `button_close` est rendu en x1 sur Options, Profil et Classement. Le panneau diagnostic conserve volontairement son bouton de fermeture utilitaire natif afin de rester visuellement séparé de l'interface utilisateur. Depuis `v0.2.7.4b-dev6`, le press-state atlas est géré dans `main.js` par Pointer Events : une classe temporaire reste visible au moins 70 ms, tandis que le CSS décale le sprite d'un pixel source vers le bas et clippe sa dernière ligne sans changer son axe X.
 
-Depuis `v0.2.7.4b-dev9`, Discord reste le seul provider **exposé** dans l'interface, mais l'architecture Auth possède désormais une couche d'identity linking générique. Les identités sont rattachées au même `auth.users.id`; aucune donnée de jeu n'est dupliquée ni migrée lorsqu'un nouveau provider sera lié.
+Depuis `v0.2.7.4b-dev10`, Discord et Google sont exposés dans Profil. L'architecture Auth conserve une couche d'identity linking générique : un provider ajouté depuis un profil connecté est rattaché au même `auth.users.id`, sans duplication ni migration des données de jeu.
 
 ## Composition
 
@@ -55,7 +55,7 @@ main.js
 
 Responsabilités conservées :
 
-- OAuth de connexion via Supabase Auth (`signInWithProvider()`, Discord uniquement exposé aujourd'hui) ;
+- OAuth de connexion via Supabase Auth (`signInWithProvider()` pour Discord et Google) ;
 - restauration / rafraîchissement / suppression de session ;
 - récupération du `user` courant ;
 - lecture/création du profil ;
@@ -176,7 +176,7 @@ La maintenance globale reste en base avec `cleanup_stale_verified_run_tickets()`
 
 ## Admin Analytics — v0.2.7.4b
 
-Le dashboard d'administration est une application légère séparée sous `site/admin/`. Il réutilise `AuthClient` pour la session Discord/Supabase, puis appelle uniquement des RPC Analytics authentifiées via un client dédié :
+Le dashboard d'administration est une application légère séparée sous `site/admin/`. Il réutilise `AuthClient` pour la session OAuth Supabase, puis appelle uniquement des RPC Analytics authentifiées via un client dédié :
 
 ```text
 site/admin/

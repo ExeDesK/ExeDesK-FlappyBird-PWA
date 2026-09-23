@@ -6,7 +6,7 @@ L'objectif est de conserver des métriques utiles **sans exposer `verified_runs`
 
 ## Sécurité
 
-Le dashboard réutilise l'authentification Discord/Supabase existante, mais une session authentifiée ne suffit pas.
+Le dashboard réutilise l'authentification OAuth Supabase existante (Discord ou Google), mais une session authentifiée ne suffit pas.
 
 L'accès est validé côté PostgreSQL par :
 
@@ -47,7 +47,7 @@ on conflict (user_id) do update
 set note = excluded.note;
 ```
 
-Le compte doit ensuite se connecter via Discord sur `/admin/`.
+Le compte peut ensuite se connecter via Discord ou Google sur `/admin/`. L’autorisation reste fondée uniquement sur le même `auth.users.id` présent dans `analytics_admins`.
 
 ## Tables de collecte
 

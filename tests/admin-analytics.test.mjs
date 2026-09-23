@@ -92,10 +92,14 @@ test('retention cohorts start at analytics tracking date and use verified daily 
   assert.match(block, /cohort_date <= current_date - 30/i);
 });
 
-test('admin dashboard uses the existing Discord session with authenticated RPCs and no server secret', () => {
+test('admin dashboard uses the existing OAuth session with authenticated RPCs and no server secret', () => {
   assert.match(html, /<script src="\.\.\/config\.js"><\/script>/);
   assert.match(html, /src="\.\.\/src\/admin\/dashboard\.js"/);
   assert.match(dashboard, /new AuthClient/);
+  assert.match(dashboard, /signInWithDiscord/);
+  assert.match(dashboard, /signInWithProvider\('google'\)/);
+  assert.match(html, /sign-in-discord/);
+  assert.match(html, /sign-in-google/);
   assert.match(dashboard, /new AnalyticsClient/);
   assert.match(client, /is_analytics_admin/);
   assert.match(client, /admin_analytics_overview/);

@@ -8,7 +8,7 @@ The goal is not to create another Flappy Bird-inspired clone, but to **reproduce
 
 Gameplay runs entirely client-side without a framework and can be installed as an application on Windows, iPhone/iPad and Android. Optional community features use Supabase; no account is required to play.
 
-> **Project status: beta — v0.2.7.4b-dev9**
+> **Project status: beta — v0.2.7.4b-dev10**
 
 - Player statistics: career + 10 / 25 / 50-run windows derived only from verified runs.
 > On ProMotion iPhone/iPad devices, the Performance options include guidance for the Safari setting that can remove the near-60 Hz page-rendering preference.
@@ -24,8 +24,8 @@ Gameplay runs entirely client-side without a framework and can be installed as a
 - Automatic PWA updates downloaded in the background without interrupting an active run.
 - Installable PWA on Windows, iOS/iPadOS and Android.
 - Local high-score persistence.
-- Optional Discord sign-in through Supabase Auth with a cross-platform player profile.
-- A dedicated **Profile** modal owns the complete user-authentication surface: avatar, identity, sync status, best score, Discord sign-in/sign-out and a new **Linked accounts** view. The account-linking foundation is provider-agnostic and keeps the existing `auth.users.id` / game profile intact; Discord is still the only provider exposed in this build.
+- Optional Discord or Google sign-in through Supabase Auth with a cross-platform player profile.
+- A dedicated **Profile** modal owns the complete user-authentication surface: Discord/Google sign-in, avatar, identity, sync status, best score, sign-out and a **Connections** view. Signed-in players can link the missing provider to the same `auth.users.id`, preserving the existing game profile, record, runs and statistics.
 - Existing-account preservation and the future multi-provider flow are documented in [`docs/ACCOUNT-LINKING.md`](./docs/ACCOUNT-LINKING.md).
 - Cross-device best-score sync that always keeps the highest value.
 - Verified Runs: server-issued ticket/seed, deterministic capture, self-healing local queue, deferred submission, and authoritative replay before a score is accepted or rejected.
@@ -47,7 +47,7 @@ Gameplay runs entirely client-side without a framework and can be installed as a
 - Diagnostic tools are split into collapsible sections, include an internal close control and keep browser-native dark selectors.
 - Complementary atlas versioned through `assets/customatlas.json`, kept separate from the original atlas to preserve the 1:1 reference assets and gameplay behaviour. Home / Options / Profile use atlas sprites rendered at **1.75x** with a compact **60 × 60** hit area; user-facing modal close buttons use `button_close` at **1x**. All user authentication (sign-in, session status and sign-out) now lives in Profile, never in Options.
 - Frontend split into domain-focused ES modules: `main.js` orchestrates the game while authentication, Supabase clients, leaderboard UI, Verified Play, replay recording, the local run queue, UI transitions, toasts, score synchronisation and PWA updates live in focused modules that can be tested independently.
-- Private **Admin Analytics** dashboard under `site/admin/`: active players, DAU/WAU/MAU, runs per day/player, records, average score, verified play time, death causes, D0/D1/D7/D30 retention and verified-run lifecycle metrics. Access requires Discord Auth plus a PostgreSQL allow-list and never exposes a server secret.
+- Private **Admin Analytics** dashboard under `site/admin/`: active players, DAU/WAU/MAU, runs per day/player, records, average score, verified play time, death causes, D0/D1/D7/D30 retention and verified-run lifecycle metrics. Access accepts Discord or Google Auth and then applies the same PostgreSQL allow-list by `auth.users.id`; no server secret is exposed.
 - Daily Analytics tracking starts when `010_admin_analytics.sql` is applied: existing lifetime counters stay authoritative, but no fake historical play-time/retention is reconstructed from runs already pruned by 50 + record retention.
 
 ---
@@ -325,13 +325,15 @@ The PWA automatically checks [`site/version.json`](./site/version.json) at launc
 
 There is no application build step. Serve the `site/` directory with any static HTTP server.
 
-The game works without community configuration. To test Discord/Supabase locally, copy the template and fill in the two public values:
+The game works without community configuration. To test Supabase OAuth locally, copy the template and fill in the two public values:
 
 ```powershell
 Copy-Item .\site\config.example.js .\site\config.js
 ```
 
 `site/config.js` is ignored by Git.
+
+Google provider setup (Google Cloud, Supabase callback and manual linking) is documented in [`docs/AUTH-GOOGLE.md`](./docs/AUTH-GOOGLE.md).
 
 Example with Python 3:
 

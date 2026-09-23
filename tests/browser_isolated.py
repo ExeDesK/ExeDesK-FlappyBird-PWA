@@ -276,16 +276,14 @@ def main() -> None:
         assert press_probe['pressedAfterFastClick']
         assert not press_probe['dialogOpenImmediately']
 
-        # Profile owns the whole authentication surface. Discord is still the
-        # only provider exposed to users. The generic account-linking foundation
-        # is present, but no second-provider link/unlink action is exposed yet.
+        # Profile owns the whole authentication surface. Signed-out users can
+        # choose Discord or Google; linking actions live only inside Profile.
         page.wait_for_selector('#profile-dialog', state='visible')
         assert page.locator('#profile-dialog #discord-login').count() == 1
+        assert page.locator('#profile-dialog #google-login').count() == 1
         assert page.locator('#profile-dialog #discord-logout').count() == 1
         assert page.locator('#profile-dialog #account-linked-identities').count() == 1
         assert page.locator('#profile-dialog #linked-identities-list').count() == 1
-        assert page.locator('#profile-dialog button[id*=link]').count() == 0
-        assert page.locator('#profile-dialog button[id*=unlink]').count() == 0
         assert not page.is_hidden('#account-signed-out')
         assert page.is_hidden('#account-signed-in')
         assert page.is_hidden('#account-linked-identities')
@@ -377,6 +375,7 @@ def main() -> None:
         assert page.locator('#debug-access').count() == 1
         assert page.locator('a.footer-link').get_attribute('href') == 'https://github.com/ExeDesK/FlappyBird-PWA'
         assert page.locator('#options #discord-login').count() == 0
+        assert page.locator('#options #google-login').count() == 0
         assert page.locator('#options #discord-logout').count() == 0
         assert page.locator('#options #connection-status').count() == 0
         assert page.locator('#options #account-signed-out').count() == 0

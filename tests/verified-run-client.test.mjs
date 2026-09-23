@@ -6,7 +6,7 @@ import {
   verifiedRunStartMode,
 } from '../site/src/verified-run-client.js';
 
-test('only a Discord session gates PLAY behind a ticket or offline warning', () => {
+test('only an authenticated session gates PLAY behind a ticket or offline warning', () => {
   assert.equal(verifiedRunStartMode({ hasSession: false, online: true }), 'local');
   assert.equal(verifiedRunStartMode({ hasSession: false, online: false }), 'local');
   assert.equal(verifiedRunStartMode({ hasSession: true, online: true }), 'ticket');

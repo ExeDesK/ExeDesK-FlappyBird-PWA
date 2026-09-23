@@ -35,7 +35,7 @@ export class AnalyticsClient {
 
     const token = await asAccessToken(
       this.getAccessToken,
-      'Connexion Discord requise pour accéder aux Analytics.',
+      'Connexion requise pour accéder aux Analytics.',
     );
     const response = await fetch(`${this.url}/rest/v1/rpc/${name}`, {
       method: 'POST',

@@ -593,14 +593,28 @@ body {
   text-transform: uppercase;
 }
 
-#profile-dialog .discord-login,
+#profile-dialog .provider-login-actions {
+  display: grid;
+  gap: 8px;
+}
+
+#profile-dialog .provider-auth-button,
 #profile-dialog #discord-logout {
   width: 100%;
 }
 
 #profile-dialog .discord-login {
-  margin-top: 8px;
   background: #ded39c;
+}
+
+#profile-dialog .google-login {
+  background: #fff9dc;
+}
+
+#profile-dialog .provider-existing-account-hint {
+  margin-top: 9px;
+  padding-top: 8px;
+  border-top: 2px dashed #b39555;
 }
 
 #leaderboard-dialog {
@@ -1304,6 +1318,21 @@ noscript {
 .linked-identity-status {
   color: var(--flappy-green-dark);
   font-size: 8px;
+}
+
+#profile-dialog .identity-link-action {
+  min-width: 62px;
+  padding: 5px 7px;
+  border-width: 2px;
+  box-shadow:
+    inset 0 2px 0 #ffeaa0,
+    inset 0 -2px 0 var(--flappy-yellow-dark),
+    2px 2px 0 #6f4b22;
+  font-size: 8px;
+}
+
+.linked-identity-row.is-unlinked {
+  background: #eadca9;
 }
 
 .profile-actions {

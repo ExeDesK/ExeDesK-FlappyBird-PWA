@@ -380,7 +380,7 @@ export class AuthClient {
 
     if (!response.ok) {
       // Authentication is valid even if the optional profile table has not yet
-      // been provisioned. Use Discord metadata locally and surface the DB issue.
+      // been provisioned. Use provider metadata locally and surface the DB issue.
       this.error = `Profil Supabase non initialisé (HTTP ${response.status}).`;
       return fallback;
     }

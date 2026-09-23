@@ -69,6 +69,7 @@ a { color: inherit; }
 }
 .gate h2 { margin: 0 0 8px; font-size: 1.7rem; }
 .gate p { max-width: 720px; }
+.gate-actions { display: flex; gap: 10px; flex-wrap: wrap; justify-content: flex-end; }
 
 .button {
   display: inline-flex;

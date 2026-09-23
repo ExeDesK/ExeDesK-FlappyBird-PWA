@@ -13,12 +13,12 @@ La phase 1, versionnée sous `v0.2.7.2b-dev1`, pose la fondation commune au clie
 
 La phase 2, versionnée sous `v0.2.7.2b-dev2`, raccorde cette fondation à l’interface :
 
-- une session Discord en ligne demande un ticket à chaque clic sur PLAY ;
+- une session authentifiée en ligne demande un ticket à chaque clic sur PLAY ;
 - le jeu actif est remplacé par le départ READY canonique construit depuis la seed serveur ;
 - le premier tap efficace devient le tick `0` et les suivants sont enregistrés jusqu’à la collision ;
 - la soumission minimale terminée est conservée dans une file locale bornée à 50 runs ;
-- une session Discord hors ligne, ou une erreur de ticket, affiche un avertissement avant toute partie locale non classée ;
-- un joueur sans session Discord conserve le chemin local historique sans avertissement.
+- une session authentifiée hors ligne, ou une erreur de ticket, affiche un avertissement avant toute partie locale non classée ;
+- un joueur sans session authentifiée conserve le chemin local historique sans avertissement.
 
 La phase 3, versionnée sous `v0.2.7.2b-dev3`, ferme la boucle de vérification :
 

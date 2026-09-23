@@ -63,7 +63,7 @@ test('leaderboard payload is normalized and keeps one unique player per row', ()
   );
 });
 
-test('public leaderboard RPC works without a Discord session', async () => {
+test('public leaderboard RPC works without an authenticated session', async () => {
   const restoreNavigator = installNavigator(true);
   const previousFetch = globalThis.fetch;
   let request = null;

@@ -8,7 +8,7 @@ L'objectif n'est pas de produire un simple clone « inspiré de » Flappy Bird, 
 
 Le gameplay fonctionne entièrement côté client, sans framework, et peut être installé comme une application sur Windows, iPhone/iPad et Android. Les fonctions communautaires utilisent un backend Supabase facultatif : aucun compte n'est nécessaire pour jouer.
 
-> **État du projet : bêta — v0.2.7.4b-dev9**
+> **État du projet : bêta — v0.2.7.4b-dev10**
 
 - Statistiques joueur : carrière + fenêtres 10 / 25 / 50 calculées uniquement depuis les runs vérifiées.
 > Sur iPhone/iPad ProMotion, un statut dynamique dans les options Performance mesure la cadence rAF sur iOS : il confirme la haute fréquence lorsqu’elle est active, sinon il propose le réglage Safari et un tutoriel au timecode utile.
@@ -24,9 +24,9 @@ Le gameplay fonctionne entièrement côté client, sans framework, et peut être
 - Mises à jour PWA automatiques, téléchargées en arrière-plan sans interrompre une partie.
 - Installation PWA sur Windows, iOS/iPadOS et Android.
 - Sauvegarde locale du meilleur score.
-- Connexion Discord facultative via Supabase Auth et profil joueur cross-platform.
-- Une modale **Profil** dédiée regroupe toute l'authentification utilisateur : connexion Discord, avatar, identité, état de synchronisation, meilleur score, déconnexion et désormais la liste **Comptes liés**. L'infrastructure d'account linking est provider-agnostic et conserve le même `auth.users.id` / profil existant ; Discord reste le seul provider exposé dans cette version, sans second bouton OAuth.
-- La stratégie de conservation des comptes et le futur linking multi-provider sont documentés dans [`docs/ACCOUNT-LINKING.md`](./docs/ACCOUNT-LINKING.md).
+- Connexion facultative via **Discord ou Google** avec Supabase Auth et profil joueur cross-platform.
+- Une modale **Profil** dédiée regroupe toute l'authentification utilisateur : connexion Discord/Google, avatar, identité, état de synchronisation, meilleur score, déconnexion et section **Connexions**. Un joueur connecté peut lier le provider manquant au **même `auth.users.id`**, sans déplacer son profil, son record, ses runs ou ses statistiques.
+- La stratégie de conservation des comptes et le linking multi-provider sont documentés dans [`docs/ACCOUNT-LINKING.md`](./docs/ACCOUNT-LINKING.md). La configuration Google Cloud/Supabase est détaillée dans [`docs/AUTH-GOOGLE.md`](./docs/AUTH-GOOGLE.md).
 - Synchronisation du meilleur score entre appareils en conservant toujours la valeur la plus élevée.
 - Verified Runs : ticket/seed serveur, capture déterministe, file locale auto-réparante, soumission différée et relecture autoritaire avant validation ou rejet du score.
 - Classement global public dans une modale dédiée : consultation sans compte, uniquement des runs vérifiés et un seul meilleur score par joueur.
@@ -47,7 +47,7 @@ Le gameplay fonctionne entièrement côté client, sans framework, et peut être
 - Les outils de diagnostic sont organisés en sections repliables, disposent d'une fermeture interne et utilisent les contrôles natifs sombres du navigateur pour les sélecteurs.
 - Atlas complémentaire versionné par `assets/customatlas.json`, séparé de l’atlas original pour préserver la parité graphique et comportementale de référence. Les boutons Home / Options / Profil utilisent les sprites de cet atlas en **x1,75** avec une hitbox compacte **60 × 60** ; les fermetures des modales utilisateur utilisent `button_close` en **x1**. Toute l’authentification utilisateur (connexion, état de session et déconnexion) vit désormais dans la modale Profil, jamais dans Options.
 - Frontend découpé en modules ES par domaine : `main.js` orchestre le jeu, tandis que l’authentification, les clients Supabase, le leaderboard, les Verified Runs, les replays, la file locale, les transitions UI, les toasts, la synchronisation du score et les mises à jour PWA vivent dans des modules ciblés et testables séparément.
-- Dashboard privé **Admin Analytics** sous `site/admin/` : joueurs actifs, DAU/WAU/MAU, runs par jour et par joueur, records, score moyen, temps de jeu vérifié, causes de mort, rétention D0/D1/D7/D30 et métriques de lifecycle des tickets. L’accès combine Discord Auth + allow-list PostgreSQL et n’expose aucune clé serveur.
+- Dashboard privé **Admin Analytics** sous `site/admin/` : joueurs actifs, DAU/WAU/MAU, runs par jour et par joueur, records, score moyen, temps de jeu vérifié, causes de mort, rétention D0/D1/D7/D30 et métriques de lifecycle des tickets. L’accès accepte une session Discord ou Google puis applique la même allow-list PostgreSQL par `auth.users.id`; aucune clé serveur n’est exposée.
 - Les Analytics quotidiennes démarrent à l’application de `010_admin_analytics.sql` : les compteurs lifetime déjà stockés restent exacts, mais aucun faux historique de temps de jeu/rétention n’est reconstruit à partir des runs déjà supprimées par la politique 50 + record.
 
 ---
@@ -152,7 +152,7 @@ site/
 │   │   └── toast.js                Toasts Top Layer
 │   ├── atlas.js            Rendu Canvas, atlas original + custom et interpolation
 │   ├── audio.js            Gestion audio
-│   ├── auth.js             OAuth Discord, session Supabase et profil uniquement
+│   ├── auth.js             OAuth Discord/Google, session Supabase et profil uniquement
 │   ├── clock.js            Horloge de simulation 60 Hz
 │   ├── display.js          Modes d'affichage et dimensions
 │   ├── game.js             Gameplay et machine d'états
@@ -325,13 +325,15 @@ La PWA vérifie automatiquement [`site/version.json`](./site/version.json) au la
 
 Il n'y a pas de build applicatif à effectuer. Il suffit de servir le dossier `site/` avec un serveur HTTP statique.
 
-Le jeu fonctionne sans configuration communautaire. Pour tester Discord/Supabase en local, copier le modèle puis renseigner les deux valeurs publiques :
+Le jeu fonctionne sans configuration communautaire. Pour tester l’auth Supabase en local, copier le modèle puis renseigner les deux valeurs publiques :
 
 ```powershell
 Copy-Item .\site\config.example.js .\site\config.js
 ```
 
 `site/config.js` est ignoré par Git.
+
+La configuration du provider Google (Google Cloud, callback Supabase et manual linking) est détaillée dans [`docs/AUTH-GOOGLE.md`](./docs/AUTH-GOOGLE.md).
 
 Exemple avec Python 3 :
 

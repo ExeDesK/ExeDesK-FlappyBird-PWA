@@ -112,7 +112,7 @@ test('completed verified runs flush automatically without trusting a client scor
   assert.doesNotMatch(submitMethod, /JSON\.stringify\([^)]*(seed|score)/);
 });
 
-test('Discord community auth uses deploy-time runtime config and ships no server secret', () => {
+test('OAuth community auth uses deploy-time runtime config and ships no server secret', () => {
   const auth = read('site/src/auth.js');
   const identityLinking = read('site/src/auth/identity-linking.js');
   const main = read('site/src/main.js');
@@ -134,6 +134,7 @@ test('Discord community auth uses deploy-time runtime config and ships no server
   assert.match(example, /YOUR_PROJECT_REF/);
   assert.match(example, /sb_publishable_YOUR_PUBLIC_KEY/);
   assert.match(auth, /signInWithProvider\('discord'\)/);
+  assert.match(main, /signInWithProvider\('google'\)/);
   assert.match(auth, /auth\/v1\/user/);
   assert.match(identityLinking, /auth\/v1\/user\/identities\/authorize/);
   assert.match(identityLinking, /skip_http_redirect/);

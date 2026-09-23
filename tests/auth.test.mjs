@@ -75,6 +75,22 @@ test('Discord login targets Supabase authorize endpoint and the GitHub Pages cal
   }
 });
 
+test('Google login targets Supabase authorize endpoint with the same GitHub Pages callback', () => {
+  const browser = installBrowser();
+  try {
+    const auth = new AuthClient({ ...config, storage: new MemoryStorage() });
+    auth.signInWithProvider('google');
+    const url = new URL(browser.assigned);
+    assert.equal(url.origin, 'https://project-ref.supabase.co');
+    assert.equal(url.pathname, '/auth/v1/authorize');
+    assert.equal(url.searchParams.get('provider'), 'google');
+    assert.equal(url.searchParams.get('redirect_to'), 'https://exedesk.github.io/FlappyBird-PWA/');
+    assert.equal(url.searchParams.get('scopes'), 'openid email profile');
+  } finally {
+    browser.restore();
+  }
+});
+
 
 test('legacy Discord accounts keep the same canonical user id and are exposed as one linked identity', () => {
   const auth = new AuthClient({ ...config, storage: new MemoryStorage() });
@@ -159,6 +175,57 @@ test('manual identity linking uses the authenticated Supabase identity endpoint 
     assert.equal(auth.user.id, 'existing-user-uuid');
     assert.equal(auth.profile.id, 'existing-user-uuid');
     assert.equal(JSON.parse(storage.getItem(AUTH_LINK_INTENT_KEY)).provider, 'discord');
+  } finally {
+    globalThis.fetch = previousFetch;
+    browser.restore();
+  }
+});
+
+test('an existing Discord profile can link Google without changing its canonical user id', async () => {
+  const browser = installBrowser();
+  const previousFetch = globalThis.fetch;
+  const storage = new MemoryStorage();
+  let request = null;
+  globalThis.fetch = async (input, init = {}) => {
+    request = { url: String(input), init };
+    return new Response(JSON.stringify({
+      url: 'https://accounts.google.com/o/oauth2/v2/auth?client_id=test',
+    }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+  };
+
+  try {
+    const auth = new AuthClient({ ...config, storage });
+    auth.session = {
+      accessToken: 'access',
+      refreshToken: 'refresh',
+      tokenType: 'bearer',
+      expiresAt: Date.now() + 3600000,
+    };
+    auth.user = {
+      id: 'existing-discord-user',
+      identities: [{ identity_id: 'identity-discord', provider: 'discord' }],
+    };
+    auth.profile = {
+      id: 'existing-discord-user',
+      username: 'birdplayer',
+      display_name: 'Bird Player',
+      avatar_url: null,
+      best_score: 99,
+    };
+
+    await auth.linkIdentity('google');
+
+    const url = new URL(request.url);
+    assert.equal(url.pathname, '/auth/v1/user/identities/authorize');
+    assert.equal(url.searchParams.get('provider'), 'google');
+    assert.equal(url.searchParams.get('redirect_to'), 'https://exedesk.github.io/FlappyBird-PWA/');
+    assert.equal(url.searchParams.get('skip_http_redirect'), 'true');
+    assert.equal(url.searchParams.get('scopes'), 'openid email profile');
+    assert.equal(request.init.headers.Authorization, 'Bearer access');
+    assert.equal(browser.assigned, 'https://accounts.google.com/o/oauth2/v2/auth?client_id=test');
+    assert.equal(auth.user.id, 'existing-discord-user');
+    assert.equal(auth.profile.id, 'existing-discord-user');
+    assert.equal(JSON.parse(storage.getItem(AUTH_LINK_INTENT_KEY)).provider, 'google');
   } finally {
     globalThis.fetch = previousFetch;
     browser.restore();
@@ -324,6 +391,24 @@ test('Discord user metadata provides a profile fallback if the profile table is 
     username: 'flappyfan',
     display_name: 'Flappy Fan',
     avatar_url: 'https://cdn.example/fan.png',
+    best_score: 0,
+  });
+});
+
+test('Google user metadata provides a profile fallback for new Google-first players', () => {
+  assert.deepEqual(profileFromUser({
+    id: 'google-user',
+    email: 'google.player@example.test',
+    user_metadata: {
+      full_name: 'Google Player',
+      name: 'Google Player',
+      picture: 'https://cdn.example/google-player.png',
+    },
+  }), {
+    id: 'google-user',
+    username: 'Google Player',
+    display_name: 'Google Player',
+    avatar_url: 'https://cdn.example/google-player.png',
     best_score: 0,
   });
 });

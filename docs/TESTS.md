@@ -1,9 +1,16 @@
+## v0.2.7.4b-dev10 — Google OAuth & account linking
+
+- `tests/auth.test.mjs` couvre la connexion Google, les scopes OAuth, la liaison Google depuis un compte Discord existant sans changement d'UUID, les métadonnées de profil Google et les garde-fous de linking.
+- Le garde-fou architectural maintient `auth.js` à **450 lignes maximum** et isole toujours la logique provider dans `auth/identity-linking.js` (**320 lignes maximum**).
+- Le smoke test Chromium vérifie que Discord et Google sont présents uniquement dans Profil et qu'Options reste totalement exempt d'authentification.
+- Admin Analytics expose également les deux providers tout en conservant l'allow-list par `auth.users.id`.
+- Le cache PWA reste à **53 ressources runtime** : aucun SDK Google ni asset réseau supplémentaire n'est ajouté.
+- Suite complète : `npm test` **173/173** + smoke tests gameplay et Admin **OK**.
+
 ## v0.2.7.4b-dev9 — Account linking foundation
 
-- `tests/auth.test.mjs` vérifie la conservation de l'UUID joueur des comptes Discord existants, la normalisation des identités, l'endpoint manuel `/auth/v1/user/identities/authorize`, le retour OAuth de linking et l'interdiction de délier le dernier moyen de connexion.
-- Le garde-fou architectural maintient `auth.js` à **450 lignes maximum** et isole la logique provider dans `auth/identity-linking.js` (**320 lignes maximum**).
-- Le smoke test Chromium vérifie que toute l'auth reste dans Profil, que la zone **COMPTES LIÉS** est présente sans exposer de bouton de second provider et qu'Options reste exempt d'authentification.
-- Le cache PWA passe à **53 ressources runtime** avec `auth/identity-linking.js`.
+- Fondation provider-agnostic de l'identity linking, compatibilité des comptes Discord historiques et conservation de l'UUID canonique.
+- Aucun second provider n'était encore exposé dans l'interface.
 
 ## v0.2.7.4b-dev8 — RATE unavailable toast
 
@@ -24,7 +31,7 @@
 - Suite complète : `npm test` **164/164** + `python tests/browser_isolated.py` **OK, 0 erreur page**.
 
 - `tests/themes.test.mjs` verrouille le nouvel atlas 1854×514 et exige `button_close`, `button_home`, `button_options` et `button_profile`.
-- Le smoke test Chromium vérifie le bouton Profil sur HOME à gauche de Menu, son absence hors HOME, l'absence totale d'auth dans Options, la présence de la connexion/déconnexion Discord uniquement dans Profil, l'absence de linking, les utilitaires en x1,75 et les fermetures atlas en x1.
+- Le smoke test Chromium vérifie le bouton Profil sur HOME à gauche de Menu, son absence hors HOME, l'absence totale d'auth dans Options, la présence de la connexion/déconnexion dans Profil, les utilitaires en x1,75 et les fermetures atlas en x1.
 - Les modales masquent les utilitaires de HOME tant qu'elles sont ouvertes.
 - Suite complète : `npm test` **159/159** + `python tests/browser_isolated.py` **OK, 0 erreur page**.
 
@@ -44,7 +51,7 @@
 - Le cache PWA reste à **51 ressources runtime** : le changement backend n'ajoute aucun asset client, mais le build Service Worker est incrémenté pour publier la nouvelle version.
 - Suite complète : `npm test` (**152/152**) + `python tests/browser_isolated.py` (**OK, 0 erreur page**).
 
-# Rapport de tests - v0.2.7.4b-dev9
+# Rapport de tests - v0.2.7.4b-dev10
 
 ## Résultat
 
@@ -158,7 +165,7 @@ Des contrôles statiques vérifient également que :
 
 ## Intégration PLAY classé (v0.2.7.2b-dev2)
 
-Les tests client vérifient les trois décisions de départ : jeu local sans session, ticket en ligne avec session Discord et avertissement hors ligne. Ils couvrent aussi l’interception exacte du relâchement de PLAY, le tick `0` indépendant du temps passé sur READY, la capture jusqu’à la collision et la file locale dédupliquée/bornée.
+Les tests client vérifient les trois décisions de départ : jeu local sans session, ticket en ligne avec session authentifiée et avertissement hors ligne. Ils couvrent aussi l’interception exacte du relâchement de PLAY, le tick `0` indépendant du temps passé sur READY, la capture jusqu’à la collision et la file locale dédupliquée/bornée.
 
 Un contrôle statique garantit que l’interface appelle bien `run-start`, construit le moteur canonique, attache l’enregistreur et exige une confirmation explicite avant le fallback non classé.
 
@@ -176,7 +183,7 @@ Ils vérifient aussi qu’une nouvelle soumission ne peut pas être mise en file
 
 ## Leaderboard public vérifié (v0.2.7.3b-dev2)
 
-Les tests dédiés valident que la RPC `get_leaderboard()` est appelable sans session Discord et n'envoie aucun header `Authorization`. Ils vérifient également que la migration SQL filtre strictement `status = 'verified'`, choisit un seul meilleur score par `player_id`, accorde l'exécution à `anon`/`authenticated` et ne publie aucun champ de replay interne.
+Les tests dédiés valident que la RPC `get_leaderboard()` est appelable sans session authentifiée et n'envoie aucun header `Authorization`. Ils vérifient également que la migration SQL filtre strictement `status = 'verified'`, choisit un seul meilleur score par `player_id`, accorde l'exécution à `anon`/`authenticated` et ne publie aucun champ de replay interne.
 
 Le parser frontend refuse les joueurs dupliqués et les rangs/scores/timestamps invalides. Un contrôle statique garantit enfin que le classement vit dans une modale dédiée, que la mention de connexion reste visible pour les visiteurs et que le bouton SCORES original ouvre directement cette modale.
 

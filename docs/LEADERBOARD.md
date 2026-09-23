@@ -2,7 +2,7 @@
 
 ## Objectif
 
-Le classement global est consultable par tous les visiteurs, avec ou sans session Discord. Il ne fait jamais confiance au record local ou au champ historique `profiles.best_score` : sa seule source d'autorité est `public.verified_runs`.
+Le classement global est consultable par tous les visiteurs, avec ou sans session authentifiée. Il ne fait jamais confiance au record local ou au champ historique `profiles.best_score` : sa seule source d'autorité est `public.verified_runs`.
 
 ## Source de données
 
@@ -49,7 +49,7 @@ Le joueur courant est surligné lorsqu'il apparaît dans le Top 100. Un bouton `
 
 ## Hors connexion réseau
 
-La PWA reste jouable hors connexion, mais le classement global est une donnée communautaire distante et ne peut pas être actualisé sans réseau. Le terme "déconnecté" pour cette phase signifie donc principalement "sans session Discord". Un cache persistant du dernier classement pourra être ajouté ultérieurement si ce comportement est souhaité.
+La PWA reste jouable hors connexion, mais le classement global est une donnée communautaire distante et ne peut pas être actualisé sans réseau. Le terme "déconnecté" pour cette phase signifie donc principalement "sans session authentifiée". Un cache persistant du dernier classement pourra être ajouté ultérieurement si ce comportement est souhaité.
 
 
 ## Statistiques lifetime autoritaires

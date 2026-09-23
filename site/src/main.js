@@ -28,7 +28,7 @@ import {
 } from './themes.js';
 import { createCanonicalRunGame } from './verified-runs.js';
 
-const VERSION = '0.2.7.4b-dev9';
+const VERSION = '0.2.7.4b-dev10';
 const BEST_SCORE_KEY = 'flappy13-personal-best-v1';
 const SETTINGS_KEY = 'flappy13-settings-v1';
 const runtimeConfig = globalThis.FLAPPY_CONFIG && typeof globalThis.FLAPPY_CONFIG === 'object'
@@ -79,11 +79,28 @@ const leaderboardUI = new LeaderboardUI({
   toast,
   getElement: $,
 });
+async function linkAccountProvider(provider) {
+  try {
+    await auth.linkIdentity(provider);
+  } catch (error) {
+    const label = providerLabel(provider);
+    const message = String(error?.message || error || 'erreur OAuth');
+    const friendly = /already.*linked|identity.*exists|already.*registered/i.test(message)
+      ? `Ce compte ${label} est déjà lié à un autre profil. Connecte-toi avec ce compte pour retrouver son profil, ou utilise un autre compte ${label}.`
+      : /manual.*link|linking.*disabled/i.test(message)
+        ? 'La liaison de comptes doit être activée dans Supabase Auth avant de pouvoir ajouter un second moyen de connexion.'
+        : `Impossible de lier ${label} : ${message}`;
+    toast(friendly, 7000);
+    throw error;
+  }
+}
+
 const accountUI = new AccountUI({
   auth,
   getBest: () => best,
   getScoreSyncState: () => scoreSync.snapshot(),
   getElement: $,
+  onLinkProvider: linkAccountProvider,
 });
 const scoreSync = new ScoreSyncController({
   auth,
@@ -382,6 +399,14 @@ leaderboardUI.render();
 $('discord-login').onclick = () => {
   try {
     auth.signInWithDiscord();
+  } catch (error) {
+    toast(error.message);
+  }
+};
+
+$('google-login').onclick = () => {
+  try {
+    auth.signInWithProvider('google');
   } catch (error) {
     toast(error.message);
   }
@@ -1477,7 +1502,14 @@ async function boot() {
         toast(`${providerLabel(auth.callbackProvider)} est maintenant lié à ce profil.`);
       } else if (auth.callbackResult === 'identity_link_error') {
         openProfile();
-        toast(`Impossible de lier ${providerLabel(auth.callbackProvider)} : ${auth.error || 'erreur OAuth'}`);
+        const label = providerLabel(auth.callbackProvider);
+        const message = String(auth.error || 'erreur OAuth');
+        toast(
+          /already.*linked|identity.*exists|already.*registered/i.test(message)
+            ? `Ce compte ${label} est déjà lié à un autre profil. Aucun compte n’a été fusionné ou remplacé.`
+            : `Impossible de lier ${label} : ${message}`,
+          7000,
+        );
       } else if (auth.callbackResult === 'error') {
         toast(`Connexion impossible : ${auth.error || 'erreur OAuth'}`);
       }

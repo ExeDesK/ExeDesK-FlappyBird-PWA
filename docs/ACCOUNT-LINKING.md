@@ -1,14 +1,16 @@
 # Account linking
 
-## État actuel — v0.2.7.4b-dev9
+## État actuel — v0.2.7.4b-dev10
 
-Le frontend possède désormais une couche d'**identity linking** générique autour de Supabase Auth, mais **Discord reste le seul provider exposé dans l'interface**. Aucun bouton ni configuration Google n'est ajouté dans cette version.
+Discord et Google sont maintenant tous les deux exposés dans la modale **Profil**. Le joueur peut :
 
-L'objectif est de pouvoir ajouter un second fournisseur plus tard sans créer un second profil de jeu ni déplacer les données existantes.
+- se connecter directement avec Discord ;
+- se connecter directement avec Google ;
+- lorsqu'il est déjà connecté, lier le provider manquant au profil courant.
+
+Le principe fondamental reste inchangé : **le profil de jeu est attaché à `auth.users.id`, pas à Discord ni à Google**.
 
 ## Identifiant canonique du joueur
-
-Le joueur reste identifié partout par le même UUID Supabase :
 
 ```text
 auth.users.id
@@ -18,29 +20,85 @@ auth.users.id
     └── analytics / leaderboard / records
 ```
 
-Le linking ajoute ou retire uniquement des **identités Auth** rattachées à cet UUID. Il ne change pas la clé du profil et ne déplace aucune donnée de jeu.
+Le linking ajoute une identité OAuth à cet UUID. Il ne change pas la clé du profil et ne déplace aucune donnée de jeu.
 
-Les comptes Discord créés avant cette version restent donc inchangés. La clé locale `flappy13-auth-v1` est volontairement conservée pour ne pas invalider les sessions déjà présentes dans le navigateur.
+Les comptes Discord existants conservent donc exactement leur UUID, leur record, leurs runs, leurs statistiques et leur historique. La clé locale `flappy13-auth-v1` est volontairement conservée afin de ne pas invalider les sessions déjà stockées.
+
+## Parcours recommandé pour un joueur Discord existant
+
+Pour garantir que Google est ajouté au profil déjà existant :
+
+1. ouvrir **Profil** ;
+2. se connecter avec **Discord** ;
+3. dans **CONNEXIONS**, cliquer sur **LIER** en face de Google ;
+4. terminer le consentement Google ;
+5. revenir sur la PWA : Discord et Google sont alors rattachés au **même `auth.users.id`**.
+
+Le frontend conserve une intention temporaire `flappy13-auth-link-intent-v1` pendant la redirection afin de distinguer une liaison d'une connexion normale.
+
+## Connexion Google directe
+
+Un joueur sans profil peut utiliser **SE CONNECTER AVEC GOOGLE** et obtenir un profil normal.
+
+Supabase Auth peut également effectuer un **automatic linking** si le compte Google utilise la même adresse e-mail vérifiée qu'un utilisateur OAuth existant. Ce comportement appartient à Supabase Auth.
+
+En revanche, si les adresses Discord et Google sont différentes, une connexion Google effectuée alors que le joueur est déconnecté peut créer un second `auth.users.id`. C'est pourquoi l'interface indique explicitement aux joueurs possédant déjà un profil Discord de se reconnecter d'abord avec Discord puis d'utiliser **LIER**.
+
+## Aucun merge destructif
+
+Si l'identité Google choisie appartient déjà à un autre utilisateur Supabase, la liaison échoue. La PWA :
+
+- ne remplace aucun UUID ;
+- ne transfère aucun record automatiquement ;
+- ne fusionne pas deux lignes `profiles` ;
+- ne déplace aucune Verified Run.
+
+Un message utilisateur indique que ce compte Google appartient déjà à un autre profil.
+
+## Interface Profil
+
+Déconnecté :
+
+```text
+SE CONNECTER AVEC DISCORD
+SE CONNECTER AVEC GOOGLE
+```
+
+Connecté avec Discord seulement :
+
+```text
+CONNEXIONS
+DISCORD    LIÉ
+GOOGLE     [ LIER ]
+```
+
+Connecté avec Google seulement :
+
+```text
+CONNEXIONS
+DISCORD    [ LIER ]
+GOOGLE     LIÉ
+```
+
+Connecté avec les deux :
+
+```text
+CONNEXIONS
+DISCORD    LIÉ
+GOOGLE     LIÉ
+```
+
+Le unlink reste pris en charge par la couche Auth mais **aucun bouton DÉLIER n'est encore exposé dans l'interface**. Cela évite les suppressions accidentelles pendant cette première intégration Google.
 
 ## Architecture frontend
 
-`site/src/auth.js` reste propriétaire de la session et du profil. La gestion spécifique des identités est isolée dans :
+`site/src/auth.js` conserve la session, le callback OAuth et le profil. Les identités sont isolées dans :
 
 ```text
 site/src/auth/identity-linking.js
 ```
 
-Ce module fournit :
-
-- normalisation des identités retournées par `/auth/v1/user` ;
-- compatibilité avec les anciennes sessions Discord en cache ;
-- découverte des providers déjà liés ;
-- préparation d'une liaison OAuth authentifiée ;
-- suivi du provider en cours de liaison pendant la redirection OAuth ;
-- suppression d'une identité existante ;
-- garde-fou empêchant de délier le dernier moyen de connexion.
-
-`AuthClient` expose désormais une API provider-agnostic :
+API principale :
 
 ```js
 signInWithProvider(provider, options)
@@ -49,38 +107,15 @@ unlinkIdentity(identityId)
 linkedIdentities()
 ```
 
-`signInWithDiscord()` reste disponible comme wrapper de compatibilité.
+`signInWithDiscord()` reste un wrapper de compatibilité pour le code historique. Google utilise directement l'API provider-agnostic.
 
-## Interface Profil
+## Configuration Supabase requise
 
-Lorsque le joueur est connecté, la modale Profil affiche une section **COMPTES LIÉS** construite depuis les identités du `user` Supabase.
+Pour que le linking fonctionne réellement :
 
-Dans cette version, elle affiche uniquement Discord. Il n'y a volontairement :
+- le provider **Google** doit être activé dans Supabase Auth ;
+- son Client ID et son Client Secret doivent être configurés côté Supabase ;
+- **Allow manual linking** doit être activé ;
+- l'URL GitHub Pages doit être autorisée comme URL de redirection Supabase.
 
-- aucun second provider ;
-- aucun bouton de linking ;
-- aucun bouton de unlink tant qu'un second moyen de connexion n'existe pas.
-
-Le bouton **SE DÉCONNECTER** reste une déconnexion de session complète et ne supprime aucune identité.
-
-## Compatibilité des comptes existants
-
-Aucune migration SQL n'est nécessaire et aucune ligne de `profiles`, `player_stats` ou `verified_runs` n'est recréée.
-
-Pour une ancienne session mise en cache sans tableau `identities`, le client considère temporairement Discord comme identité historique. Dès la prochaine synchronisation en ligne, `/auth/v1/user` fournit la liste canonique gérée par Supabase.
-
-## Future activation d'un second provider
-
-Le parcours prévu est :
-
-1. le joueur se connecte à son profil existant ;
-2. il choisit **Lier <provider>** dans Profil ;
-3. `linkIdentity()` démarre l'OAuth authentifié ;
-4. le provider est rattaché au **même `auth.users.id`** ;
-5. retour sur la PWA et resynchronisation du même profil / record / historique.
-
-Si l'identité cible appartient déjà à un autre utilisateur Supabase, le linking doit échouer : cette version ne tente aucun merge destructif entre deux UUID existants.
-
-## Configuration Supabase
-
-Le linking manuel doit être activé dans la configuration Auth du projet avant d'exposer un bouton de liaison. Cette option peut être activée dès maintenant : elle ne migre ni ne modifie les comptes Discord existants.
+Voir [`AUTH-GOOGLE.md`](./AUTH-GOOGLE.md) pour la configuration complète.

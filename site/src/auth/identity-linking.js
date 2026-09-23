@@ -3,6 +3,7 @@ export const AUTH_LINK_INTENT_KEY = 'flappy13-auth-link-intent-v1';
 const AUTH_LINK_INTENT_TTL_MS = 15 * 60 * 1000;
 const PROVIDER_SCOPES = Object.freeze({
   discord: 'identify email',
+  google: 'openid email profile',
 });
 
 function safeJsonParse(value) {
