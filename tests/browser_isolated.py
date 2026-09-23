@@ -222,9 +222,40 @@ def main() -> None:
         assert profile_box['x'] + profile_box['width'] <= menu_box['x']
         page.screenshot(path=str(output / 'menu.png'))
 
+        # The atlas press state must be pixel-stable horizontally, move down
+        # by exactly one source pixel (1.75 CSS px here), and stay visible long
+        # enough for a very fast touch tap to paint before the modal opens.
+        press_probe = page.evaluate("""
+          () => {
+            const button = document.querySelector('#open-profile');
+            const icon = document.querySelector('#profile-atlas-icon');
+            const before = icon.getBoundingClientRect();
+            button.dispatchEvent(new PointerEvent('pointerdown', {
+              bubbles: true,
+              button: 0,
+              pointerType: 'touch',
+            }));
+            const after = icon.getBoundingClientRect();
+            const clipPath = getComputedStyle(icon).clipPath;
+            button.click();
+            return {
+              beforeX: before.x,
+              afterX: after.x,
+              deltaY: after.y - before.y,
+              clipPath,
+              pressedAfterFastClick: button.classList.contains('atlas-pressed'),
+              dialogOpenImmediately: document.querySelector('#profile-dialog').open,
+            };
+          }
+        """)
+        assert abs(press_probe['afterX'] - press_probe['beforeX']) < 0.01
+        assert abs(press_probe['deltaY'] - 1.75) < 0.05
+        assert '1.75px' in press_probe['clipPath']
+        assert press_probe['pressedAfterFastClick']
+        assert not press_probe['dialogOpenImmediately']
+
         # Profile owns the whole authentication surface. Discord is the only
         # provider for now; there is still no identity-linking UI.
-        page.click('#open-profile')
         page.wait_for_selector('#profile-dialog', state='visible')
         assert page.locator('#profile-dialog #discord-login').count() == 1
         assert page.locator('#profile-dialog #discord-logout').count() == 1
@@ -238,7 +269,35 @@ def main() -> None:
             "document.querySelector('#close-profile-icon').style.height"
         ) == '28px'
         page.screenshot(path=str(output / 'profile.png'))
-        page.click('#close-profile')
+
+        close_probe = page.evaluate("""
+          () => {
+            const button = document.querySelector('#close-profile');
+            const icon = document.querySelector('#close-profile-icon');
+            const before = icon.getBoundingClientRect();
+            button.dispatchEvent(new PointerEvent('pointerdown', {
+              bubbles: true,
+              button: 0,
+              pointerType: 'touch',
+            }));
+            const after = icon.getBoundingClientRect();
+            const clipPath = getComputedStyle(icon).clipPath;
+            button.click();
+            return {
+              beforeX: before.x,
+              afterX: after.x,
+              deltaY: after.y - before.y,
+              clipPath,
+              pressedAfterFastClick: button.classList.contains('atlas-pressed'),
+              dialogOpenImmediately: document.querySelector('#profile-dialog').open,
+            };
+          }
+        """)
+        assert abs(close_probe['afterX'] - close_probe['beforeX']) < 0.01
+        assert abs(close_probe['deltaY'] - 1.0) < 0.05
+        assert '1px' in close_probe['clipPath']
+        assert close_probe['pressedAfterFastClick']
+        assert close_probe['dialogOpenImmediately']
         page.wait_for_selector('#profile-dialog', state='hidden')
 
         page.evaluate(

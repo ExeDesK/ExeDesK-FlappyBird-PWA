@@ -126,9 +126,10 @@ body {
   filter: brightness(1.08);
 }
 
-.utility:active .atlas-utility-icon {
-  height: calc(var(--atlas-height, 49px) - 1px);
-  transform: translate(-50%, calc(-50% + 1px));
+.utility:active .atlas-utility-icon,
+.utility.atlas-pressed .atlas-utility-icon {
+  top: calc(50% + var(--atlas-source-pixel, 1px));
+  clip-path: inset(0 0 var(--atlas-source-pixel, 1px) 0);
 }
 
 .atlas-utility-icon {
@@ -392,9 +393,10 @@ body {
   filter: brightness(1.08);
 }
 
-.atlas-close-button:active .atlas-close-icon {
-  height: calc(var(--atlas-height, 28px) - 1px);
-  transform: translate(-50%, calc(-50% + 1px));
+.atlas-close-button:active .atlas-close-icon,
+.atlas-close-button.atlas-pressed .atlas-close-icon {
+  top: calc(50% + var(--atlas-source-pixel, 1px));
+  clip-path: inset(0 0 var(--atlas-source-pixel, 1px) 0);
 }
 
 .version {

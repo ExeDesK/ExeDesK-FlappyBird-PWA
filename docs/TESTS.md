@@ -1,3 +1,9 @@
+## v0.2.7.4b-dev6 — Press-state atlas pixel-stable
+
+- Le smoke test Chromium vérifie que `Profil` ne se décale pas horizontalement pendant `pointerdown`, descend exactement de **1,75 px CSS** (un pixel source à x1,75) et clippe **1,75 px** en bas.
+- Le même test vérifie `Close` à **1 px** ainsi que la persistance de la classe `atlas-pressed` après un tap tactile très rapide, avant ouverture/fermeture effective de la modale.
+- Le délai minimal du press-state est de **70 ms** ; la logique de clic reste identique une fois cet état visuel affiché.
+
 ## v0.2.7.4b-dev5 — Verified ticket abandonment recovery
 
 - `tests/run-abandonment.test.mjs` vérifie la RPC owner-only d’annulation, l’appel client sur Home depuis READY, l’absence de blocage par nombre de tickets et la rotation serveur à 100 `issued`.
@@ -26,7 +32,7 @@
 - Le cache PWA reste à **51 ressources runtime** : le changement backend n'ajoute aucun asset client, mais le build Service Worker est incrémenté pour publier la nouvelle version.
 - Suite complète : `npm test` (**152/152**) + `python tests/browser_isolated.py` (**OK, 0 erreur page**).
 
-# Rapport de tests - v0.2.7.4b-dev5
+# Rapport de tests - v0.2.7.4b-dev6
 
 ## Résultat
 
@@ -34,7 +40,7 @@
 - Le bundle concaténé utilisé par le smoke test passe le contrôle de syntaxe JavaScript.
 - Le smoke test Chromium isolé passe sans erreur page et couvre aussi la composition des nouveaux modules ES, le catalogue dynamique, le thème Vietnam jour/nuit, le panneau diagnostic repliable, la modale Profil, les boutons utilitaires x1,75 et le module d’abandon de ticket Verified Run.
 - Le smoke test Admin Analytics dédié passe également sans erreur page avec Auth/RPC Supabase mockés et couvre les vues Overview, Joueurs, Rétention et Système.
-- Le cache PWA contient **51 ressources** et refuse de se déclarer complet si une ressource de précache manque.
+- Le cache PWA contient **52 ressources** et refuse de se déclarer complet si une ressource de précache manque.
 - `version.json` reste volontairement hors du cache du Service Worker afin de servir de sonde réseau réelle pour la mise à jour.
 - Les liens et ressources du site utilisent des chemins relatifs compatibles avec un projet GitHub Pages publié sous `/<repository>/`.
 

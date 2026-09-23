@@ -28,7 +28,7 @@ import {
 } from './themes.js';
 import { createCanonicalRunGame } from './verified-runs.js';
 
-const VERSION = '0.2.7.4b-dev5';
+const VERSION = '0.2.7.4b-dev6';
 const BEST_SCORE_KEY = 'flappy13-personal-best-v1';
 const SETTINGS_KEY = 'flappy13-settings-v1';
 const runtimeConfig = globalThis.FLAPPY_CONFIG && typeof globalThis.FLAPPY_CONFIG === 'object'
@@ -44,6 +44,7 @@ const MAX_REPLAY_INPUTS = 30000;
 const PLAY_FADE_SECONDS = 0.5;
 const UTILITY_ATLAS_SCALE = 1.75;
 const CLOSE_ATLAS_SCALE = 1;
+const ATLAS_PRESS_MIN_MS = 70;
 
 const $ = id => document.getElementById(id);
 const query = new URLSearchParams(location.search);
@@ -580,9 +581,11 @@ function setAtlasIcon(elementId, spriteName, scale) {
 
   const width = `${sprite.w * scale}px`;
   const height = `${sprite.h * scale}px`;
+  const sourcePixel = `${scale}px`;
 
   icon.style.setProperty('--atlas-width', width);
   icon.style.setProperty('--atlas-height', height);
+  icon.style.setProperty('--atlas-source-pixel', sourcePixel);
   icon.style.width = width;
   icon.style.height = height;
   icon.style.backgroundImage = `url("${custom.imageUrl}")`;
@@ -603,6 +606,54 @@ function setCloseAtlasIcons() {
   for (const id of ['close-options-icon', 'close-profile-icon', 'close-leaderboard-icon']) {
     setAtlasIcon(id, 'button_close', CLOSE_ATLAS_SCALE);
   }
+}
+
+function bindAtlasButtonAction(elementId, action) {
+  const button = $(elementId);
+  if (!button) {
+    return;
+  }
+
+  let pressedAt = 0;
+  let fallbackTimer = null;
+
+  const releaseVisual = () => {
+    button.classList.remove('atlas-pressed');
+    pressedAt = 0;
+    if (fallbackTimer !== null) {
+      clearTimeout(fallbackTimer);
+      fallbackTimer = null;
+    }
+  };
+
+  button.addEventListener('pointerdown', event => {
+    if (event.button !== undefined && event.button !== 0) {
+      return;
+    }
+
+    pressedAt = performance.now();
+    button.classList.add('atlas-pressed');
+    if (fallbackTimer !== null) {
+      clearTimeout(fallbackTimer);
+    }
+    fallbackTimer = window.setTimeout(releaseVisual, 500);
+  });
+
+  button.addEventListener('pointercancel', releaseVisual);
+
+  button.addEventListener('click', event => {
+    if (!pressedAt) {
+      pressedAt = performance.now();
+      button.classList.add('atlas-pressed');
+    }
+
+    const elapsed = performance.now() - pressedAt;
+    const remaining = Math.max(0, ATLAS_PRESS_MIN_MS - elapsed);
+    window.setTimeout(() => {
+      releaseVisual();
+      action(event);
+    }, remaining);
+  });
 }
 
 function syncUtilityVisibility() {
@@ -915,17 +966,17 @@ new ResizeObserver(updateCanvasRect).observe(canvas);
 window.addEventListener('orientationchange', updateOrientationGuard);
 screen.orientation?.addEventListener?.('change', updateOrientationGuard);
 
-$('open-options').onclick = () => {
+bindAtlasButtonAction('open-options', () => {
   if (game?.state === 'READY' || game?.state === 'GAME_OVER') {
     returnToHome();
   } else {
     openOptions();
   }
-};
-$('open-profile').onclick = openProfile;
-$('close-options').onclick = closeOptions;
-$('close-profile').onclick = closeProfile;
-$('close-leaderboard').onclick = closeLeaderboard;
+});
+bindAtlasButtonAction('open-profile', openProfile);
+bindAtlasButtonAction('close-options', closeOptions);
+bindAtlasButtonAction('close-profile', closeProfile);
+bindAtlasButtonAction('close-leaderboard', closeLeaderboard);
 
 profileDialog.addEventListener('close', () => {
   audio.note('PROFILE_DIALOG_CLOSED');

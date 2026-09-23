@@ -1,3 +1,13 @@
+## v0.2.7.4b-dev6 - Pixel-stable atlas button press
+
+- Corrige l'effet de pression des boutons atlas : **aucun déplacement horizontal** n'est désormais appliqué.
+- `Home`, `Menu` et `Profil` descendent d'**un pixel source** du sprite (soit 1,75 px CSS à leur échelle actuelle) et la dernière ligne source est masquée par clipping ; `Close` fait la même chose à x1.
+- Le sprite conserve sa largeur et sa hauteur de layout pendant la pression : on ne réduit plus physiquement l'élément, ce qui évite les décalages de rasterisation.
+- Ajoute un état `atlas-pressed` piloté par Pointer Events avec une durée minimale de **70 ms** avant l'action, afin que l'effet soit réellement visible sur mobile même pour un tap très rapide.
+- Le smoke test Chromium vérifie explicitement l'absence de déplacement horizontal, le déplacement vertical de 1,75 px / 1 px, le clipping de la ligne basse et la persistance du press-state lors d'un tap tactile rapide.
+- Aucun changement de gameplay, physique, hitbox, Verified Runs, Supabase ou taille de zone cliquable.
+- Validation : `npm test` **164/164**, `python tests/browser_isolated.py` **OK / 0 erreur page**, Admin Analytics **OK**.
+
 ## v0.2.7.4b-dev5 - Verified ticket abandonment recovery
 
 - Corrige la fuite de tickets `issued` lorsqu’un joueur utilise **Home depuis READY** : le ticket courant est maintenant annulé côté Supabase via une RPC owner-only `cancel_verified_run()`.
