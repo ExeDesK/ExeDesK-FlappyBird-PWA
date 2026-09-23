@@ -191,7 +191,7 @@ def main() -> None:
         ) == expected_theme_options
         assert page.evaluate(
             "getComputedStyle(document.querySelector('#open-options')).width"
-        ) == '68px'
+        ) == '60px'
         assert page.evaluate(
             "document.querySelector('#utility-atlas-icon').style.width"
         ) == '45.5px'
@@ -221,12 +221,13 @@ def main() -> None:
         assert profile_box['x'] + profile_box['width'] <= menu_box['x']
         page.screenshot(path=str(output / 'menu.png'))
 
-        # Profile is a dedicated read-only modal for now: it has no provider
-        # buttons or identity-linking actions, and closes with the atlas sprite.
+        # Profile remains a dedicated modal with no provider buttons or identity-linking
+        # actions. It now hosts only the sign-out action at the bottom when a
+        # session is active, and still closes with the atlas sprite.
         page.click('#open-profile')
         page.wait_for_selector('#profile-dialog', state='visible')
         assert page.locator('#profile-dialog #discord-login').count() == 0
-        assert page.locator('#profile-dialog #discord-logout').count() == 0
+        assert page.locator('#profile-dialog #discord-logout').count() == 1
         assert page.locator('#profile-dialog [id*=link]').count() == 0
         assert not page.is_hidden('#account-signed-out')
         assert page.is_hidden('#account-signed-in')

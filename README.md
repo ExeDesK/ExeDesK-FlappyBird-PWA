@@ -8,7 +8,7 @@ L'objectif n'est pas de produire un simple clone « inspiré de » Flappy Bird, 
 
 Le gameplay fonctionne entièrement côté client, sans framework, et peut être installé comme une application sur Windows, iPhone/iPad et Android. Les fonctions communautaires utilisent un backend Supabase facultatif : aucun compte n'est nécessaire pour jouer.
 
-> **État du projet : bêta — v0.2.7.4b-dev1**
+> **État du projet : bêta — v0.2.7.4b-dev2**
 
 - Statistiques joueur : carrière + fenêtres 10 / 25 / 50 calculées uniquement depuis les runs vérifiées.
 > Sur iPhone/iPad ProMotion, un statut dynamique dans les options Performance mesure la cadence rAF sur iOS : il confirme la haute fréquence lorsqu’elle est active, sinon il propose le réglage Safari et un tutoriel au timecode utile.
@@ -44,7 +44,7 @@ Le gameplay fonctionne entièrement côté client, sans framework, et peut être
 - Thèmes pays **France** et **Vietnam / Hanoï** dans le pool `country` : Tour Eiffel / baguettes / égouts pour la France, Hanoi ferroviaire / échafaudages bambou / oiseau dédié pour le Vietnam. Le pool pays reste globalement tiré **1 partie sur 30** en mode Auto ; avec les deux thèmes à poids égal, chacun vaut actuellement **1/60** des runs.
 - Catalogue de thèmes déclaratif `assets/themes.json` : le thème `base`, les pools Auto, leur probabilité globale et le `weight` relatif de chaque thème sont configurés avec les backgrounds, tuyaux, frames d’oiseau, sol, couleurs d’extension et mode de défilement. Ajouter des pays ne change donc pas la probabilité globale `1/30` du pool `country`; le sélecteur de debug est entièrement généré depuis ce catalogue.
 - Les outils de diagnostic sont organisés en sections repliables, disposent d'une fermeture interne et utilisent les contrôles natifs sombres du navigateur pour les sélecteurs.
-- Atlas complémentaire versionné par `assets/customatlas.json`, séparé de l’atlas original pour préserver la parité graphique et comportementale de référence. Les boutons Home / Options / Profil utilisent les sprites de cet atlas en **x1,75** ; les fermetures des modales utilisateur utilisent `button_close` en **x1**.
+- Atlas complémentaire versionné par `assets/customatlas.json`, séparé de l’atlas original pour préserver la parité graphique et comportementale de référence. Les boutons Home / Options / Profil utilisent les sprites de cet atlas en **x1,75** avec une hitbox compacte **60 × 60** ; les fermetures des modales utilisateur utilisent `button_close` en **x1**. Le bouton **Se déconnecter** vit désormais en bas de la modale Profil.
 - Frontend découpé en modules ES par domaine : `main.js` orchestre le jeu, tandis que l’authentification, les clients Supabase, le leaderboard, les Verified Runs, les replays, la file locale, les transitions UI, les toasts, la synchronisation du score et les mises à jour PWA vivent dans des modules ciblés et testables séparément.
 - Dashboard privé **Admin Analytics** sous `site/admin/` : joueurs actifs, DAU/WAU/MAU, runs par jour et par joueur, records, score moyen, temps de jeu vérifié, causes de mort, rétention D0/D1/D7/D30 et métriques de lifecycle des tickets. L’accès combine Discord Auth + allow-list PostgreSQL et n’expose aucune clé serveur.
 - Les Analytics quotidiennes démarrent à l’application de `010_admin_analytics.sql` : les compteurs lifetime déjà stockés restent exacts, mais aucun faux historique de temps de jeu/rétention n’est reconstruit à partir des runs déjà supprimées par la politique 50 + record.

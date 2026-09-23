@@ -1,3 +1,11 @@
+## v0.2.7.4b-dev2 - Profile controls polish
+
+- Réduit légèrement la zone cliquable des boutons utilitaires Home / Menu / Profil : la hitbox passe de **68 × 68** à **60 × 60**.
+- Rapproche les boutons **Profil** et **Menu** sur HOME grâce à un espacement horizontal plus compact.
+- Déplace le bouton **SE DÉCONNECTER** des Options vers le bas de la modale **Profil**, afin de regrouper les actions liées au compte.
+- Aucun changement de gameplay, physique, RNG, Verified Runs, leaderboard ou Supabase.
+- Validation : `npm test` **159/159** et `python tests/browser_isolated.py` **OK / 0 erreur page**.
+
 ## v0.2.7.4b-dev1 - Profile modal & utility sprites
 
 - Intégration du nouvel `customatlas.png` / `customatlas.json` (1854×514) avec `button_profile` et `button_close`.

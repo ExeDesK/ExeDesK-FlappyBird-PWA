@@ -1,7 +1,7 @@
-## v0.2.7.4b-dev1 — Profile modal & utility sprites
+## v0.2.7.4b-dev2 — Profile controls polish
 
 - `tests/themes.test.mjs` verrouille le nouvel atlas 1854×514 et exige `button_close`, `button_home`, `button_options` et `button_profile`.
-- Le smoke test Chromium vérifie le bouton Profil sur HOME à gauche de Menu, son absence hors HOME, la modale Profil sans bouton Discord/linking, les utilitaires en x1,75 et les fermetures atlas en x1.
+- Le smoke test Chromium vérifie le bouton Profil sur HOME à gauche de Menu, son absence hors HOME, la modale Profil sans bouton fournisseur/linking, avec le bouton de déconnexion déplacé en bas de page, les utilitaires en x1,75 et les fermetures atlas en x1.
 - Les modales masquent les utilitaires de HOME tant qu'elles sont ouvertes.
 - Suite complète : `npm test` **159/159** + `python tests/browser_isolated.py` **OK, 0 erreur page**.
 
@@ -21,7 +21,7 @@
 - Le cache PWA reste à **51 ressources runtime** : le changement backend n'ajoute aucun asset client, mais le build Service Worker est incrémenté pour publier la nouvelle version.
 - Suite complète : `npm test` (**152/152**) + `python tests/browser_isolated.py` (**OK, 0 erreur page**).
 
-# Rapport de tests - v0.2.7.4b-dev1
+# Rapport de tests - v0.2.7.4b-dev2
 
 ## Résultat
 

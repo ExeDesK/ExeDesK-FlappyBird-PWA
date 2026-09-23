@@ -100,12 +100,15 @@ body {
 }
 
 .utility {
+  --utility-hit-size: 60px;
+  --utility-gap: 6px;
+
   position: fixed;
   z-index: 2;
   top: max(10px, env(safe-area-inset-top));
   right: max(10px, env(safe-area-inset-right));
-  width: 68px;
-  height: 68px;
+  width: var(--utility-hit-size);
+  height: var(--utility-hit-size);
   padding: 0;
   border: 0;
   background: transparent;
@@ -115,7 +118,7 @@ body {
 }
 
 .profile-utility {
-  right: calc(max(10px, env(safe-area-inset-right)) + 72px);
+  right: calc(max(10px, env(safe-area-inset-right)) + var(--utility-hit-size) + var(--utility-gap));
 }
 
 .utility:hover .atlas-utility-icon,
@@ -1252,6 +1255,14 @@ noscript {
 
 .account-hint {
   margin-top: 9px;
+}
+
+.profile-actions {
+  margin-top: 10px;
+}
+
+.profile-actions button {
+  width: 100%;
 }
 
 .leaderboard-stats-card[hidden] { display: none; }
