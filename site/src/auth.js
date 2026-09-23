@@ -1,3 +1,4 @@
+import { AUTH_LINK_INTENT_KEY, IdentityLinkingController, identitiesFromUser, normalizeProvider, providerScopes } from './auth/identity-linking.js';
 const AUTH_STORAGE_KEY = 'flappy13-auth-v1';
 const SESSION_SKEW_MS = 60 * 1000;
 
@@ -41,7 +42,6 @@ function defaultStorage() {
     return null;
   }
 }
-
 export class AuthClient {
   constructor({ url, publishableKey, storage } = {}) {
     this.url = String(url || '').replace(/\/$/, '');
@@ -53,7 +53,13 @@ export class AuthClient {
     this.status = 'signed_out';
     this.error = null;
     this.callbackResult = null;
+    this.callbackProvider = null;
     this.listeners = new Set();
+    this.identityLinking = new IdentityLinkingController({
+      url: this.url, publishableKey: this.publishableKey, storage: this.storage,
+      getAccessToken: () => this._validAccessToken(), getUser: () => this.user,
+      getProfile: () => this.profile, redirectUrl: () => this._redirectUrl(),
+    });
   }
 
   get configured() {
@@ -72,8 +78,10 @@ export class AuthClient {
       online: typeof navigator === 'undefined' ? true : navigator.onLine,
       user: this.user ? structuredClone(this.user) : null,
       profile: this.profile ? structuredClone(this.profile) : null,
+      identities: structuredClone(this.linkedIdentities()),
       error: this.error,
       callbackResult: this.callbackResult,
+      callbackProvider: this.callbackProvider,
     };
   }
 
@@ -137,11 +145,17 @@ export class AuthClient {
     this.user = null;
     this.profile = null;
     this.callbackResult = null;
+    this.callbackProvider = null;
     try {
       this.storage?.removeItem(AUTH_STORAGE_KEY);
+      this.identityLinking.clearIntent();
     } catch {
       // Best effort.
     }
+  }
+
+  linkedIdentities() {
+    return this.identityLinking.identities();
   }
 
   _authHeaders(accessToken = null) {
@@ -167,11 +181,14 @@ export class AuthClient {
     }
 
     const params = new URLSearchParams(location.hash.slice(1));
+    const linkIntent = this.identityLinking.loadIntent();
     const error = params.get('error_description') || params.get('error');
 
     if (error) {
-      this.callbackResult = 'error';
+      this.callbackResult = linkIntent ? 'identity_link_error' : 'error';
+      this.callbackProvider = linkIntent?.provider || params.get('provider') || null;
       this.error = error;
+      this.identityLinking.clearIntent();
       history.replaceState(null, '', `${location.pathname}${location.search}`);
       return true;
     }
@@ -190,7 +207,9 @@ export class AuthClient {
       tokenType: params.get('token_type') || 'bearer',
       expiresAt: Date.now() + expiresIn * 1000,
     };
-    this.callbackResult = 'signed_in';
+    this.callbackResult = linkIntent ? 'identity_linked' : 'signed_in';
+    this.callbackProvider = linkIntent?.provider || params.get('provider') || null;
+    this.identityLinking.clearIntent();
     history.replaceState(null, '', `${location.pathname}${location.search}`);
     this._save();
     return true;
@@ -216,7 +235,7 @@ export class AuthClient {
     return this.snapshot();
   }
 
-  signInWithDiscord() {
+  signInWithProvider(provider, { scopes } = {}) {
     if (!this.configured) {
       throw new Error('Authentification non configurée.');
     }
@@ -225,11 +244,42 @@ export class AuthClient {
       throw new Error('Une connexion Internet est nécessaire pour se connecter.');
     }
 
+    const normalizedProvider = normalizeProvider(provider);
+    this.identityLinking.clearIntent();
     const authorize = new URL(`${this.url}/auth/v1/authorize`);
-    authorize.searchParams.set('provider', 'discord');
+    authorize.searchParams.set('provider', normalizedProvider);
     authorize.searchParams.set('redirect_to', this._redirectUrl());
-    authorize.searchParams.set('scopes', 'identify email');
+    const requestedScopes = providerScopes(normalizedProvider, scopes);
+    if (requestedScopes) {
+      authorize.searchParams.set('scopes', requestedScopes);
+    }
     location.assign(authorize.href);
+  }
+
+  signInWithDiscord() {
+    return this.signInWithProvider('discord');
+  }
+
+  linkIdentity(provider, options = {}) {
+    if (!this.configured) {
+      return Promise.reject(new Error('Authentification non configurée.'));
+    }
+    return this.identityLinking.link(provider, options);
+  }
+
+  async unlinkIdentity(identityId) {
+    const body = await this.identityLinking.unlink(identityId);
+    if (body?.user) {
+      this.user = body.user;
+    } else if (body?.id) {
+      this.user = body;
+    } else {
+      await this.sync({ reason: 'identity-unlink' });
+      return this.snapshot();
+    }
+    this._save();
+    this._emit();
+    return this.snapshot();
   }
 
   async _refreshSession() {
@@ -396,4 +446,4 @@ export class AuthClient {
   }
 }
 
-export { AUTH_STORAGE_KEY, profileFromUser };
+export { AUTH_LINK_INTENT_KEY, AUTH_STORAGE_KEY, identitiesFromUser, profileFromUser };

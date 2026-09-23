@@ -1,3 +1,12 @@
+const PROVIDER_LABELS = Object.freeze({
+  discord: 'Discord',
+});
+
+function providerLabel(provider) {
+  const key = String(provider || '').trim().toLowerCase();
+  return PROVIDER_LABELS[key] || (key ? key[0].toUpperCase() + key.slice(1) : 'Compte');
+}
+
 function accountDisplayName(state) {
   return state.profile?.display_name
     || state.profile?.username
@@ -17,6 +26,28 @@ function accountAvatar(state) {
     || state.user?.user_metadata?.avatar_url
     || state.user?.user_metadata?.picture
     || '';
+}
+
+function renderLinkedIdentities(container, identities = []) {
+  if (!container) return;
+
+  container.replaceChildren();
+  for (const identity of identities) {
+    const row = document.createElement('div');
+    row.className = 'linked-identity-row';
+    row.dataset.provider = identity.provider;
+
+    const provider = document.createElement('span');
+    provider.className = 'linked-identity-provider';
+    provider.textContent = providerLabel(identity.provider).toUpperCase();
+
+    const status = document.createElement('strong');
+    status.className = 'linked-identity-status';
+    status.textContent = 'LIÉ';
+
+    row.append(provider, status);
+    container.append(row);
+  }
 }
 
 export class AccountUI {
@@ -39,6 +70,8 @@ export class AccountUI {
     const online = typeof navigator === 'undefined' || navigator.onLine;
     const login = this.$('discord-login');
     const logout = this.$('discord-logout');
+    const linkedSection = this.$('account-linked-identities');
+    const linkedList = this.$('linked-identities-list');
 
     if (this.$('account-signed-out')) {
       this.$('account-signed-out').hidden = signed;
@@ -54,6 +87,12 @@ export class AccountUI {
       logout.hidden = !signed;
       logout.disabled = state.status === 'loading';
     }
+    if (linkedSection) {
+      linkedSection.hidden = !signed;
+    }
+    if (linkedList) {
+      renderLinkedIdentities(linkedList, signed ? state.identities || [] : []);
+    }
     if (this.$('profile-best-score')) {
       this.$('profile-best-score').textContent = String(this.getBest());
     }
@@ -64,8 +103,11 @@ export class AccountUI {
         ? 'Connexion communautaire non configurée sur cette build.'
         : signed
           ? state.status === 'offline'
-            ? 'Session Discord disponible hors connexion.'
-            : 'Session Discord active.'
+            ? 'Profil disponible hors connexion.'
+            : (() => {
+                const count = state.identities?.length || 1;
+                return `${count} moyen${count > 1 ? 's' : ''} de connexion lié${count > 1 ? 's' : ''} au profil.`;
+              })()
           : online
             ? 'Méthode disponible : Discord.'
             : 'Hors connexion · la connexion Discord sera disponible au retour du réseau.';
@@ -119,4 +161,4 @@ export class AccountUI {
   }
 }
 
-export { accountAvatar, accountDisplayName, accountUsername };
+export { accountAvatar, accountDisplayName, accountUsername, providerLabel, renderLinkedIdentities };

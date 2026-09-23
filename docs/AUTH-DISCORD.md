@@ -65,13 +65,17 @@ La PWA utilise directement l'API HTTP Supabase Auth afin de ne pas ajouter de d�
 Aucun token utilisateur n'est ajouté aux diagnostics du jeu.
 
 
-## Présentation du profil — v0.2.7.4b-dev5
+## Présentation du profil — v0.2.7.4b-dev9
 
 Toute l'interface d'authentification utilisateur est désormais regroupée dans la modale **Profil**, accessible depuis HOME par `button_profile`. **Options ne contient plus aucune section Connexion, aucun bouton OAuth et aucun état de session.**
 
-Lorsque le joueur est déconnecté, Profil affiche **SE CONNECTER AVEC DISCORD**. Une fois connecté, Profil affiche l'identité et l'état de synchronisation, et **SE DÉCONNECTER** reste placé en bas de la modale. Discord reste le seul provider actif à cette étape : aucun second provider ni identity linking n'est encore implémenté.
+Lorsque le joueur est déconnecté, Profil affiche **SE CONNECTER AVEC DISCORD**. Une fois connecté, Profil affiche l'identité, l'état de synchronisation et une section **COMPTES LIÉS** issue des identités Supabase ; **SE DÉCONNECTER** reste placé en bas de la modale.
 
-Le retour OAuth réussi ouvre toujours la modale Profil afin de montrer immédiatement l'identité chargée.
+Depuis `v0.2.7.4b-dev9`, le frontend possède une infrastructure d'identity linking provider-agnostic (`auth/identity-linking.js`) mais Discord reste le seul provider exposé. Aucun second bouton OAuth n'est ajouté à cette version. Les comptes existants conservent leur `auth.users.id`, leur `profiles.id`, leur record et leur historique. La clé locale `flappy13-auth-v1` n'est pas changée, afin de conserver les sessions déjà stockées.
+
+Le retour OAuth réussi ouvre toujours la modale Profil afin de montrer immédiatement l'identité chargée. Un futur retour de linking peut être distingué d'une connexion normale grâce à une intention temporaire `flappy13-auth-link-intent-v1`.
+
+Voir [`ACCOUNT-LINKING.md`](./ACCOUNT-LINKING.md) pour le contrat complet.
 
 ## Synchronisation du meilleur score
 
@@ -106,7 +110,7 @@ Le statut du meilleur score est désormais indépendant des erreurs transitoires
 
 ## Architecture client depuis v0.2.7.3b-dev6.3.4
 
-`AuthClient` est désormais limité à OAuth Discord, session Supabase et profil. La synchronisation du meilleur score utilise `api/BestScoreClient` + `session/ScoreSyncController`; le leaderboard utilise `api/LeaderboardClient`; les Verified Runs utilisent `api/VerifiedRunClient` et `session/VerifiedPlayController`. Le token utilisateur est fourni à ces clients via `AuthClient.accessToken()` au lieu de faire transiter toutes les fonctionnalités communautaires par la classe d'authentification.
+`AuthClient` reste limité à la session Supabase, au profil et à l'orchestration OAuth. Depuis `v0.2.7.4b-dev9`, la logique spécifique de comptes liés est isolée dans `auth/IdentityLinkingController`. La synchronisation du meilleur score utilise `api/BestScoreClient` + `session/ScoreSyncController`; le leaderboard utilise `api/LeaderboardClient`; les Verified Runs utilisent `api/VerifiedRunClient` et `session/VerifiedPlayController`. Le token utilisateur est fourni à ces clients via `AuthClient.accessToken()` au lieu de faire transiter toutes les fonctionnalités communautaires par la classe d'authentification.
 
 Voir [`ARCHITECTURE.md`](./ARCHITECTURE.md) pour la séparation complète des responsabilités.
 

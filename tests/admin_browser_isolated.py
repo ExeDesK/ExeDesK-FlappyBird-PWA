@@ -21,6 +21,7 @@ from playwright.sync_api import sync_playwright
 
 MODULE_ORDER = [
     'api/http.js',
+    'auth/identity-linking.js',
     'auth.js',
     'admin/analytics-client.js',
     'admin/charts.js',

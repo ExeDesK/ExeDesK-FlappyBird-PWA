@@ -8,7 +8,7 @@ The goal is not to create another Flappy Bird-inspired clone, but to **reproduce
 
 Gameplay runs entirely client-side without a framework and can be installed as an application on Windows, iPhone/iPad and Android. Optional community features use Supabase; no account is required to play.
 
-> **Project status: beta — v0.2.7.4b-dev8**
+> **Project status: beta — v0.2.7.4b-dev9**
 
 - Player statistics: career + 10 / 25 / 50-run windows derived only from verified runs.
 > On ProMotion iPhone/iPad devices, the Performance options include guidance for the Safari setting that can remove the near-60 Hz page-rendering preference.
@@ -25,7 +25,8 @@ Gameplay runs entirely client-side without a framework and can be installed as a
 - Installable PWA on Windows, iOS/iPadOS and Android.
 - Local high-score persistence.
 - Optional Discord sign-in through Supabase Auth with a cross-platform player profile.
-- A dedicated **Profile** modal now owns the complete user-authentication surface: avatar, identity, sync status, best score, Discord sign-in and sign-out. Options contain no authentication controls; Discord remains the only provider for now, with no identity linking.
+- A dedicated **Profile** modal owns the complete user-authentication surface: avatar, identity, sync status, best score, Discord sign-in/sign-out and a new **Linked accounts** view. The account-linking foundation is provider-agnostic and keeps the existing `auth.users.id` / game profile intact; Discord is still the only provider exposed in this build.
+- Existing-account preservation and the future multi-provider flow are documented in [`docs/ACCOUNT-LINKING.md`](./docs/ACCOUNT-LINKING.md).
 - Cross-device best-score sync that always keeps the highest value.
 - Verified Runs: server-issued ticket/seed, deterministic capture, self-healing local queue, deferred submission, and authoritative replay before a score is accepted or rejected.
 - Public global leaderboard in a dedicated modal: readable without an account, built only from verified runs, with one best score per player.
@@ -86,6 +87,7 @@ Detailed notes are available in:
 - [`docs/REVERSE-ENGINEERING.md`](./docs/REVERSE-ENGINEERING.md)
 - [`docs/TESTS.md`](./docs/TESTS.md)
 - [`docs/AUTH-DISCORD.md`](./docs/AUTH-DISCORD.md)
+- [`docs/ACCOUNT-LINKING.md`](./docs/ACCOUNT-LINKING.md) (French)
 - [`docs/VERIFIED-RUNS.md`](./docs/VERIFIED-RUNS.md) (French)
 - [`docs/LEADERBOARD.md`](./docs/LEADERBOARD.md) (French)
 - [`docs/PLAYER-STATS.md`](./docs/PLAYER-STATS.md) (French)

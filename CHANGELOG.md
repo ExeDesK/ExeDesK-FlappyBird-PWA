@@ -1,3 +1,15 @@
+## v0.2.7.4b-dev9 - Account linking foundation
+
+- Ajoute une couche d'**identity linking** provider-agnostic autour de Supabase Auth, sans ajouter de second provider dans l'interface.
+- Les comptes Discord existants restent les comptes canoniques : aucun UUID `auth.users.id`, aucune ligne `profiles`, aucun record, aucune statistique et aucune run vérifiée n'est migré ou recréé.
+- La clé locale `flappy13-auth-v1` reste inchangée afin de conserver les sessions existantes dans les navigateurs.
+- Ajoute `site/src/auth/identity-linking.js` pour isoler la normalisation des identités, l'intention OAuth de linking, `linkIdentity()` / `unlinkIdentity()` et la protection contre la suppression du dernier moyen de connexion.
+- `AuthClient` expose désormais `signInWithProvider()`, `linkIdentity()`, `unlinkIdentity()` et `linkedIdentities()` ; `signInWithDiscord()` reste un wrapper compatible.
+- La modale Profil affiche une section **COMPTES LIÉS** à partir des identités Supabase. Discord reste le seul provider affiché dans cette version et aucun bouton de liaison vers un second provider n'est exposé.
+- Les anciennes sessions Discord ne contenant pas encore le tableau `identities` bénéficient d'un fallback de compatibilité jusqu'à la prochaine synchronisation `/auth/v1/user`.
+- Le Service Worker précache le nouveau module d'identité ; le runtime passe à **53 ressources**.
+- Aucun changement SQL, Edge Function, physique, Verified Runs, leaderboard ou données joueur.
+
 ## v0.2.7.4b-dev8 - Rate button unavailable toast
 
 - Le bouton **RATE** ne redirige plus vers Options / un autre écran.

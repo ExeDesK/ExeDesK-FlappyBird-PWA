@@ -114,6 +114,7 @@ test('completed verified runs flush automatically without trusting a client scor
 
 test('Discord community auth uses deploy-time runtime config and ships no server secret', () => {
   const auth = read('site/src/auth.js');
+  const identityLinking = read('site/src/auth/identity-linking.js');
   const main = read('site/src/main.js');
   const html = read('site/index.html');
   const workflow = read('.github/workflows/pages.yml');
@@ -132,8 +133,11 @@ test('Discord community auth uses deploy-time runtime config and ships no server
   assert.match(gitignore, /site\/config\.js/);
   assert.match(example, /YOUR_PROJECT_REF/);
   assert.match(example, /sb_publishable_YOUR_PUBLIC_KEY/);
-  assert.match(auth, /provider', 'discord'/);
+  assert.match(auth, /signInWithProvider\('discord'\)/);
   assert.match(auth, /auth\/v1\/user/);
+  assert.match(identityLinking, /auth\/v1\/user\/identities\/authorize/);
+  assert.match(identityLinking, /skip_http_redirect/);
+  assert.doesNotMatch(identityLinking, /service_role/i);
   assert.match(auth, /grant_type=refresh_token/);
   assert.match(sql, /enable row level security/i);
   assert.match(sql, /auth\.uid\(\) = id/);
@@ -210,6 +214,7 @@ test('verified game swap paints a fully black cached frame before reveal fade', 
 test('application domains stay split across focused ES modules', () => {
   const main = read('site/src/main.js');
   const auth = read('site/src/auth.js');
+  const identityLinking = read('site/src/auth/identity-linking.js');
   const leaderboardApi = read('site/src/api/leaderboard-client.js');
   const verifiedApi = read('site/src/api/verified-run-api.js');
   const bestScoreApi = read('site/src/api/best-score-client.js');
@@ -222,6 +227,7 @@ test('application domains stay split across focused ES modules', () => {
 
   assert.ok(main.split('\n').length <= 1600, 'main.js should stay an orchestration layer, not a monolith');
   assert.ok(auth.split('\n').length <= 450, 'auth.js should stay focused on auth/session/profile');
+  assert.ok(identityLinking.split('\n').length <= 320, 'identity-linking.js should stay focused on provider identity management');
   assert.ok(verifiedPlay.split('\n').length <= 300, 'verified-play.js should stay focused on orchestration');
 
   assert.match(main, /import \{ LeaderboardUI \} from '\.\/ui\/leaderboard-ui\.js'/);
@@ -230,6 +236,7 @@ test('application domains stay split across focused ES modules', () => {
   assert.match(main, /import \{ PwaUpdateManager \} from '\.\/pwa\/update-manager\.js'/);
   assert.match(main, /import \{ LeaderboardClient \} from '\.\/api\/leaderboard-client\.js'/);
   assert.match(main, /import \{ VerifiedRunClient \} from '\.\/api\/verified-run-api\.js'/);
+  assert.match(auth, /IdentityLinkingController/);
 
   assert.doesNotMatch(auth, /get_leaderboard/);
   assert.doesNotMatch(auth, /functions\/v1\/run-(?:start|submit)/);

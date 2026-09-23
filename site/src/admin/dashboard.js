@@ -2,7 +2,7 @@ import { AuthClient } from '../auth.js';
 import { AnalyticsClient } from './analytics-client.js';
 import { renderBarChart, renderLineChart } from './charts.js';
 
-const VERSION = '0.2.7.4b-dev8';
+const VERSION = '0.2.7.4b-dev9';
 const TICKS_PER_SECOND = 60;
 
 const config = globalThis.FLAPPY_CONFIG || {};

@@ -16,7 +16,7 @@ import { PerfProfiler } from './perf.js';
 import { PwaUpdateManager } from './pwa/update-manager.js';
 import { ScoreSyncController } from './session/score-sync.js';
 import { VerifiedPlayController } from './session/verified-play.js';
-import { AccountUI } from './ui/account.js';
+import { AccountUI, providerLabel } from './ui/account.js';
 import { LeaderboardUI } from './ui/leaderboard-ui.js';
 import { ToastController } from './ui/toast.js';
 import {
@@ -28,7 +28,7 @@ import {
 } from './themes.js';
 import { createCanonicalRunGame } from './verified-runs.js';
 
-const VERSION = '0.2.7.4b-dev8';
+const VERSION = '0.2.7.4b-dev9';
 const BEST_SCORE_KEY = 'flappy13-personal-best-v1';
 const SETTINGS_KEY = 'flappy13-settings-v1';
 const runtimeConfig = globalThis.FLAPPY_CONFIG && typeof globalThis.FLAPPY_CONFIG === 'object'
@@ -1455,21 +1455,31 @@ async function boot() {
 
     authInit.then(async state => {
       accountUI.render(auth.snapshot());
+      const callbackIsSignIn = auth.callbackResult === 'signed_in';
+      const callbackIsLink = auth.callbackResult === 'identity_linked';
+      const callbackReason = callbackIsLink ? 'identity-link' : callbackIsSignIn ? 'oauth-login' : 'startup';
+
       if (state.status === 'signed_in') {
         await scoreSync.sync({
-          reason: auth.callbackResult === 'signed_in' ? 'discord-login' : 'startup',
-          notify: auth.callbackResult === 'signed_in',
+          reason: callbackReason,
+          notify: callbackIsSignIn || callbackIsLink,
         });
         await verifiedPlay.flush({
-          reason: auth.callbackResult === 'signed_in' ? 'discord-login' : 'startup',
+          reason: callbackReason,
           notify: true,
         });
       }
 
-      if (auth.callbackResult === 'signed_in') {
+      if (callbackIsSignIn) {
         openProfile();
+      } else if (callbackIsLink) {
+        openProfile();
+        toast(`${providerLabel(auth.callbackProvider)} est maintenant lié à ce profil.`);
+      } else if (auth.callbackResult === 'identity_link_error') {
+        openProfile();
+        toast(`Impossible de lier ${providerLabel(auth.callbackProvider)} : ${auth.error || 'erreur OAuth'}`);
       } else if (auth.callbackResult === 'error') {
-        toast(`Connexion Discord impossible : ${auth.error || 'erreur OAuth'}`);
+        toast(`Connexion impossible : ${auth.error || 'erreur OAuth'}`);
       }
     });
 

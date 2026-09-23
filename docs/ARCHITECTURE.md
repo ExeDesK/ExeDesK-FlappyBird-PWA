@@ -17,7 +17,7 @@ Le profil et toute l'authentification utilisateur sont séparés des Options. `m
 
 Les sprites `button_home`, `button_options` et `button_profile` sont rendus en x1,75 depuis le custom atlas. `button_close` est rendu en x1 sur Options, Profil et Classement. Le panneau diagnostic conserve volontairement son bouton de fermeture utilitaire natif afin de rester visuellement séparé de l'interface utilisateur. Depuis `v0.2.7.4b-dev6`, le press-state atlas est géré dans `main.js` par Pointer Events : une classe temporaire reste visible au moins 70 ms, tandis que le CSS décale le sprite d'un pixel source vers le bas et clippe sa dernière ligne sans changer son axe X.
 
-Cette étape ne modifie pas l'architecture Auth : Discord reste le seul provider actif et aucun identity linking n'est encore implémenté.
+Depuis `v0.2.7.4b-dev9`, Discord reste le seul provider **exposé** dans l'interface, mais l'architecture Auth possède désormais une couche d'identity linking générique. Les identités sont rattachées au même `auth.users.id`; aucune donnée de jeu n'est dupliquée ni migrée lorsqu'un nouveau provider sera lié.
 
 ## Composition
 
@@ -26,6 +26,7 @@ Cette étape ne modifie pas l'architecture Auth : Discord reste le seul provider
 ```text
 main.js
 ├── AuthClient
+│   └── auth/IdentityLinkingController
 ├── api/
 │   ├── BestScoreClient
 │   ├── LeaderboardClient
@@ -54,12 +55,15 @@ main.js
 
 Responsabilités conservées :
 
-- OAuth Discord via Supabase Auth ;
+- OAuth de connexion via Supabase Auth (`signInWithProvider()`, Discord uniquement exposé aujourd'hui) ;
 - restauration / rafraîchissement / suppression de session ;
 - récupération du `user` courant ;
 - lecture/création du profil ;
 - exposition d'un `accessToken()` valide aux clients authentifiés ;
+- orchestration du retour OAuth de connexion ou de linking ;
 - notification des changements d'état d'authentification.
+
+La gestion détaillée des identités est déléguée à `auth/identity-linking.js`, ce qui maintient `auth.js` sous son garde-fou de 450 lignes. `IdentityLinkingController` normalise `user.identities`, démarre les liaisons OAuth authentifiées, conserve l'intention de linking pendant la redirection et gère le unlink avec interdiction de supprimer le dernier moyen de connexion.
 
 Il **ne** contient plus : leaderboard, Verified Runs, soumission de replay ou RPC de synchronisation du record.
 
@@ -196,3 +200,7 @@ Les **51 ressources runtime du jeu** restent précachées par `site/sw.js` en `v
 ## Évolution future
 
 Les prochaines fonctionnalités importantes (multijoueur, replay leaderboard, contrôles de replay) peuvent désormais obtenir leurs propres contrôleurs / clients sans grossir `AuthClient` ou réintroduire leur cycle complet dans `main.js`. Le même principe doit être conservé : transport réseau séparé de l'état UI/session, moteur déterministe séparé de l'orchestration navigateur.
+
+## Account linking
+
+La stratégie complète de conservation de l'UUID joueur, de compatibilité avec les comptes Discord existants et de future liaison d'un second provider est décrite dans [`ACCOUNT-LINKING.md`](./ACCOUNT-LINKING.md).

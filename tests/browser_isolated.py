@@ -33,6 +33,7 @@ MODULE_ORDER = [
     'audio.js',
     'leaderboard.js',
     'api/http.js',
+    'auth/identity-linking.js',
     'auth.js',
     'api/best-score-client.js',
     'api/leaderboard-client.js',
@@ -275,14 +276,19 @@ def main() -> None:
         assert press_probe['pressedAfterFastClick']
         assert not press_probe['dialogOpenImmediately']
 
-        # Profile owns the whole authentication surface. Discord is the only
-        # provider for now; there is still no identity-linking UI.
+        # Profile owns the whole authentication surface. Discord is still the
+        # only provider exposed to users. The generic account-linking foundation
+        # is present, but no second-provider link/unlink action is exposed yet.
         page.wait_for_selector('#profile-dialog', state='visible')
         assert page.locator('#profile-dialog #discord-login').count() == 1
         assert page.locator('#profile-dialog #discord-logout').count() == 1
-        assert page.locator('#profile-dialog [id*=link]').count() == 0
+        assert page.locator('#profile-dialog #account-linked-identities').count() == 1
+        assert page.locator('#profile-dialog #linked-identities-list').count() == 1
+        assert page.locator('#profile-dialog button[id*=link]').count() == 0
+        assert page.locator('#profile-dialog button[id*=unlink]').count() == 0
         assert not page.is_hidden('#account-signed-out')
         assert page.is_hidden('#account-signed-in')
+        assert page.is_hidden('#account-linked-identities')
         assert page.evaluate(
             "document.querySelector('#close-profile-icon').style.width"
         ) == '26px'

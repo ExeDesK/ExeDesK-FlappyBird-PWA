@@ -8,7 +8,7 @@ L'objectif n'est pas de produire un simple clone « inspiré de » Flappy Bird, 
 
 Le gameplay fonctionne entièrement côté client, sans framework, et peut être installé comme une application sur Windows, iPhone/iPad et Android. Les fonctions communautaires utilisent un backend Supabase facultatif : aucun compte n'est nécessaire pour jouer.
 
-> **État du projet : bêta — v0.2.7.4b-dev8**
+> **État du projet : bêta — v0.2.7.4b-dev9**
 
 - Statistiques joueur : carrière + fenêtres 10 / 25 / 50 calculées uniquement depuis les runs vérifiées.
 > Sur iPhone/iPad ProMotion, un statut dynamique dans les options Performance mesure la cadence rAF sur iOS : il confirme la haute fréquence lorsqu’elle est active, sinon il propose le réglage Safari et un tutoriel au timecode utile.
@@ -25,7 +25,8 @@ Le gameplay fonctionne entièrement côté client, sans framework, et peut être
 - Installation PWA sur Windows, iOS/iPadOS et Android.
 - Sauvegarde locale du meilleur score.
 - Connexion Discord facultative via Supabase Auth et profil joueur cross-platform.
-- Une modale **Profil** dédiée regroupe désormais toute l'authentification utilisateur : connexion Discord, avatar, identité, état de synchronisation, meilleur score et déconnexion. Le bouton Profil est disponible sur HOME, à gauche du bouton Menu ; **Options ne contient plus aucun élément d'authentification**. Aucun linking d'identité ni second provider n'est ajouté à cette étape.
+- Une modale **Profil** dédiée regroupe toute l'authentification utilisateur : connexion Discord, avatar, identité, état de synchronisation, meilleur score, déconnexion et désormais la liste **Comptes liés**. L'infrastructure d'account linking est provider-agnostic et conserve le même `auth.users.id` / profil existant ; Discord reste le seul provider exposé dans cette version, sans second bouton OAuth.
+- La stratégie de conservation des comptes et le futur linking multi-provider sont documentés dans [`docs/ACCOUNT-LINKING.md`](./docs/ACCOUNT-LINKING.md).
 - Synchronisation du meilleur score entre appareils en conservant toujours la valeur la plus élevée.
 - Verified Runs : ticket/seed serveur, capture déterministe, file locale auto-réparante, soumission différée et relecture autoritaire avant validation ou rejet du score.
 - Classement global public dans une modale dédiée : consultation sans compte, uniquement des runs vérifiés et un seul meilleur score par joueur.
@@ -86,6 +87,7 @@ Les notes détaillées sont disponibles dans :
 - [`docs/REVERSE-ENGINEERING.md`](./docs/REVERSE-ENGINEERING.md)
 - [`docs/TESTS.md`](./docs/TESTS.md)
 - [`docs/AUTH-DISCORD.md`](./docs/AUTH-DISCORD.md)
+- [`docs/ACCOUNT-LINKING.md`](./docs/ACCOUNT-LINKING.md)
 - [`docs/VERIFIED-RUNS.md`](./docs/VERIFIED-RUNS.md)
 - [`docs/LEADERBOARD.md`](./docs/LEADERBOARD.md)
 - [`docs/PLAYER-STATS.md`](./docs/PLAYER-STATS.md)
