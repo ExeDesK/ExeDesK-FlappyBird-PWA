@@ -1,3 +1,11 @@
+## v0.2.7.4b-dev8 - Rate button unavailable toast
+
+- Le bouton **RATE** ne redirige plus vers Options / un autre écran.
+- Un clic sur RATE conserve le joueur sur l’écran courant et affiche un toast utilisateur : **« La fonctionnalité de notation n’est pas encore disponible. Merci pour ton soutien ! »**.
+- Le comportement interne du bouton et les assets du jeu restent inchangés ; seule l’action shell PWA associée à l’événement `about` est adaptée.
+- Aucun changement Supabase, physique, Verified Runs ou leaderboard.
+- Validation : `npm test` **165/165** et `python tests/browser_isolated.py` **OK / 0 erreur page**.
+
 ## v0.2.7.4b-dev7 - Utility buttons constrained to game width
 
 - Les boutons utilitaires `Menu`, `Home` et `Profil` sont désormais positionnés par rapport au bord droit de la **zone de jeu centrée**, et non plus au bord droit du viewport navigateur.
@@ -6,7 +14,7 @@
 - Le calcul utilise la largeur réelle issue de `computeDisplaySize()` à chaque resize, ce qui suit automatiquement les modes Original / Adapté et les changements de taille de fenêtre.
 - Aucun changement de gameplay, physique, hitbox de jeu, Verified Runs, authentification ou Supabase.
 
-## v0.2.7.4b-dev7 - Pixel-stable atlas button press
+## v0.2.7.4b-dev6 - Pixel-stable atlas button press
 
 - Corrige l'effet de pression des boutons atlas : **aucun déplacement horizontal** n'est désormais appliqué.
 - `Home`, `Menu` et `Profil` descendent d'**un pixel source** du sprite (soit 1,75 px CSS à leur échelle actuelle) et la dernière ligne source est masquée par clipping ; `Close` fait la même chose à x1.

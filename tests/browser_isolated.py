@@ -231,6 +231,18 @@ def main() -> None:
         assert profile_box['x'] >= game_box['x']
         page.screenshot(path=str(output / 'menu.png'))
 
+        # RATE is intentionally unavailable in the PWA for now. Releasing it
+        # must keep the player on MENU, keep Options closed, and show a friendly
+        # toast instead of navigating away from the game screen.
+        page.evaluate(
+            "flappy.step({ touches: [{ x: 140, y: 290 }] });"
+            "flappy.step({ touches: [] });"
+        )
+        assert page.evaluate('flappy.snapshot().state') == 'MENU'
+        assert not page.evaluate("document.querySelector('#options').open")
+        assert not page.is_hidden('#toast')
+        assert page.text_content('#toast') == 'La fonctionnalité de notation n’est pas encore disponible. Merci pour ton soutien !'
+
         # The atlas press state must be pixel-stable horizontally, move down
         # by exactly one source pixel (1.75 CSS px here), and stay visible long
         # enough for a very fast touch tap to paint before the modal opens.

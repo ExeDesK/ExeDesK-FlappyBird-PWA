@@ -1,4 +1,9 @@
-## v0.2.7.4b-dev7 — Press-state atlas pixel-stable
+## v0.2.7.4b-dev8 — RATE unavailable toast
+
+- `tests/core.test.mjs` verrouille que l’événement `about` déclenché par RATE affiche le toast attendu et n’appelle plus `openOptions()`.
+- Le smoke test Chromium vérifie que RATE conserve MENU, laisse Options fermé et rend le toast visible.
+
+## v0.2.7.4b-dev6 — Press-state atlas pixel-stable
 
 - Le smoke test Chromium vérifie que `Profil` ne se décale pas horizontalement pendant `pointerdown`, descend exactement de **1,75 px CSS** (un pixel source à x1,75) et clippe **1,75 px** en bas.
 - Le même test vérifie `Close` à **1 px** ainsi que la persistance de la classe `atlas-pressed` après un tap tactile très rapide, avant ouverture/fermeture effective de la modale.
@@ -32,11 +37,11 @@
 - Le cache PWA reste à **51 ressources runtime** : le changement backend n'ajoute aucun asset client, mais le build Service Worker est incrémenté pour publier la nouvelle version.
 - Suite complète : `npm test` (**152/152**) + `python tests/browser_isolated.py` (**OK, 0 erreur page**).
 
-# Rapport de tests - v0.2.7.4b-dev7
+# Rapport de tests - v0.2.7.4b-dev8
 
 ## Résultat
 
-- **164/164 tests Node passent** avec `npm test`.
+- **165/165 tests Node passent** avec `npm test`.
 - Le bundle concaténé utilisé par le smoke test passe le contrôle de syntaxe JavaScript.
 - Le smoke test Chromium isolé passe sans erreur page et couvre aussi la composition des nouveaux modules ES, le catalogue dynamique, le thème Vietnam jour/nuit, le panneau diagnostic repliable, la modale Profil, les boutons utilitaires x1,75 et le module d’abandon de ticket Verified Run.
 - Le smoke test Admin Analytics dédié passe également sans erreur page avec Auth/RPC Supabase mockés et couvre les vues Overview, Joueurs, Rétention et Système.

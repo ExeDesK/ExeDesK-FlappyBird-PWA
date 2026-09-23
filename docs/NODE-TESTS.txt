@@ -1,9 +1,9 @@
 
-> flappy-bird-1-3-pwa@0.2.7-4b-dev7 test
+> flappy-bird-1-3-pwa@0.2.7-4b-dev8 test
 > npm run check:edge-physics && node --test tests/core.test.mjs tests/themes.test.mjs tests/cache.test.mjs tests/ci.test.mjs tests/audio.test.mjs tests/auth.test.mjs tests/verified-runs.test.mjs tests/verified-run-client.test.mjs tests/verified-run-recorder.test.mjs tests/verified-run-queue.test.mjs tests/verified-run-submit.test.mjs tests/game-transition.test.mjs tests/run-submit.test.mjs tests/leaderboard.test.mjs tests/player-stats.test.mjs tests/retention.test.mjs tests/ticket-hygiene.test.mjs tests/run-abandonment.test.mjs tests/admin-analytics.test.mjs tests/player-performance.test.mjs
 
 
-> flappy-bird-1-3-pwa@0.2.7-4b-dev7 check:edge-physics
+> flappy-bird-1-3-pwa@0.2.7-4b-dev8 check:edge-physics
 > node scripts/sync-edge-physics.mjs --check
 
 Moteur Edge flappy13-physics-v1 synchronisé.

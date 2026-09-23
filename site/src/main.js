@@ -28,7 +28,7 @@ import {
 } from './themes.js';
 import { createCanonicalRunGame } from './verified-runs.js';
 
-const VERSION = '0.2.7.4b-dev7';
+const VERSION = '0.2.7.4b-dev8';
 const BEST_SCORE_KEY = 'flappy13-personal-best-v1';
 const SETTINGS_KEY = 'flappy13-settings-v1';
 const runtimeConfig = globalThis.FLAPPY_CONFIG && typeof globalThis.FLAPPY_CONFIG === 'object'
@@ -322,7 +322,7 @@ function handleGameEvent({ type, value }) {
   } else if (type === 'local-scores') {
     openLeaderboard({ force: true });
   } else if (type === 'about') {
-    openOptions();
+    toast('La fonctionnalité de notation n’est pas encore disponible. Merci pour ton soutien !');
   }
 }
 

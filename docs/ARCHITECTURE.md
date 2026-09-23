@@ -11,11 +11,11 @@ Depuis `v0.2.7.3b-dev6.3.4`, le frontend reste volontairement **sans framework e
 
 Cette refactorisation est **structurelle uniquement** : elle ne modifie ni `flappy13-physics-v1`, ni les hitboxes, ni le RNG, ni les contrats Verified Runs. Depuis `v0.2.7.4b`, le dashboard Admin Analytics ajoute ses propres RPC privées et reste séparé du runtime gameplay.
 
-## Shell utilisateur — v0.2.7.4b-dev7
+## Shell utilisateur — depuis v0.2.7.4b-dev3
 
 Le profil et toute l'authentification utilisateur sont séparés des Options. `main.js` orchestre une modale `#profile-dialog` distincte et `AccountUI` y rend identité, synchronisation, connexion Discord et déconnexion. `#options` ne contient plus aucun contrôle ni état d'authentification. Sur HOME, deux utilitaires coexistent : Profil à gauche et Menu à droite. READY / GAME OVER réutilisent uniquement le bouton de droite comme Home.
 
-Les sprites `button_home`, `button_options` et `button_profile` sont rendus en x1,75 depuis le custom atlas. `button_close` est rendu en x1 sur Options, Profil et Classement. Le panneau diagnostic conserve volontairement son bouton de fermeture utilitaire natif afin de rester visuellement séparé de l'interface utilisateur. Le press-state atlas est géré dans `main.js` par Pointer Events : une classe temporaire reste visible au moins 70 ms, tandis que le CSS décale le sprite d'un pixel source vers le bas et clippe sa dernière ligne sans changer son axe X.
+Les sprites `button_home`, `button_options` et `button_profile` sont rendus en x1,75 depuis le custom atlas. `button_close` est rendu en x1 sur Options, Profil et Classement. Le panneau diagnostic conserve volontairement son bouton de fermeture utilitaire natif afin de rester visuellement séparé de l'interface utilisateur. Depuis `v0.2.7.4b-dev6`, le press-state atlas est géré dans `main.js` par Pointer Events : une classe temporaire reste visible au moins 70 ms, tandis que le CSS décale le sprite d'un pixel source vers le bas et clippe sa dernière ligne sans changer son axe X.
 
 Cette étape ne modifie pas l'architecture Auth : Discord reste le seul provider actif et aucun identity linking n'est encore implémenté.
 
