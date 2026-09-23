@@ -65,7 +65,7 @@ La PWA utilise directement l'API HTTP Supabase Auth afin de ne pas ajouter de d�
 Aucun token utilisateur n'est ajouté aux diagnostics du jeu.
 
 
-## Présentation du profil — v0.2.7.4b-dev3
+## Présentation du profil — v0.2.7.4b-dev4
 
 Toute l'interface d'authentification utilisateur est désormais regroupée dans la modale **Profil**, accessible depuis HOME par `button_profile`. **Options ne contient plus aucune section Connexion, aucun bouton OAuth et aucun état de session.**
 

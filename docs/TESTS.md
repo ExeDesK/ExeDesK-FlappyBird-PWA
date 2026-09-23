@@ -1,4 +1,4 @@
-## v0.2.7.4b-dev3 — Authentication moved to Profile
+## v0.2.7.4b-dev4 — Authentication moved to Profile
 
 - `tests/themes.test.mjs` verrouille le nouvel atlas 1854×514 et exige `button_close`, `button_home`, `button_options` et `button_profile`.
 - Le smoke test Chromium vérifie le bouton Profil sur HOME à gauche de Menu, son absence hors HOME, l'absence totale d'auth dans Options, la présence de la connexion/déconnexion Discord uniquement dans Profil, l'absence de linking, les utilitaires en x1,75 et les fermetures atlas en x1.
@@ -21,7 +21,7 @@
 - Le cache PWA reste à **51 ressources runtime** : le changement backend n'ajoute aucun asset client, mais le build Service Worker est incrémenté pour publier la nouvelle version.
 - Suite complète : `npm test` (**152/152**) + `python tests/browser_isolated.py` (**OK, 0 erreur page**).
 
-# Rapport de tests - v0.2.7.4b-dev3
+# Rapport de tests - v0.2.7.4b-dev4
 
 ## Résultat
 
@@ -223,3 +223,5 @@ Le client valide strictement les deux états autorisés (classé / non classé),
 - Non-régression : les caches d’interpolation `previousCommands` / `currentCommands` sont eux-mêmes initialisés avec un overlay noir opaque avant le fade retour.
 - Vérifie que la frame READY préchauffée ne peut pas être présentée entre le swap du `Game` et le début du reveal.
 - Suite complète : `npm test`.
+
+- Vérifier manuellement que les boutons atlas `Home`, `Menu`, `Profil` et `Fermer` descendent de **1 px** au clic et perdent visuellement **1 px** en bas pour simuler l’écrasement du sprite.

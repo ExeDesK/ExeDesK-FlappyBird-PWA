@@ -8,7 +8,7 @@ L'objectif n'est pas de produire un simple clone « inspiré de » Flappy Bird, 
 
 Le gameplay fonctionne entièrement côté client, sans framework, et peut être installé comme une application sur Windows, iPhone/iPad et Android. Les fonctions communautaires utilisent un backend Supabase facultatif : aucun compte n'est nécessaire pour jouer.
 
-> **État du projet : bêta — v0.2.7.4b-dev3**
+> **État du projet : bêta — v0.2.7.4b-dev4**
 
 - Statistiques joueur : carrière + fenêtres 10 / 25 / 50 calculées uniquement depuis les runs vérifiées.
 > Sur iPhone/iPad ProMotion, un statut dynamique dans les options Performance mesure la cadence rAF sur iOS : il confirme la haute fréquence lorsqu’elle est active, sinon il propose le réglage Safari et un tutoriel au timecode utile.
@@ -426,3 +426,6 @@ Depuis la v0.2.6b, chaque push et chaque pull request compare automatiquement le
 
 - **dev6.1** : lisibilité accrue des menus sur grands écrans et bloc `VOS STATISTIQUES` repliable par défaut.
 - **dev6.2** : toasts réservés aux problèmes et affichés au-dessus des modales ; démarrage des Verified Runs masqué derrière la transition PLAY native (1 s minimum).
+
+
+- Les boutons atlas utilitaires (`Home`, `Menu`, `Profil`) et `Fermer` appliquent un effet d’écrasement de **1 px** au clic pour exploiter la double ligne basse prévue dans les sprites.

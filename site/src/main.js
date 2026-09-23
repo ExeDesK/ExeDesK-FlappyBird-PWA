@@ -28,7 +28,7 @@ import {
 } from './themes.js';
 import { createCanonicalRunGame } from './verified-runs.js';
 
-const VERSION = '0.2.7.4b-dev3';
+const VERSION = '0.2.7.4b-dev4';
 const BEST_SCORE_KEY = 'flappy13-personal-best-v1';
 const SETTINGS_KEY = 'flappy13-settings-v1';
 const runtimeConfig = globalThis.FLAPPY_CONFIG && typeof globalThis.FLAPPY_CONFIG === 'object'
@@ -578,8 +578,13 @@ function setAtlasIcon(elementId, spriteName, scale) {
     return;
   }
 
-  icon.style.width = `${sprite.w * scale}px`;
-  icon.style.height = `${sprite.h * scale}px`;
+  const width = `${sprite.w * scale}px`;
+  const height = `${sprite.h * scale}px`;
+
+  icon.style.setProperty('--atlas-width', width);
+  icon.style.setProperty('--atlas-height', height);
+  icon.style.width = width;
+  icon.style.height = height;
   icon.style.backgroundImage = `url("${custom.imageUrl}")`;
   icon.style.backgroundSize = `${custom.image.width * scale}px ${custom.image.height * scale}px`;
   icon.style.backgroundPosition = `-${sprite.x * scale}px -${sprite.y * scale}px`;

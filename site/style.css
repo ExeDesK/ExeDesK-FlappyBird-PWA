@@ -127,7 +127,8 @@ body {
 }
 
 .utility:active .atlas-utility-icon {
-  transform: translate(calc(-50% + 2px), calc(-50% + 2px));
+  height: calc(var(--atlas-height, 49px) - 1px);
+  transform: translate(-50%, calc(-50% + 1px));
 }
 
 .atlas-utility-icon {
@@ -135,8 +136,8 @@ body {
   top: 50%;
   left: 50%;
   display: block;
-  width: 45.5px;
-  height: 49px;
+  width: var(--atlas-width, 45.5px);
+  height: var(--atlas-height, 49px);
   transform: translate(-50%, -50%);
   background-repeat: no-repeat;
   image-rendering: pixelated;
@@ -378,8 +379,8 @@ body {
   top: 50%;
   left: 50%;
   display: block;
-  width: 26px;
-  height: 28px;
+  width: var(--atlas-width, 26px);
+  height: var(--atlas-height, 28px);
   transform: translate(-50%, -50%);
   background-repeat: no-repeat;
   image-rendering: pixelated;
@@ -392,7 +393,8 @@ body {
 }
 
 .atlas-close-button:active .atlas-close-icon {
-  transform: translate(calc(-50% + 1px), calc(-50% + 1px));
+  height: calc(var(--atlas-height, 28px) - 1px);
+  transform: translate(-50%, calc(-50% + 1px));
 }
 
 .version {

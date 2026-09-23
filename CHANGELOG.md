@@ -1,4 +1,10 @@
-## v0.2.7.4b-dev3 - Authentication moved to Profile
+## v0.2.7.4b-dev4 - Atlas button press squash
+
+- Applique l’effet d’écrasement pixel-art sur tous les boutons atlas `button_close`, `button_options`, `button_home` et `button_profile`.
+- Lors d’un clic/tap, le sprite descend de **1 px** et sa hauteur visible perd **1 px**, afin de masquer la seconde ligne basse prévue pour l’effet “press”.
+- Effet appliqué côté CSS sur les boutons utilitaires et les boutons de fermeture, sans modifier les hitboxes ni la logique d’interface.
+
+## v0.2.7.4b-dev4 - Authentication moved to Profile
 
 - Supprime entièrement la section **Connexion** des Options : aucun bouton, état de session ou action d'authentification n'y reste.
 - Déplace **SE CONNECTER AVEC DISCORD** dans la modale Profil lorsque le joueur n'est pas connecté.
