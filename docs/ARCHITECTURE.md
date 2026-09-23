@@ -146,9 +146,15 @@ Supabase HTTP endpoints
 
 Ces seuils ne sont pas des objectifs de qualité absolus : ils servent à détecter rapidement une régression vers le monolithe qui avait motivé la refactorisation.
 
+## Cycle de vie serveur des Verified Runs
+
+Depuis `v0.2.7.3b-dev6.3.6`, `run-start` ne possède plus la décision d'insertion : l'Edge Function authentifie le joueur, génère la seed cryptographique, puis délègue l'émission à la RPC `issue_verified_run()`. La fonction PostgreSQL prend un advisory lock par `player_id`, supprime les vieux tickets `issued` du joueur, applique le cap de 10 tickets ouverts et la fenêtre glissante de 30 créations/minute, puis insère le ticket de façon atomique.
+
+La maintenance globale reste en base avec `cleanup_stale_verified_run_tickets()` : `issued` > 7 jours et `rejected` > 30 jours sont purgés par un job Supabase Cron horaire. Les runs `verified` restent exclusivement régies par la rétention 50 + record de `006_verified_run_retention.sql`.
+
 ## Hors ligne
 
-Tous les nouveaux modules runtime sont précachés par `site/sw.js`. `v0.2.7.3b-dev6.3.5` contient **51 ressources de précache** : la modularisation ne retire donc aucune capacité offline.
+Tous les nouveaux modules runtime sont précachés par `site/sw.js`. `v0.2.7.3b-dev6.3.6` contient **51 ressources de précache** : la modularisation ne retire donc aucune capacité offline.
 
 ## Évolution future
 

@@ -1,12 +1,12 @@
 {
   "name": "flappy-bird-1-3-pwa",
-  "version": "0.2.7-3b-dev6.3.5",
+  "version": "0.2.7-3b-dev6.3.6",
   "private": true,
   "type": "module",
   "description": "Unofficial Flappy Bird 1.3 PWA recreation with offline support",
   "scripts": {
     "sync:edge-physics": "node scripts/sync-edge-physics.mjs",
     "check:edge-physics": "node scripts/sync-edge-physics.mjs --check",
-    "test": "npm run check:edge-physics && node --test tests/core.test.mjs tests/themes.test.mjs tests/cache.test.mjs tests/ci.test.mjs tests/audio.test.mjs tests/auth.test.mjs tests/verified-runs.test.mjs tests/verified-run-client.test.mjs tests/verified-run-recorder.test.mjs tests/verified-run-queue.test.mjs tests/verified-run-submit.test.mjs tests/game-transition.test.mjs tests/run-submit.test.mjs tests/leaderboard.test.mjs tests/player-stats.test.mjs tests/retention.test.mjs tests/player-performance.test.mjs"
+    "test": "npm run check:edge-physics && node --test tests/core.test.mjs tests/themes.test.mjs tests/cache.test.mjs tests/ci.test.mjs tests/audio.test.mjs tests/auth.test.mjs tests/verified-runs.test.mjs tests/verified-run-client.test.mjs tests/verified-run-recorder.test.mjs tests/verified-run-queue.test.mjs tests/verified-run-submit.test.mjs tests/game-transition.test.mjs tests/run-submit.test.mjs tests/leaderboard.test.mjs tests/player-stats.test.mjs tests/retention.test.mjs tests/ticket-hygiene.test.mjs tests/player-performance.test.mjs"
   }
 }

@@ -1,16 +1,16 @@
-## v0.2.7.3b-dev6.3.5
+## v0.2.7.3b-dev6.3.6
 
-- `tests/ci.test.mjs` verrouille désormais le second découpage Verified Play : `verified-play.js` reste sous 300 lignes et dépend explicitement du recorder, de la queue, du submitter et des contrôleurs UI dédiés.
-- Tests unitaires dédiés ajoutés pour `VerifiedRunRecorder`, `VerifiedRunQueue`, `VerifiedRunSubmitter` et `GameTransitionController`.
-- `tests/browser_isolated.py` charge les nouveaux sous-modules `replay/`, `session/` et `ui/` et vérifie encore les parcours clavier / rendu sans erreur page.
-- Le Service Worker précache **51 ressources runtime**, y compris les cinq nouveaux modules requis hors ligne.
-- Suite complète : `npm test` (**144/144**) + `python tests/browser_isolated.py` (**OK, 0 erreur page**).
+- Ajout de `tests/ticket-hygiene.test.mjs` pour vérifier les TTL `issued` / `rejected`, les index partiels, le verrou par joueur, le cap de 10 tickets ouverts, la fenêtre 30/minute, les droits server-only et le job Supabase Cron.
+- `tests/verified-runs.test.mjs` impose désormais que `run-start` passe par `issue_verified_run()` et ne fasse plus d'`INSERT` direct dans `verified_runs`.
+- `tests/auth.test.mjs` vérifie qu'un `429` de `run-start` conserve `status`, `code`, `retryAfter` et `retryable` côté `VerifiedRunClient`.
+- Le cache PWA reste à **51 ressources runtime** : le changement backend n'ajoute aucun asset client, mais le build Service Worker est incrémenté pour publier la nouvelle version.
+- Suite complète : `npm test` (**152/152**) + `python tests/browser_isolated.py` (**OK, 0 erreur page**).
 
-# Rapport de tests - v0.2.7.3b-dev6.3.5
+# Rapport de tests - v0.2.7.3b-dev6.3.6
 
 ## Résultat
 
-- **144/144 tests Node passent** avec `npm test`.
+- **152/152 tests Node passent** avec `npm test`.
 - Le bundle concaténé utilisé par le smoke test passe le contrôle de syntaxe JavaScript.
 - Le smoke test Chromium isolé passe sans erreur page et couvre aussi la composition des nouveaux modules ES, le catalogue dynamique, le thème Vietnam jour/nuit, le panneau diagnostic repliable et les boutons utilitaires x2.
 - Le cache PWA contient **51 ressources** et refuse de se déclarer complet si une ressource de précache manque.
@@ -42,7 +42,7 @@
 | Verified Runs | Ticket serveur, capture différée, moteur Edge synchronisé, relecture autoritaire et résolution atomique `verified/rejected`. |
 | Leaderboard | RPC publique sans session, uniquement runs `verified`, meilleur score unique par joueur et absence de données replay exposées. |
 | Player stats | Agrégats lifetime privés, backfill autoritaire, trigger `verified`, causes de mort et absence totale de stats dans la soumission client. |
-| Rétention | 50 runs vérifiées les plus récemment commencées + record historique, purge serveur privée et sérialisation concurrente par joueur. |
+| Rétention | 50 runs vérifiées les plus récemment commencées + record historique, plus TTL `issued` 7 j / `rejected` 30 j, Cron horaire, cap de 10 tickets ouverts et rate limit 30/min sur `run-start`. |
 | Contexte personnel | RPC authentifiée basée sur `auth.uid()`, rang global hors Top 100, record/count/date vérifiés et état non classé. |
 
 ## Smoke test navigateur

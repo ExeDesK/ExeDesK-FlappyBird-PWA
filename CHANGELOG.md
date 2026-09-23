@@ -1,3 +1,16 @@
+## v0.2.7.3b-dev6.3.6 - Verified Run ticket hygiene
+
+- Ajoute `supabase/009_verified_run_ticket_hygiene.sql` pour borner le cycle de vie des tickets non vérifiés sans toucher à la rétention 50+record des runs `verified`.
+- Les tickets `issued` abandonnés sont supprimés après **7 jours** et les runs `rejected` après **30 jours** ; deux index partiels accélèrent ces purges.
+- Le nettoyage global est exécuté **toutes les heures à H:17** via Supabase Cron / `pg_cron`, avec une purge immédiate des anciennes lignes lors de l'application de la migration.
+- `run-start` n'insère plus directement dans `verified_runs` : il appelle la RPC serveur-only `issue_verified_run()` qui sérialise les créations par joueur avec un advisory lock.
+- Protection anti-croissance sur `run-start` : maximum **10 tickets `issued` non résolus** par joueur et **30 démarrages sur une fenêtre glissante d'une minute**, toutes issues confondues.
+- Le plafond `issued` nettoie opportunistiquement les tickets du joueur déjà âgés de plus de 7 jours avant de compter les tickets ouverts.
+- Les dépassements retournent un `429` typé (`too_many_pending_runs` ou `rate_limited`) ; `VerifiedRunClient` conserve désormais `status`, `code`, `retryAfter` et `retryable` pour le fallback hors classement.
+- La possibilité de terminer hors ligne puis soumettre plus tard est conservée : aucun TTL d'une heure n'est dérivé de `MAX_VERIFIED_RUN_TICK`; la fenêtre d'hygiène `issued` est de 7 jours.
+- Ajoute `tests/ticket-hygiene.test.mjs` et étend les tests Edge/client ; suite locale : `npm test` **152/152** + `python tests/browser_isolated.py` **OK, 0 erreur page**.
+- Aucun changement de `flappy13-physics-v1`, du format de replay, du score autoritaire, du leaderboard ou de `player_stats`.
+
 ## v0.2.7.3b-dev6.3.5 - Verified Play second architecture pass
 
 - Découpe `session/verified-play.js` d'environ **415 à 296 lignes** : il reste le contrôleur d'orchestration du scénario PLAY vérifié au lieu d'implémenter lui-même stockage, retry et animation de transition.

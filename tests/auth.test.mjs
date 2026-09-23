@@ -352,3 +352,40 @@ test('successful profile refresh clears a previous transient profile error', asy
     browser.restore();
   }
 });
+
+test('VerifiedRunClient preserves run-start throttling metadata for the UI fallback', async () => {
+  const browser = installBrowser();
+  const previousFetch = globalThis.fetch;
+  globalThis.fetch = async () => new Response(JSON.stringify({
+    error: 'rate_limited',
+    message: 'Trop de parties classées ont été démarrées récemment.',
+    retry_after_seconds: 23,
+  }), {
+    status: 429,
+    headers: {
+      'Content-Type': 'application/json',
+      'Retry-After': '23',
+    },
+  });
+
+  try {
+    const verifiedRuns = new VerifiedRunClient({
+      ...config,
+      getAccessToken: () => 'access',
+    });
+
+    await assert.rejects(
+      () => verifiedRuns.start(),
+      error => {
+        assert.equal(error.status, 429);
+        assert.equal(error.code, 'rate_limited');
+        assert.equal(error.retryAfter, 23);
+        assert.equal(error.retryable, true);
+        return true;
+      },
+    );
+  } finally {
+    globalThis.fetch = previousFetch;
+    browser.restore();
+  }
+});

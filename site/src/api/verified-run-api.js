@@ -30,9 +30,16 @@ export class VerifiedRunClient {
     const payload = await response.json().catch(() => null);
 
     if (!response.ok) {
-      throw new Error(
+      const error = new Error(
         payload?.message || payload?.error || `Création du run classé HTTP ${response.status}`,
       );
+      error.status = response.status;
+      error.code = payload?.error || null;
+      error.retryAfter = Number(
+        payload?.retry_after_seconds || response.headers.get('Retry-After') || 0,
+      ) || null;
+      error.retryable = response.status === 429 || response.status >= 500;
+      throw error;
     }
 
     return parseRunTicket(payload);

@@ -8,7 +8,7 @@ L'objectif n'est pas de produire un simple clone « inspiré de » Flappy Bird, 
 
 Le gameplay fonctionne entièrement côté client, sans framework, et peut être installé comme une application sur Windows, iPhone/iPad et Android. Les fonctions communautaires utilisent un backend Supabase facultatif : aucun compte n'est nécessaire pour jouer.
 
-> **État du projet : bêta — v0.2.7.3b-dev6.3.5**
+> **État du projet : bêta — v0.2.7.3b-dev6.3.6**
 
 - Statistiques joueur : carrière + fenêtres 10 / 25 / 50 calculées uniquement depuis les runs vérifiées.
 > Sur iPhone/iPad ProMotion, un statut dynamique dans les options Performance mesure la cadence rAF sur iOS : il confirme la haute fréquence lorsqu’elle est active, sinon il propose le réglage Safari et un tutoriel au timecode utile.
@@ -31,6 +31,7 @@ Le gameplay fonctionne entièrement côté client, sans framework, et peut être
 - Contexte personnel authentifié dans le classement : rang global réel, record vérifié, nombre lifetime de runs vérifiées et date du record, y compris hors Top 100.
 - Statistiques lifetime autoritaires côté Supabase (`player_stats`) : parties vérifiées, score cumulé, record historique et causes de mort, sans aucune statistique envoyée par le client.
 - Rétention des replays vérifiés : **50 dernières parties + meilleur run historique** par joueur, afin de borner le stockage tout en conservant le record et une fenêtre récente exploitable pour les futures statistiques court terme.
+- Hygiène des tickets Verified Runs : `issued` abandonnés purgés après **7 jours**, `rejected` après **30 jours**, nettoyage horaire via Supabase Cron, maximum **10 tickets ouverts** et **30 créations/minute** par joueur côté `run-start`.
 - Affichage **Original** ou **Adapté** selon l'appareil.
 - Extension dynamique du ciel et du sol sur les écrans plus hauts que le format original.
 - Mode Performance pour limiter le supersampling sur les appareils à fort DPR.

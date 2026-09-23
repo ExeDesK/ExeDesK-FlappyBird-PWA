@@ -214,9 +214,16 @@ test('run-start authenticates the caller and generates the seed on the server', 
   assert.match(source, /withSupabase\(\{ auth: 'user' \}/);
   assert.match(source, /context\.userClaims\?\.id/);
   assert.match(source, /context\.supabaseAdmin/);
+  assert.match(source, /\.rpc\('issue_verified_run'/);
+  assert.match(source, /target_player_id: playerId/);
+  assert.match(source, /requested_seed: randomInt32\(\)/);
   assert.match(source, /crypto\.getRandomValues/);
+  assert.match(source, /result_code === 'too_many_pending_runs'/);
+  assert.match(source, /result_code === 'rate_limited'/);
+  assert.match(source, /'Retry-After'/);
   assert.match(source, new RegExp(`PHYSICS_VERSION = '${PHYSICS_VERSION}'`));
   assert.match(source, new RegExp(`RUN_TICKET_SCHEMA = '${RUN_TICKET_SCHEMA}'`));
   assert.doesNotMatch(source, /Math\.random/);
+  assert.doesNotMatch(source, /\.from\('verified_runs'\)[\s\S]*\.insert\(/);
   assert.doesNotMatch(source, /request\.json\(\).*seed/s);
 });

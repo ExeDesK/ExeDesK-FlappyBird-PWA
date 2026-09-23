@@ -221,6 +221,23 @@ Le lancement dure donc au minimum une seconde, comme la transition visuelle d’
 Lors du remplacement du menu noir par le `Game` canonique, le constructeur du nouveau jeu avait déjà commencé son propre tween de révélation. La première frame pouvait donc être partiellement visible avant le fade attendu. Le client force maintenant le nouveau jeu à un état 100 % noir, rend explicitement cette frame noire, puis démarre le fade retour de 0,5 s.
 
 
+## Hygiène des tickets et protection de `run-start` (v0.2.7.3b-dev6.3.6)
+
+La durée maximale de simulation (`MAX_VERIFIED_RUN_TICK = 216000`, soit une heure à 60 Hz) n'est **pas** utilisée comme durée de validité du ticket : un run peut être terminé hors ligne puis soumis plus tard. La politique serveur utilise donc une fenêtre distincte :
+
+- `issued` abandonné : purge après **7 jours** ;
+- `rejected` : purge après **30 jours** ;
+- `verified` : politique historique inchangée, 50 runs récentes + record.
+
+`run-start` génère toujours la seed int32 dans l'Edge Function avec `crypto.getRandomValues()`, mais l'insertion est désormais effectuée par la RPC serveur-only `issue_verified_run()`. Sous un advisory lock par joueur, elle impose :
+
+- maximum **10** lignes `status = 'issued'` ouvertes ;
+- maximum **30** tickets créés dans une fenêtre glissante d'une minute, quel que soit leur statut final.
+
+Les dépassements retournent HTTP `429` avec `too_many_pending_runs` ou `rate_limited`. Le client conserve ces métadonnées d'erreur puis utilise le fallback non classé existant ; aucune donnée de score, seed ou identité n'est réinjectée par le navigateur.
+
+La fonction `cleanup_stale_verified_run_tickets()` est exécutée une première fois pendant la migration `009_verified_run_ticket_hygiene.sql`, puis toutes les heures via Supabase Cron / `pg_cron`. Elle n'est exécutable ni par `anon` ni par `authenticated`.
+
 ## Architecture frontend depuis v0.2.7.3b-dev6.3.4
 
 Le transport `run-start` / `run-submit` est isolé dans `site/src/api/verified-run-api.js` (`VerifiedRunClient`). En `dev6.3.4`, le cycle navigateur a d'abord été sorti de `main.js` vers `site/src/session/verified-play.js` (`VerifiedPlayController`). `main.js` ne conserve que l'installation du `Game` canonique et les points d'accroche avec la boucle du moteur ; `dev6.3.5` affine ensuite ce découpage en séparant recorder, queue, submitter et UI de transition.

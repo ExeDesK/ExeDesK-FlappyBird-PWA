@@ -38,17 +38,47 @@ export default {
     }
 
     const { data, error } = await context.supabaseAdmin
-      .from('verified_runs')
-      .insert({
-        player_id: playerId,
-        seed: randomInt32(),
-        physics_version: PHYSICS_VERSION,
+      .rpc('issue_verified_run', {
+        target_player_id: playerId,
+        requested_seed: randomInt32(),
+        requested_physics_version: PHYSICS_VERSION,
       })
-      .select('run_id,seed,physics_version,issued_at')
       .single();
 
     if (error || !data) {
-      console.error('run-start insert failed', error);
+      console.error('run-start issue_verified_run failed', error);
+      return response(
+        { error: 'ticket_creation_failed', message: 'Impossible de créer le run classé.' },
+        500,
+      );
+    }
+
+    if (data.result_code === 'too_many_pending_runs') {
+      return response(
+        {
+          error: 'too_many_pending_runs',
+          message: 'Trop de parties classées sont encore en attente pour ce compte.',
+          pending_runs: data.pending_count,
+        },
+        429,
+      );
+    }
+
+    if (data.result_code === 'rate_limited') {
+      const retryAfter = Math.max(1, Number(data.retry_after_seconds) || 60);
+      return response(
+        {
+          error: 'rate_limited',
+          message: 'Trop de parties classées ont été démarrées récemment. Réessayez dans quelques instants.',
+          retry_after_seconds: retryAfter,
+        },
+        429,
+        { 'Retry-After': String(retryAfter) },
+      );
+    }
+
+    if (data.result_code !== 'issued' || !data.run_id) {
+      console.error('run-start unexpected issue result', data);
       return response(
         { error: 'ticket_creation_failed', message: 'Impossible de créer le run classé.' },
         500,
