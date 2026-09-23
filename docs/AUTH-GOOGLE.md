@@ -126,3 +126,5 @@ Ce mécanisme est utile mais **ne remplace pas** le linking manuel : si Discord 
 Une identité Google liée expose ses métadonnées publiques à Supabase Auth dans `user.identities[].identity_data`. Lorsque Google fournit `picture`, la PWA peut proposer cette image comme photo de profil, au même titre que l'avatar Discord.
 
 Le joueur choisit la source dans **Profil > Personnalisation**. Le choix est enregistré dans `profiles.avatar_provider` et l'URL correspondante dans `profiles.avatar_url`, afin que le leaderboard et Admin Analytics utilisent la même photo. Le pseudo public (`profiles.display_name`) reste indépendant du provider et peut être modifié sans changer d'identité Auth.
+
+> Hotfix permissions : après `012_profile_customization.sql`, exécuter aussi `supabase/013_profile_permissions_hotfix.sql` sur une base déjà déployée en dev11 afin de rétablir les grants PostgREST nécessaires à la personnalisation du profil.

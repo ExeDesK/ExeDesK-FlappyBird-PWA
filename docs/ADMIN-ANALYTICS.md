@@ -208,4 +208,4 @@ Depuis `v0.2.7.4b-dev5`, `expired_issued_runs` agrège les tickets `issued` quit
 
 ## Identité affichée
 
-Les vues joueurs continuent d'utiliser `profiles.display_name` et `profiles.avatar_url`. La personnalisation introduite en `v0.2.7.4b-dev11` est donc reflétée automatiquement dans l'Admin sans changer l'allow-list, qui reste basée exclusivement sur `auth.users.id`.
+Les vues joueurs continuent d'utiliser `profiles.display_name` et `profiles.avatar_url`. La personnalisation introduite en `v0.2.7.4b-dev11-hotfix1` est donc reflétée automatiquement dans l'Admin sans changer l'allow-list, qui reste basée exclusivement sur `auth.users.id`.

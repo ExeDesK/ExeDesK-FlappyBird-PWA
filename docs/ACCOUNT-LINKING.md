@@ -1,6 +1,6 @@
 # Account linking
 
-## État actuel — v0.2.7.4b-dev11
+## État actuel — v0.2.7.4b-dev11-hotfix1
 
 Discord et Google sont maintenant tous les deux exposés dans la modale **Profil**. Le joueur peut :
 
@@ -128,3 +128,5 @@ Pour que le linking fonctionne réellement :
 - l'URL GitHub Pages doit être autorisée comme URL de redirection Supabase.
 
 Voir [`AUTH-GOOGLE.md`](./AUTH-GOOGLE.md) pour la configuration complète.
+
+> Hotfix permissions : après `012_profile_customization.sql`, exécuter aussi `supabase/013_profile_permissions_hotfix.sql` sur une base déjà déployée en dev11 afin de rétablir les grants PostgREST nécessaires à la personnalisation du profil.

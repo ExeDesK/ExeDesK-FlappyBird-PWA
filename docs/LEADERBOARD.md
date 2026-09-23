@@ -95,4 +95,4 @@ Cette séparation ne change aucun contrat SQL/RPC.
 
 ## Identité publique personnalisable
 
-Le leaderboard continue de lire `profiles.display_name` et `profiles.avatar_url`. Depuis `v0.2.7.4b-dev11`, ces valeurs peuvent être personnalisées depuis la modale Profil : le pseudo est indépendant des providers liés et l'avatar peut provenir de Discord ou Google. Cette personnalisation ne modifie ni le rang, ni l'UUID du joueur, ni les runs vérifiées.
+Le leaderboard continue de lire `profiles.display_name` et `profiles.avatar_url`. Depuis `v0.2.7.4b-dev11-hotfix1`, ces valeurs peuvent être personnalisées depuis la modale Profil : le pseudo est indépendant des providers liés et l'avatar peut provenir de Discord ou Google. Cette personnalisation ne modifie ni le rang, ni l'UUID du joueur, ni les runs vérifiées.

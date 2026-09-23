@@ -1,3 +1,11 @@
+## v0.2.7.4b-dev11-hotfix1 - Profile Data API permissions
+
+- Corrige l'erreur PostgREST `42501 / permission denied for table profiles` lors de l'enregistrement du pseudo ou de la photo de profil.
+- `012_profile_customization.sql` devient autonome et réaccorde explicitement les droits `UPDATE` sur `username`, `display_name`, `avatar_url` et `avatar_provider`, tout en conservant `best_score` hors des écritures directes navigateur.
+- Ajoute `013_profile_permissions_hotfix.sql` pour réparer les bases où `012` a déjà été exécutée ; la migration réaffirme aussi la policy RLS owner-only.
+- Aucun compte, UUID, record, run ou historique n'est modifié.
+- Validation : `npm test` **181/181**, smoke tests Chromium gameplay et Admin **OK**.
+
 ## v0.2.7.4b-dev11 - Profile personalization
 
 - Ajoute la personnalisation du **pseudo public** directement dans Profil. Le pseudo initial reste celui créé depuis le premier provider connecté ; le joueur peut ensuite le modifier sans changer son `auth.users.id`, son record ni son historique.

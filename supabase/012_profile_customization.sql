@@ -21,9 +21,13 @@ begin
 end
 $$;
 
--- Existing grants from 002_best_score_sync.sql already allow the owner to
--- update display_name and avatar_url. Add only the new preference column.
-grant update (avatar_provider) on public.profiles to authenticated;
+-- Keep the profile customization grant self-contained. 002_best_score_sync
+-- revokes table-wide UPDATE to protect best_score, so every editable profile
+-- column must be explicitly granted to the authenticated Data API role.
+revoke update on table public.profiles from authenticated;
+grant update (username, display_name, avatar_url, avatar_provider)
+  on table public.profiles
+  to authenticated;
 
 comment on column public.profiles.avatar_provider is
   'Linked OAuth provider selected by the player as the source of the public profile avatar.';

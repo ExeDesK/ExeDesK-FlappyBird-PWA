@@ -168,9 +168,20 @@ test('profile customization migration adds a bounded provider preference without
   const sql = await readFile(new URL('../supabase/012_profile_customization.sql', import.meta.url), 'utf8');
   assert.match(sql, /add column if not exists avatar_provider text/i);
   assert.match(sql, /avatar_provider is null or avatar_provider in \('discord', 'google'\)/i);
-  assert.match(sql, /grant update \(avatar_provider\) on public\.profiles to authenticated/i);
+  assert.match(sql, /grant update \(username, display_name, avatar_url, avatar_provider\)[\s\S]*on table public\.profiles[\s\S]*to authenticated/i);
   assert.match(sql, /initial_avatar_url text :=/i);
   assert.match(sql, /initial_provider in \('discord', 'google'\)/i);
   assert.doesNotMatch(sql, /update\s+public\.profiles\s+set/i);
   assert.doesNotMatch(sql, /delete\s+from\s+public\.profiles/i);
+});
+
+
+test('profile permissions hotfix reasserts Data API grants and owner-only RLS', async () => {
+  const sql = await readFile(new URL('../supabase/013_profile_permissions_hotfix.sql', import.meta.url), 'utf8');
+  assert.match(sql, /grant usage on schema public to authenticated/i);
+  assert.match(sql, /grant select on table public\.profiles to anon, authenticated/i);
+  assert.match(sql, /revoke update on table public\.profiles from authenticated/i);
+  assert.match(sql, /grant update \(username, display_name, avatar_url, avatar_provider\)[\s\S]*to authenticated/i);
+  assert.match(sql, /create policy "Users can update their own profile"[\s\S]*for update[\s\S]*auth\.uid\(\)[\s\S]*= id/i);
+  assert.doesNotMatch(sql, /grant update[\s\S]*best_score/i);
 });

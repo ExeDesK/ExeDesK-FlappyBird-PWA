@@ -1,3 +1,9 @@
+## v0.2.7.4b-dev11-hotfix1 — Profile Data API permissions
+
+- `tests/profile-customization.test.mjs` verrouille les grants PostgREST sur `username`, `display_name`, `avatar_url` et `avatar_provider` tout en interdisant toujours l’écriture directe de `best_score`.
+- `013_profile_permissions_hotfix.sql` réaffirme le droit `SELECT`, les droits `UPDATE` de colonnes et la policy RLS owner-only pour les bases ayant déjà appliqué dev11.
+- Suite complète : `npm test` **181/181** + `python tests/browser_isolated.py` **OK** + `python tests/admin_browser_isolated.py` **OK**.
+
 ## v0.2.7.4b-dev11 — Profile personalization
 
 - `tests/profile-customization.test.mjs` couvre l'ordre du premier provider, l'extraction des avatars Discord/Google depuis `identity_data`, la normalisation du pseudo, le PATCH du profil et la migration `012_profile_customization.sql`.
@@ -59,11 +65,11 @@
 - Le cache PWA reste à **51 ressources runtime** : le changement backend n'ajoute aucun asset client, mais le build Service Worker est incrémenté pour publier la nouvelle version.
 - Suite complète : `npm test` (**152/152**) + `python tests/browser_isolated.py` (**OK, 0 erreur page**).
 
-# Rapport de tests - v0.2.7.4b-dev11
+# Rapport de tests - v0.2.7.4b-dev11-hotfix1
 
 ## Résultat
 
-- **180/180 tests Node passent** avec `npm test`.
+- **181/181 tests Node passent** avec `npm test`.
 - Le bundle concaténé utilisé par le smoke test passe le contrôle de syntaxe JavaScript.
 - Le smoke test Chromium isolé passe sans erreur page et couvre aussi la composition des nouveaux modules ES, le catalogue dynamique, le thème Vietnam jour/nuit, le panneau diagnostic repliable, la modale Profil, les boutons utilitaires x1,75 et le module d’abandon de ticket Verified Run.
 - Le smoke test Admin Analytics dédié passe également sans erreur page avec Auth/RPC Supabase mockés et couvre les vues Overview, Joueurs, Rétention et Système.

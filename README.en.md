@@ -8,7 +8,7 @@ The goal is not to create another Flappy Bird-inspired clone, but to **reproduce
 
 Gameplay runs entirely client-side without a framework and can be installed as an application on Windows, iPhone/iPad and Android. Optional community features use Supabase; no account is required to play.
 
-> **Project status: beta — v0.2.7.4b-dev11**
+> **Project status: beta — v0.2.7.4b-dev11-hotfix1**
 
 - Player statistics: career + 10 / 25 / 50-run windows derived only from verified runs.
 > On ProMotion iPhone/iPad devices, the Performance options include guidance for the Safari setting that can remove the near-60 Hz page-rendering preference.
@@ -444,3 +444,5 @@ Since v0.2.6b, every push and pull request automatically compares the PWA engine
 - On wide screens, `Menu`, `Home` and `Profile` are anchored to the right edge of the centered game viewport, so black side bars are excluded from their positioning area.
 
 - The **RATE** button now shows a friendly not-yet-available toast without leaving the game screen.
+
+> Permissions hotfix: if `012_profile_customization.sql` was already applied on dev11, also run `supabase/013_profile_permissions_hotfix.sql` to restore the PostgREST grants required by profile customization.

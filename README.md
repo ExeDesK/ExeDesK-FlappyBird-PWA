@@ -8,7 +8,7 @@ L'objectif n'est pas de produire un simple clone « inspiré de » Flappy Bird, 
 
 Le gameplay fonctionne entièrement côté client, sans framework, et peut être installé comme une application sur Windows, iPhone/iPad et Android. Les fonctions communautaires utilisent un backend Supabase facultatif : aucun compte n'est nécessaire pour jouer.
 
-> **État du projet : bêta — v0.2.7.4b-dev11**
+> **État du projet : bêta — v0.2.7.4b-dev11-hotfix1**
 
 - Statistiques joueur : carrière + fenêtres 10 / 25 / 50 calculées uniquement depuis les runs vérifiées.
 > Sur iPhone/iPad ProMotion, un statut dynamique dans les options Performance mesure la cadence rAF sur iOS : il confirme la haute fréquence lorsqu’elle est active, sinon il propose le réglage Safari et un tutoriel au timecode utile.
@@ -444,3 +444,5 @@ Depuis la v0.2.6b, chaque push et chaque pull request compare automatiquement le
 - Sur les écrans larges, les boutons `Menu`, `Home` et `Profil` sont ancrés au bord droit de la zone de jeu centrée : les bandes noires latérales ne font pas partie de leur espace de placement.
 
 - Le bouton **RATE** affiche désormais un toast convivial indiquant que la notation n’est pas encore disponible, sans quitter l’écran du jeu.
+
+> Hotfix permissions : après `012_profile_customization.sql`, exécuter aussi `supabase/013_profile_permissions_hotfix.sql` sur une base déjà déployée en dev11 afin de rétablir les grants PostgREST nécessaires à la personnalisation du profil.
