@@ -194,15 +194,51 @@ def main() -> None:
         ) == '68px'
         assert page.evaluate(
             "document.querySelector('#utility-atlas-icon').style.width"
-        ) == '52px'
+        ) == '45.5px'
         assert page.evaluate(
             "document.querySelector('#utility-atlas-icon').style.height"
-        ) == '56px'
+        ) == '49px'
+        assert page.evaluate(
+            "document.querySelector('#profile-atlas-icon').style.width"
+        ) == '45.5px'
+        assert page.evaluate(
+            "document.querySelector('#profile-atlas-icon').style.height"
+        ) == '49px'
+        assert page.evaluate(
+            "document.querySelector('#close-options-icon').style.width"
+        ) == '26px'
+        assert page.evaluate(
+            "document.querySelector('#close-options-icon').style.height"
+        ) == '28px'
 
         page.evaluate('flappy.pause(); for (let i = 0; i < 60; i++) flappy.step();')
         assert page.evaluate('flappy.snapshot().state') == 'MENU'
         assert not page.is_hidden('#open-options')
+        assert not page.is_hidden('#open-profile')
+        menu_box = page.locator('#open-options').bounding_box()
+        profile_box = page.locator('#open-profile').bounding_box()
+        assert menu_box is not None and profile_box is not None
+        assert profile_box['x'] + profile_box['width'] <= menu_box['x']
         page.screenshot(path=str(output / 'menu.png'))
+
+        # Profile is a dedicated read-only modal for now: it has no provider
+        # buttons or identity-linking actions, and closes with the atlas sprite.
+        page.click('#open-profile')
+        page.wait_for_selector('#profile-dialog', state='visible')
+        assert page.locator('#profile-dialog #discord-login').count() == 0
+        assert page.locator('#profile-dialog #discord-logout').count() == 0
+        assert page.locator('#profile-dialog [id*=link]').count() == 0
+        assert not page.is_hidden('#account-signed-out')
+        assert page.is_hidden('#account-signed-in')
+        assert page.evaluate(
+            "document.querySelector('#close-profile-icon').style.width"
+        ) == '26px'
+        assert page.evaluate(
+            "document.querySelector('#close-profile-icon').style.height"
+        ) == '28px'
+        page.screenshot(path=str(output / 'profile.png'))
+        page.click('#close-profile')
+        page.wait_for_selector('#profile-dialog', state='hidden')
 
         page.evaluate(
             'flappy.step({ touches: [{ x: 78, y: 375 }] });'
@@ -211,6 +247,7 @@ def main() -> None:
         )
         assert page.evaluate('flappy.snapshot().state') == 'READY'
         assert not page.is_hidden('#open-options')
+        assert page.is_hidden('#open-profile')
         assert page.get_attribute('#open-options', 'data-mode') == 'home'
         page.screenshot(path=str(output / 'ready.png'))
 
@@ -237,6 +274,7 @@ def main() -> None:
         page.evaluate('for (let i = 0; i < 236; i++) flappy.step();')
         assert page.evaluate('flappy.snapshot().state') == 'GAME_OVER'
         assert not page.is_hidden('#open-options')
+        assert page.is_hidden('#open-profile')
         assert page.get_attribute('#open-options', 'data-mode') == 'home'
         page.screenshot(path=str(output / 'gameover.png'))
 
@@ -253,8 +291,12 @@ def main() -> None:
         assert page.locator('a.footer-link').get_attribute('href') == 'https://github.com/ExeDesK/FlappyBird-PWA'
         assert page.locator('#discord-login').count() == 1
         assert page.locator('#discord-logout').count() == 1
-        assert not page.is_hidden('#account-signed-out')
-        assert page.is_hidden('#account-signed-in')
+        assert page.locator('#options #account-signed-out').count() == 0
+        assert page.locator('#options #account-signed-in').count() == 0
+        assert page.locator('#options #profile-best-score').count() == 0
+        assert page.evaluate(
+            "document.querySelector('#close-options-icon').style.width"
+        ) == '26px'
         assert 'Flappy Bird 1.3' in page.locator('.parity-note').inner_text()
         page.screenshot(path=str(output / 'options.png'))
 

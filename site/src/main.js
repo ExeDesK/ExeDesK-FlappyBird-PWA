@@ -28,7 +28,7 @@ import {
 } from './themes.js';
 import { createCanonicalRunGame } from './verified-runs.js';
 
-const VERSION = '0.2.7.4b';
+const VERSION = '0.2.7.4b-dev1';
 const BEST_SCORE_KEY = 'flappy13-personal-best-v1';
 const SETTINGS_KEY = 'flappy13-settings-v1';
 const runtimeConfig = globalThis.FLAPPY_CONFIG && typeof globalThis.FLAPPY_CONFIG === 'object'
@@ -42,7 +42,8 @@ const SUPABASE_PUBLISHABLE_KEY = typeof runtimeConfig.supabasePublishableKey ===
   : '';
 const MAX_REPLAY_INPUTS = 30000;
 const PLAY_FADE_SECONDS = 0.5;
-const UTILITY_ATLAS_SCALE = 2;
+const UTILITY_ATLAS_SCALE = 1.75;
+const CLOSE_ATLAS_SCALE = 1;
 
 const $ = id => document.getElementById(id);
 const query = new URLSearchParams(location.search);
@@ -50,6 +51,7 @@ const query = new URLSearchParams(location.search);
 const canvas = $('game');
 const stage = $('stage');
 const options = $('options');
+const profileDialog = $('profile-dialog');
 const leaderboardDialog = $('leaderboard-dialog');
 const unrankedWarning = $('unranked-warning');
 const audio = new Audio({ version: VERSION });
@@ -295,7 +297,10 @@ function applyBest(value) {
     game.best = Math.max(game.best, best);
   }
 
-  $('best-score').textContent = best;
+  const profileBest = $('profile-best-score');
+  if (profileBest) {
+    profileBest.textContent = String(best);
+  }
   return best !== previous;
 }
 
@@ -564,42 +569,63 @@ function activatePendingVisualTheme() {
   applyVisualTheme(nextTheme);
 }
 
-function setUtilityAtlasIcon(mode) {
-  const icon = $('utility-atlas-icon');
+function setAtlasIcon(elementId, spriteName, scale) {
+  const icon = $(elementId);
   const custom = renderer?.atlas?.custom;
-  const spriteName = mode === 'home' ? 'button_home' : 'button_options';
   const sprite = custom?.sprites?.[spriteName];
 
   if (!icon || !custom || !sprite) {
     return;
   }
 
-  icon.style.width = `${sprite.w * UTILITY_ATLAS_SCALE}px`;
-  icon.style.height = `${sprite.h * UTILITY_ATLAS_SCALE}px`;
+  icon.style.width = `${sprite.w * scale}px`;
+  icon.style.height = `${sprite.h * scale}px`;
   icon.style.backgroundImage = `url("${custom.imageUrl}")`;
-  icon.style.backgroundSize = `${custom.image.width * UTILITY_ATLAS_SCALE}px ${custom.image.height * UTILITY_ATLAS_SCALE}px`;
-  icon.style.backgroundPosition = `-${sprite.x * UTILITY_ATLAS_SCALE}px -${sprite.y * UTILITY_ATLAS_SCALE}px`;
+  icon.style.backgroundSize = `${custom.image.width * scale}px ${custom.image.height * scale}px`;
+  icon.style.backgroundPosition = `-${sprite.x * scale}px -${sprite.y * scale}px`;
+}
+
+function setUtilityAtlasIcon(mode) {
+  const spriteName = mode === 'home' ? 'button_home' : 'button_options';
+  setAtlasIcon('utility-atlas-icon', spriteName, UTILITY_ATLAS_SCALE);
+}
+
+function setProfileAtlasIcon() {
+  setAtlasIcon('profile-atlas-icon', 'button_profile', UTILITY_ATLAS_SCALE);
+}
+
+function setCloseAtlasIcons() {
+  for (const id of ['close-options-icon', 'close-profile-icon', 'close-leaderboard-icon']) {
+    setAtlasIcon(id, 'button_close', CLOSE_ATLAS_SCALE);
+  }
 }
 
 function syncUtilityVisibility() {
   const button = $('open-options');
+  const profileButton = $('open-profile');
   const state = game?.state ?? 'MENU';
   const mode = state === 'MENU'
     ? 'options'
     : state === 'READY' || state === 'GAME_OVER'
       ? 'home'
       : 'hidden';
-  const signature = `${mode}:${game?.fadeEvent ?? 0}:${game?.fade?.done ?? true}`;
+  const fadeReady = game?.fade?.done ?? true;
+  const modalOpen = options.open || profileDialog.open || leaderboardDialog.open || unrankedWarning.open;
+  const menuVisible = mode === 'options' && fadeReady && game?.fadeEvent !== 5 && !modalOpen;
+  const mainVisible = mode !== 'hidden'
+    && fadeReady
+    && !modalOpen
+    && (mode !== 'options' || game?.fadeEvent !== 5);
+  const profileVisible = state === 'MENU' && menuVisible;
+  const signature = `${mode}:${profileVisible}:${modalOpen}:${game?.fadeEvent ?? 0}:${fadeReady}`;
 
   if (signature === lastUtilityVisibility) {
     return;
   }
 
   lastUtilityVisibility = signature;
-  const visible = mode !== 'hidden'
-    && (game?.fade?.done ?? true)
-    && (mode !== 'options' || game?.fadeEvent !== 5);
-  button.hidden = !visible;
+  button.hidden = !mainVisible;
+  profileButton.hidden = !profileVisible;
   button.dataset.mode = mode;
   button.title = mode === 'home' ? 'Retour à l’accueil' : 'Options (Echap)';
   button.setAttribute(
@@ -607,6 +633,9 @@ function syncUtilityVisibility() {
     mode === 'home' ? 'Retourner à l’écran d’accueil' : 'Ouvrir les options',
   );
   setUtilityAtlasIcon(mode);
+  if (profileVisible) {
+    setProfileAtlasIcon();
+  }
 }
 
 function returnToHome() {
@@ -632,8 +661,6 @@ function openOptions() {
 
   audio.note('SETTINGS_OPEN');
   audio.unlock('settings-open');
-  $('best-score').textContent = best;
-
   if (!options.open) {
     options.showModal();
   }
@@ -642,6 +669,30 @@ function openOptions() {
   clearInput();
   clock.reset();
   void pwaManager.checkForUpdates({ silent: true, reason: 'options-open' });
+}
+
+function openProfile() {
+  if (!game || game.state !== 'MENU' || !(game.fade?.done ?? true)) {
+    return;
+  }
+
+  audio.note('PROFILE_OPEN');
+  audio.unlock('profile-open');
+  accountUI.render(auth.snapshot());
+
+  if (!profileDialog.open) {
+    profileDialog.showModal();
+  }
+
+  syncUtilityVisibility();
+  clearInput();
+  clock.reset();
+}
+
+function closeProfile() {
+  if (profileDialog.open) {
+    profileDialog.close();
+  }
 }
 
 function openLeaderboard({ force = false } = {}) {
@@ -706,7 +757,7 @@ function pointerPosition(event) {
 }
 
 function press(id, point) {
-  if (!game || options.open || leaderboardDialog.open || unrankedWarning.open || verifiedPlay.startPending) {
+  if (!game || options.open || profileDialog.open || leaderboardDialog.open || unrankedWarning.open || verifiedPlay.startPending) {
     return;
   }
 
@@ -763,7 +814,7 @@ canvas.addEventListener('contextmenu', event => {
 });
 
 window.addEventListener('keydown', event => {
-  if (options.open || leaderboardDialog.open || unrankedWarning.open || verifiedPlay.startPending) {
+  if (options.open || profileDialog.open || leaderboardDialog.open || unrankedWarning.open || verifiedPlay.startPending) {
     return;
   }
 
@@ -866,8 +917,23 @@ $('open-options').onclick = () => {
     openOptions();
   }
 };
+$('open-profile').onclick = openProfile;
 $('close-options').onclick = closeOptions;
+$('close-profile').onclick = closeProfile;
 $('close-leaderboard').onclick = closeLeaderboard;
+
+profileDialog.addEventListener('close', () => {
+  audio.note('PROFILE_DIALOG_CLOSED');
+  syncUtilityVisibility();
+  clearInput();
+  clock.reset();
+  canvas.focus({ preventScroll: true });
+});
+
+profileDialog.addEventListener('cancel', event => {
+  event.preventDefault();
+  closeProfile();
+});
 
 leaderboardDialog.addEventListener('close', () => {
   audio.note('LEADERBOARD_DIALOG_CLOSED');
@@ -1315,6 +1381,8 @@ async function boot() {
     $('debug-theme-variant').value = themeControls.variant;
     selectVisualThemeForMenu();
     setUtilityAtlasIcon('options');
+    setProfileAtlasIcon();
+    setCloseAtlasIcons();
 
     $('loading').hidden = true;
     setDebug(debug);
@@ -1340,7 +1408,7 @@ async function boot() {
       }
 
       if (auth.callbackResult === 'signed_in') {
-        openOptions();
+        openProfile();
       } else if (auth.callbackResult === 'error') {
         toast(`Connexion Discord impossible : ${auth.error || 'erreur OAuth'}`);
       }
@@ -1359,6 +1427,8 @@ async function boot() {
       leaderboard: () => structuredClone(leaderboardUI.rows),
       leaderboardContext: () => structuredClone(leaderboardUI.context),
       playerPerformance: () => structuredClone(leaderboardUI.performance),
+      openProfile,
+      closeProfile,
       openLeaderboard: () => openLeaderboard({ force: true }),
       closeLeaderboard,
       refreshLeaderboard: () => leaderboardUI.refreshAll({ force: true }),

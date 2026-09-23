@@ -36,22 +36,54 @@ export class AccountUI {
     const scoreSync = this.getScoreSyncState?.() || { state: 'local', error: null };
     const signed = Boolean(state.user || state.profile)
       && ['signed_in', 'offline', 'loading'].includes(state.status);
+    const online = typeof navigator === 'undefined' || navigator.onLine;
+    const login = this.$('discord-login');
+    const logout = this.$('discord-logout');
 
-    this.$('account-signed-out').hidden = signed;
-    this.$('account-signed-in').hidden = !signed;
-    this.$('discord-login').disabled = !state.configured
-      || (typeof navigator !== 'undefined' && !navigator.onLine)
-      || state.status === 'loading';
-    this.$('discord-logout').disabled = state.status === 'loading';
+    if (this.$('account-signed-out')) {
+      this.$('account-signed-out').hidden = signed;
+    }
+    if (this.$('account-signed-in')) {
+      this.$('account-signed-in').hidden = !signed;
+    }
+    if (login) {
+      login.hidden = signed;
+      login.disabled = !state.configured || !online || state.status === 'loading';
+    }
+    if (logout) {
+      logout.hidden = !signed;
+      logout.disabled = state.status === 'loading';
+    }
+    if (this.$('profile-best-score')) {
+      this.$('profile-best-score').textContent = String(this.getBest());
+    }
+
+    const connectionStatus = this.$('connection-status');
+    if (connectionStatus) {
+      connectionStatus.textContent = !state.configured
+        ? 'Connexion communautaire non configurée sur cette build.'
+        : signed
+          ? state.status === 'offline'
+            ? 'Session Discord disponible hors connexion.'
+            : 'Session Discord active.'
+          : online
+            ? 'Connexion actuelle : Discord.'
+            : 'Hors connexion · la connexion Discord sera disponible au retour du réseau.';
+    }
+
+    const accountStatus = this.$('account-status');
+    if (!accountStatus) {
+      return;
+    }
 
     if (!signed) {
-      this.$('account-status').textContent = !state.configured
-        ? 'Connexion communautaire non configurée sur cette build.'
+      accountStatus.textContent = !state.configured
+        ? 'Profil cloud indisponible sur cette build · le record local reste utilisable.'
         : state.status === 'error'
-          ? 'Connexion indisponible pour le moment. Le jeu reste jouable localement.'
-          : typeof navigator === 'undefined' || navigator.onLine
-            ? 'Compte facultatif · connectez-vous pour retrouver votre profil sur tous vos appareils.'
-            : 'Hors connexion · la connexion Discord sera disponible au retour du réseau.';
+          ? 'Profil cloud indisponible pour le moment · le jeu reste jouable localement.'
+          : online
+            ? `Profil local · record ${this.getBest()}.`
+            : `Hors connexion · profil local et record ${this.getBest()} disponibles.`;
       return;
     }
 
@@ -73,17 +105,17 @@ export class AccountUI {
     }
 
     const best = this.getBest();
-    this.$('account-status').textContent = state.status === 'offline' || scoreSync.state === 'offline'
+    accountStatus.textContent = state.status === 'offline' || scoreSync.state === 'offline'
       ? `Profil disponible hors connexion · record local ${best}, synchronisation au retour du réseau.`
       : state.status === 'loading' || scoreSync.state === 'syncing'
         ? 'Synchronisation du profil et du record…'
         : scoreSync.state === 'synced'
-          ? `Connecté à Discord · record synchronisé : ${best}.`
+          ? `Profil synchronisé · record : ${best}.`
           : scoreSync.state === 'error'
-            ? `Connecté à Discord · record local ${best} · synchronisation à réessayer.`
+            ? `Record local ${best} · synchronisation à réessayer.`
             : state.error
-              ? `Connecté à Discord · record local ${best} · profil à resynchroniser.`
-              : 'Connecté avec Discord · profil synchronisé.';
+              ? `Record local ${best} · profil à resynchroniser.`
+              : 'Profil synchronisé.';
   }
 }
 

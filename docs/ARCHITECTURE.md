@@ -6,6 +6,14 @@ Depuis `v0.2.7.3b-dev6.3.4`, le frontend reste volontairement **sans framework e
 
 Cette refactorisation est **structurelle uniquement** : elle ne modifie ni `flappy13-physics-v1`, ni les hitboxes, ni le RNG, ni les contrats Verified Runs. Depuis `v0.2.7.4b`, le dashboard Admin Analytics ajoute ses propres RPC privées et reste séparé du runtime gameplay.
 
+## Shell utilisateur — v0.2.7.4b-dev1
+
+La présentation du profil n'est plus imbriquée dans Options. `main.js` orchestre une modale `#profile-dialog` distincte et `AccountUI` continue de rendre les mêmes données de profil/synchronisation sans prendre en charge l'ouverture ou la fermeture de la modale. Sur HOME, deux utilitaires coexistent : Profil à gauche et Menu à droite. READY / GAME OVER réutilisent uniquement le bouton de droite comme Home.
+
+Les sprites `button_home`, `button_options` et `button_profile` sont rendus en x1,75 depuis le custom atlas. `button_close` est rendu en x1 sur Options, Profil et Classement. Le panneau diagnostic conserve volontairement son bouton de fermeture utilitaire natif afin de rester visuellement séparé de l'interface utilisateur.
+
+Cette étape ne modifie pas l'architecture Auth : Discord reste le seul provider actif et aucun identity linking n'est encore implémenté.
+
 ## Composition
 
 `site/src/main.js` est le **composition root**. Il crée les dépendances partagées (`AuthClient`, clients API, contrôleurs UI/session/PWA), leur fournit les callbacks liés au moteur, puis conserve uniquement ce qui nécessite réellement une vue globale de l'application : boucle de jeu, entrées, affichage, thèmes/diagnostic, audio et connexion entre le moteur et l'interface.

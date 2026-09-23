@@ -8,7 +8,7 @@ The goal is not to create another Flappy Bird-inspired clone, but to **reproduce
 
 Gameplay runs entirely client-side without a framework and can be installed as an application on Windows, iPhone/iPad and Android. Optional community features use Supabase; no account is required to play.
 
-> **Project status: beta — v0.2.7.4b**
+> **Project status: beta — v0.2.7.4b-dev1**
 
 - Player statistics: career + 10 / 25 / 50-run windows derived only from verified runs.
 > On ProMotion iPhone/iPad devices, the Performance options include guidance for the Safari setting that can remove the near-60 Hz page-rendering preference.
@@ -25,6 +25,7 @@ Gameplay runs entirely client-side without a framework and can be installed as a
 - Installable PWA on Windows, iOS/iPadOS and Android.
 - Local high-score persistence.
 - Optional Discord sign-in through Supabase Auth with a cross-platform player profile.
+- A dedicated **Profile** modal now contains the avatar, identity, sync status and best score; its Profile button is available on HOME, immediately left of Menu. This step does not add identity linking or new provider buttons inside the modal.
 - Cross-device best-score sync that always keeps the highest value.
 - Verified Runs: server-issued ticket/seed, deterministic capture, self-healing local queue, deferred submission, and authoritative replay before a score is accepted or rejected.
 - Public global leaderboard in a dedicated modal: readable without an account, built only from verified runs, with one best score per player.
@@ -43,7 +44,7 @@ Gameplay runs entirely client-side without a framework and can be installed as a
 - **France** and **Vietnam / Hanoi** country themes in the `country` pool: Eiffel Tower / baguettes / Paris sewers for France, railway Hanoi / bamboo scaffolding / dedicated bird for Vietnam. The country pool still has a global **1 in 30** Auto probability; with equal weights, each theme currently represents **1 in 60** runs.
 - Declarative `assets/themes.json` catalog: the base theme, Auto pools, each pool's global chance and each theme's relative `weight` are configured alongside backgrounds, pipes, bird frames, ground, adapted-fill colours and ground scroll mode. Adding more countries therefore does not increase the global `1/30` country-pool probability; the debug selector is fully generated from this catalog.
 - Diagnostic tools are split into collapsible sections, include an internal close control and keep browser-native dark selectors.
-- Complementary atlas versioned through `assets/customatlas.json`, kept separate from the original atlas to preserve the 1:1 reference assets and gameplay behaviour. Home / Options atlas buttons are now rendered at **2x** size.
+- Complementary atlas versioned through `assets/customatlas.json`, kept separate from the original atlas to preserve the 1:1 reference assets and gameplay behaviour. Home / Options / Profile use atlas sprites rendered at **1.75x**; user-facing modal close buttons use `button_close` at **1x**.
 - Frontend split into domain-focused ES modules: `main.js` orchestrates the game while authentication, Supabase clients, leaderboard UI, Verified Play, replay recording, the local run queue, UI transitions, toasts, score synchronisation and PWA updates live in focused modules that can be tested independently.
 - Private **Admin Analytics** dashboard under `site/admin/`: active players, DAU/WAU/MAU, runs per day/player, records, average score, verified play time, death causes, D0/D1/D7/D30 retention and verified-run lifecycle metrics. Access requires Discord Auth plus a PostgreSQL allow-list and never exposes a server secret.
 - Daily Analytics tracking starts when `010_admin_analytics.sql` is applied: existing lifetime counters stay authoritative, but no fake historical play-time/retention is reconstructed from runs already pruned by 50 + record retention.

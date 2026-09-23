@@ -65,6 +65,12 @@ La PWA utilise directement l'API HTTP Supabase Auth afin de ne pas ajouter de d�
 Aucun token utilisateur n'est ajouté aux diagnostics du jeu.
 
 
+## Présentation du profil — v0.2.7.4b-dev1
+
+Les données de profil (avatar, nom, username, état de synchronisation et meilleur score) sont désormais affichées dans une modale **Profil** dédiée, accessible depuis HOME par le bouton `button_profile`. La modale est volontairement informative dans cette étape : elle ne contient ni bouton Discord, ni second provider, ni account linking.
+
+Pour ne pas supprimer le flux OAuth existant avant l'arrivée de l'interface multi-provider, les actions de connexion/déconnexion Discord restent temporairement dans **Options > Connexion**. Le retour OAuth réussi ouvre la modale Profil afin de montrer immédiatement l'identité chargée.
+
 ## Synchronisation du meilleur score
 
 À chaque connexion Discord, retour du réseau et nouveau record local :

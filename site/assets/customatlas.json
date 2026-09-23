@@ -360,7 +360,7 @@
         "y": 0.5
       }
     },
-    "button_home": {
+    "button_close": {
       "frame": {
         "x": 1461,
         "y": 437,
@@ -384,7 +384,7 @@
         "y": 0.5
       }
     },
-    "button_options": {
+    "button_home": {
       "frame": {
         "x": 1461,
         "y": 467,
@@ -408,9 +408,57 @@
         "y": 0.5
       }
     },
+    "button_options": {
+      "frame": {
+        "x": 1489,
+        "y": 437,
+        "w": 26,
+        "h": 28
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 26,
+        "h": 28
+      },
+      "sourceSize": {
+        "w": 26,
+        "h": 28
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "button_profile": {
+      "frame": {
+        "x": 1489,
+        "y": 467,
+        "w": 26,
+        "h": 28
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 26,
+        "h": 28
+      },
+      "sourceSize": {
+        "w": 26,
+        "h": 28
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
     "land_vietnam": {
       "frame": {
-        "x": 1377,
+        "x": 1517,
         "y": 1,
         "w": 336,
         "h": 112
@@ -439,7 +487,7 @@
     "image": "customatlas.png",
     "format": "RGBA8888",
     "size": {
-      "w": 1714,
+      "w": 1854,
       "h": 514
     },
     "scale": 1

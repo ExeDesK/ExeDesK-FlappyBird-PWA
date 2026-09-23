@@ -126,7 +126,7 @@ export async function loadAtlas() {
     themes,
     custom: {
       image: customImage,
-      imageUrl: customImageUrl.href,
+      imageUrl: customImageUrl instanceof URL ? customImageUrl.href : String(customImageUrl),
       sprites: customSprites,
       manifest,
     },

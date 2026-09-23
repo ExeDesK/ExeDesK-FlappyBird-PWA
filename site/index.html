@@ -51,6 +51,16 @@
       <span id="utility-atlas-icon" class="atlas-utility-icon" aria-hidden="true"></span>
     </button>
 
+    <button
+      id="open-profile"
+      class="utility profile-utility"
+      title="Profil"
+      aria-label="Ouvrir le profil"
+      hidden
+    >
+      <span id="profile-atlas-icon" class="atlas-utility-icon" aria-hidden="true"></span>
+    </button>
+
     <p id="toast" role="status" aria-live="polite" popover="manual" hidden></p>
 
     <dialog id="unranked-warning" aria-labelledby="unranked-warning-title">
@@ -68,36 +78,17 @@
           <small>FLAPPY BIRD 1.3</small>
           <h1>OPTIONS</h1>
         </div>
-        <button id="close-options" class="close-options" aria-label="Fermer">X</button>
+        <button id="close-options" class="close-options atlas-close-button" aria-label="Fermer"><span id="close-options-icon" class="atlas-close-icon" aria-hidden="true"></span></button>
       </header>
 
-      <p class="version">BETA 0.2.7.4b</p>
+      <p class="version">BETA 0.2.7.4b-dev1</p>
       <p id="offline-status" class="status-card">Préparation du mode hors ligne...</p>
 
-      <section class="menu-card account-card" aria-labelledby="account-title">
-        <h2 id="account-title">COMPTE</h2>
-
-        <div id="account-signed-out">
-          <button id="discord-login" class="discord-login" type="button">SE CONNECTER AVEC DISCORD</button>
-        </div>
-
-        <div id="account-signed-in" hidden>
-          <div class="account-profile">
-            <div class="account-avatar-wrap" aria-hidden="true">
-              <img id="account-avatar" class="account-avatar" alt="" hidden>
-              <span id="account-avatar-fallback" class="account-avatar-fallback">?</span>
-            </div>
-            <div class="account-identity">
-              <strong id="account-name">Joueur</strong>
-              <span id="account-username"></span>
-            </div>
-          </div>
-          <button id="discord-logout" type="button">SE DÉCONNECTER</button>
-        </div>
-
-        <p id="account-status" class="hint account-hint">
-          Compte facultatif · connectez-vous pour retrouver votre profil sur tous vos appareils.
-        </p>
+      <section class="menu-card connection-card" aria-labelledby="connection-title">
+        <h2 id="connection-title">CONNEXION</h2>
+        <button id="discord-login" class="discord-login" type="button">SE CONNECTER AVEC DISCORD</button>
+        <button id="discord-logout" type="button" hidden>SE DÉCONNECTER</button>
+        <p id="connection-status" class="hint">Connexion actuelle : Discord.</p>
       </section>
 
       <section class="menu-card" aria-labelledby="game-settings-title">
@@ -153,11 +144,6 @@
         <p id="update-status" class="hint">Les mises à jour se font automatiquement.</p>
       </section>
 
-      <section class="menu-card score-card" aria-label="Meilleur score">
-        <span>MEILLEUR SCORE</span>
-        <strong id="best-score">0</strong>
-      </section>
-
       <p class="controls-note">
         CLIC / TOUCHER / ESPACE : VOLER<br>
         ECHAP : RETOUR / OPTIONS
@@ -191,16 +177,59 @@
       </footer>
     </dialog>
 
+    <dialog id="profile-dialog" aria-labelledby="profile-title">
+      <header class="options-header profile-header">
+        <div>
+          <small>FLAPPY BIRD 1.3</small>
+          <h1 id="profile-title">PROFIL</h1>
+        </div>
+        <button id="close-profile" class="close-options atlas-close-button" type="button" aria-label="Fermer le profil"><span id="close-profile-icon" class="atlas-close-icon" aria-hidden="true"></span></button>
+      </header>
+
+      <p class="version">BETA 0.2.7.4b-dev1</p>
+
+      <section class="menu-card account-card" aria-labelledby="profile-account-title">
+        <h2 id="profile-account-title">COMPTE</h2>
+
+        <div id="account-signed-out">
+          <p class="profile-empty">Aucun profil connecté.</p>
+          <p class="hint">La connexion se gère actuellement depuis les Options.</p>
+        </div>
+
+        <div id="account-signed-in" hidden>
+          <div class="account-profile">
+            <div class="account-avatar-wrap" aria-hidden="true">
+              <img id="account-avatar" class="account-avatar" alt="" hidden>
+              <span id="account-avatar-fallback" class="account-avatar-fallback">?</span>
+            </div>
+            <div class="account-identity">
+              <strong id="account-name">Joueur</strong>
+              <span id="account-username"></span>
+            </div>
+          </div>
+        </div>
+
+        <p id="account-status" class="hint account-hint">
+          Profil local uniquement.
+        </p>
+      </section>
+
+      <section class="menu-card score-card" aria-label="Meilleur score">
+        <span>MEILLEUR SCORE</span>
+        <strong id="profile-best-score">0</strong>
+      </section>
+    </dialog>
+
     <dialog id="leaderboard-dialog" aria-labelledby="leaderboard-title">
       <header class="options-header leaderboard-header">
         <div>
           <small>FLAPPY BIRD 1.3</small>
           <h1 id="leaderboard-title">CLASSEMENT</h1>
         </div>
-        <button id="close-leaderboard" class="close-options" type="button" aria-label="Fermer le classement">X</button>
+        <button id="close-leaderboard" class="close-options atlas-close-button" type="button" aria-label="Fermer le classement"><span id="close-leaderboard-icon" class="atlas-close-icon" aria-hidden="true"></span></button>
       </header>
 
-      <p class="version">BETA 0.2.7.4b</p>
+      <p class="version">BETA 0.2.7.4b-dev1</p>
 
       <div class="leaderboard-toolbar">
         <p id="leaderboard-status" class="hint">Chargement du classement...</p>

@@ -1,3 +1,15 @@
+## v0.2.7.4b-dev1 - Profile modal & utility sprites
+
+- Intégration du nouvel `customatlas.png` / `customatlas.json` (1854×514) avec `button_profile` et `button_close`.
+- Ajout d'un bouton Profil sur HOME, à gauche de Menu ; il disparaît en READY, GAME OVER et pendant le gameplay.
+- Déplacement de la présentation du profil dans une modale dédiée : avatar, identité, état de synchronisation et meilleur score.
+- Aucun account linking ni bouton fournisseur n'est ajouté dans la modale Profil ; la connexion Discord existante reste temporairement dans Options.
+- Home / Menu / Profil passent d'un rendu x2 à **x1,75** ; `button_close` est rendu en **x1** et remplace les fermetures texte des modales Options, Profil et Classement.
+- Les boutons utilitaires sont masqués tant qu'une modale utilisateur est ouverte.
+- `atlas.js` accepte maintenant aussi une URL d'image custom fournie sous forme de chaîne, ce qui garde le runtime normal inchangé et fiabilise le smoke test isolé.
+- Aucun changement de physique, hitbox, RNG, Verified Runs, leaderboard ou Supabase.
+- Validation : `npm test` **159/159** et `python tests/browser_isolated.py` **OK / 0 erreur page**.
+
 ## v0.2.7.4b - Admin Analytics
 
 - Ajoute un dashboard privé sous `site/admin/` avec quatre vues : **Vue d'ensemble**, **Joueurs**, **Rétention** et **Système**.
