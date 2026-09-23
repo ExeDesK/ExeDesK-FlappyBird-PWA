@@ -2,6 +2,7 @@ import { VerifiedRunRecorder } from '../replay/verified-run-recorder.js';
 import { GameTransitionController } from '../ui/game-transition.js';
 import { UnrankedWarningDialog } from '../ui/unranked-warning.js';
 import { isPlayRelease, verifiedRunStartMode } from '../verified-run-client.js';
+import { VerifiedRunAbandoner } from './verified-run-abandon.js';
 import { VerifiedRunQueue } from './verified-run-queue.js';
 import { VerifiedRunSubmitter } from './verified-run-submit.js';
 
@@ -28,6 +29,7 @@ export class VerifiedPlayController {
     submitter,
     transition,
     warning,
+    abandoner,
   } = {}) {
     this.auth = auth;
     this.api = api;
@@ -51,6 +53,7 @@ export class VerifiedPlayController {
       syncUtilityVisibility,
       resetClock,
     });
+    this.abandoner = abandoner || new VerifiedRunAbandoner({ auth, api });
     this.warning = warning || new UnrankedWarningDialog({
       dialog: warningDialog,
       getElement,
@@ -81,14 +84,11 @@ export class VerifiedPlayController {
     }
   }
 
-  abandon() {
-    if (this.recorder && !this.recorder.finished) {
-      this.lastRun = {
-        status: 'abandoned',
-        ...this.recorder.snapshot(),
-      };
-    }
+  abandon(options = {}) {
+    const abandoned = this.abandoner.abandon(this.recorder, options);
+    if (abandoned.lastRun) this.lastRun = abandoned.lastRun;
     this.recorder = null;
+    return abandoned.completion;
   }
 
   beforeTick(game, input) {

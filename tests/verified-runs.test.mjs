@@ -218,7 +218,7 @@ test('run-start authenticates the caller and generates the seed on the server', 
   assert.match(source, /target_player_id: playerId/);
   assert.match(source, /requested_seed: randomInt32\(\)/);
   assert.match(source, /crypto\.getRandomValues/);
-  assert.match(source, /result_code === 'too_many_pending_runs'/);
+  assert.doesNotMatch(source, /result_code === 'too_many_pending_runs'/);
   assert.match(source, /result_code === 'rate_limited'/);
   assert.match(source, /'Retry-After'/);
   assert.match(source, new RegExp(`PHYSICS_VERSION = '${PHYSICS_VERSION}'`));

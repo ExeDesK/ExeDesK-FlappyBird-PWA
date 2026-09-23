@@ -5,7 +5,7 @@
 `public.verified_runs` contient à la fois les runs autoritairement vérifiés, les tickets `issued` encore non résolus et les rejets conservés pour diagnostic. Deux politiques indépendantes bornent désormais la table :
 
 1. `006_verified_run_retention.sql` borne l'historique détaillé `verified` ;
-2. `009_verified_run_ticket_hygiene.sql` borne le cycle de vie `issued` / `rejected` et protège `run-start` contre la création non maîtrisée de tickets.
+2. `009_verified_run_ticket_hygiene.sql` borne le cycle de vie `issued` / `rejected`; `011_verified_run_abandonment.sql` ajoute l’annulation explicite des READY abandonnés et remplace le plafond bloquant par une rotation non bloquante.
 
 Aucune des deux politiques n'utilise une valeur fournie par le navigateur.
 
@@ -113,3 +113,21 @@ Après `009`, redéployer l'Edge Function `run-start`, car elle dépend désorma
 Avant de supprimer des `issued` / `rejected`, la version `010` de `cleanup_stale_verified_run_tickets()` incrémente les compteurs durables correspondants. La signature de la fonction reste identique : le Cron créé par `009` continue donc de fonctionner sans modification. De même, `issue_verified_run()` conserve sa signature pour le `run-start` déjà déployé, tout en alimentant les métriques de lifecycle.
 
 La collecte quotidienne n'est volontairement **pas reconstruite** depuis les runs détaillées encore présentes : l'historique a déjà pu être réduit par la rétention, ce qui rendrait un backfill faux.
+
+## Politique courante depuis v0.2.7.4b-dev5
+
+Le plafond `10 issued` de `009`/`010` est conservé uniquement dans l’historique des migrations : il n’est plus la politique effective après `011_verified_run_abandonment.sql`.
+
+La politique effective est :
+
+```text
+Home depuis READY     -> annulation owner-only immédiate du ticket issued
+issued résiduel       -> TTL 7 jours
+rejected              -> TTL 30 jours
+run-start             -> jamais bloqué par le nombre de pending
+anti-abus             -> 30 créations/minute
+borne serveur         -> rotation des plus anciens issued à partir de 100
+```
+
+Cette rotation à 100 est volontairement supérieure à la file locale maximale de 50 soumissions par appareil afin de ne pas sacrifier les usages offline/multi-device ordinaires.
+

@@ -1,4 +1,9 @@
-## v0.2.7.4b-dev4 — Authentication moved to Profile
+## v0.2.7.4b-dev5 — Verified ticket abandonment recovery
+
+- `tests/run-abandonment.test.mjs` vérifie la RPC owner-only d’annulation, l’appel client sur Home depuis READY, l’absence de blocage par nombre de tickets et la rotation serveur à 100 `issued`.
+- `run-start` ne gère plus `too_many_pending_runs`; seul le rate-limit 30/minute peut encore produire un `429`.
+- Le cache PWA contient désormais **52 ressources runtime** avec `session/verified-run-abandon.js`.
+- Suite complète : `npm test` **164/164** + `python tests/browser_isolated.py` **OK, 0 erreur page**.
 
 - `tests/themes.test.mjs` verrouille le nouvel atlas 1854×514 et exige `button_close`, `button_home`, `button_options` et `button_profile`.
 - Le smoke test Chromium vérifie le bouton Profil sur HOME à gauche de Menu, son absence hors HOME, l'absence totale d'auth dans Options, la présence de la connexion/déconnexion Discord uniquement dans Profil, l'absence de linking, les utilitaires en x1,75 et les fermetures atlas en x1.
@@ -21,13 +26,13 @@
 - Le cache PWA reste à **51 ressources runtime** : le changement backend n'ajoute aucun asset client, mais le build Service Worker est incrémenté pour publier la nouvelle version.
 - Suite complète : `npm test` (**152/152**) + `python tests/browser_isolated.py` (**OK, 0 erreur page**).
 
-# Rapport de tests - v0.2.7.4b-dev4
+# Rapport de tests - v0.2.7.4b-dev5
 
 ## Résultat
 
-- **159/159 tests Node passent** avec `npm test`.
+- **164/164 tests Node passent** avec `npm test`.
 - Le bundle concaténé utilisé par le smoke test passe le contrôle de syntaxe JavaScript.
-- Le smoke test Chromium isolé passe sans erreur page et couvre aussi la composition des nouveaux modules ES, le catalogue dynamique, le thème Vietnam jour/nuit, le panneau diagnostic repliable, la modale Profil et les boutons utilitaires x1,75.
+- Le smoke test Chromium isolé passe sans erreur page et couvre aussi la composition des nouveaux modules ES, le catalogue dynamique, le thème Vietnam jour/nuit, le panneau diagnostic repliable, la modale Profil, les boutons utilitaires x1,75 et le module d’abandon de ticket Verified Run.
 - Le smoke test Admin Analytics dédié passe également sans erreur page avec Auth/RPC Supabase mockés et couvre les vues Overview, Joueurs, Rétention et Système.
 - Le cache PWA contient **51 ressources** et refuse de se déclarer complet si une ressource de précache manque.
 - `version.json` reste volontairement hors du cache du Service Worker afin de servir de sonde réseau réelle pour la mise à jour.

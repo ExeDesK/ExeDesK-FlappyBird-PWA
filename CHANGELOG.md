@@ -1,10 +1,21 @@
+## v0.2.7.4b-dev5 - Verified ticket abandonment recovery
+
+- Corrige la fuite de tickets `issued` lorsqu’un joueur utilise **Home depuis READY** : le ticket courant est maintenant annulé côté Supabase via une RPC owner-only `cancel_verified_run()`.
+- Ajoute `supabase/011_verified_run_abandonment.sql` et `VerifiedRunClient.cancel()` ; l’annulation ne peut supprimer qu’un ticket `issued` appartenant au joueur authentifié.
+- Supprime le blocage serveur à **10 tickets pending** : `run-start` ne retourne plus `too_many_pending_runs`.
+- Conserve le rate-limit **30 démarrages/minute** comme protection anti-abus.
+- Pour borner le stockage sans bloquer le joueur, `issue_verified_run()` applique désormais une rotation automatique uniquement à partir de **100 tickets `issued`** : les plus anciens sont supprimés avant l’émission du nouveau ticket.
+- Le TTL historique reste inchangé : `issued` à **7 jours**, `rejected` à **30 jours**. La possibilité de terminer hors ligne puis soumettre plus tard est conservée.
+- Le lifecycle d’abandon est isolé dans `session/verified-run-abandon.js`, afin de maintenir `verified-play.js` à **296 lignes** et préserver le découpage architectural.
+- Ajoute `tests/run-abandonment.test.mjs`; le runtime PWA passe à **52 ressources**.
+
 ## v0.2.7.4b-dev4 - Atlas button press squash
 
 - Applique l’effet d’écrasement pixel-art sur tous les boutons atlas `button_close`, `button_options`, `button_home` et `button_profile`.
 - Lors d’un clic/tap, le sprite descend de **1 px** et sa hauteur visible perd **1 px**, afin de masquer la seconde ligne basse prévue pour l’effet “press”.
 - Effet appliqué côté CSS sur les boutons utilitaires et les boutons de fermeture, sans modifier les hitboxes ni la logique d’interface.
 
-## v0.2.7.4b-dev4 - Authentication moved to Profile
+## v0.2.7.4b-dev3 - Authentication moved to Profile
 
 - Supprime entièrement la section **Connexion** des Options : aucun bouton, état de session ou action d'authentification n'y reste.
 - Déplace **SE CONNECTER AVEC DISCORD** dans la modale Profil lorsque le joueur n'est pas connecté.

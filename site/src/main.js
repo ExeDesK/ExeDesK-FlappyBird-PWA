@@ -28,7 +28,7 @@ import {
 } from './themes.js';
 import { createCanonicalRunGame } from './verified-runs.js';
 
-const VERSION = '0.2.7.4b-dev4';
+const VERSION = '0.2.7.4b-dev5';
 const BEST_SCORE_KEY = 'flappy13-personal-best-v1';
 const SETTINGS_KEY = 'flappy13-settings-v1';
 const runtimeConfig = globalThis.FLAPPY_CONFIG && typeof globalThis.FLAPPY_CONFIG === 'object'
@@ -650,7 +650,7 @@ function returnToHome() {
     return;
   }
 
-  verifiedPlay.abandon();
+  void verifiedPlay.abandon({ reason: 'home-from-ready-or-game-over' });
 
   audio.note('HOME_NAVIGATION', { from: state });
   clearInput();

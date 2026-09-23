@@ -53,17 +53,6 @@ export default {
       );
     }
 
-    if (data.result_code === 'too_many_pending_runs') {
-      return response(
-        {
-          error: 'too_many_pending_runs',
-          message: 'Trop de parties classées sont encore en attente pour ce compte.',
-          pending_runs: data.pending_count,
-        },
-        429,
-      );
-    }
-
     if (data.result_code === 'rate_limited') {
       const retryAfter = Math.max(1, Number(data.retry_after_seconds) || 60);
       return response(

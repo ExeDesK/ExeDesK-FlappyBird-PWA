@@ -234,7 +234,7 @@ La durée maximale de simulation (`MAX_VERIFIED_RUN_TICK = 216000`, soit une heu
 - maximum **10** lignes `status = 'issued'` ouvertes ;
 - maximum **30** tickets créés dans une fenêtre glissante d'une minute, quel que soit leur statut final.
 
-Les dépassements retournent HTTP `429` avec `too_many_pending_runs` ou `rate_limited`. Le client conserve ces métadonnées d'erreur puis utilise le fallback non classé existant ; aucune donnée de score, seed ou identité n'est réinjectée par le navigateur.
+Dans la version 6.3.6, les dépassements retournaient HTTP `429` avec `too_many_pending_runs` ou `rate_limited`. Depuis `v0.2.7.4b-dev5`, le premier cas est supprimé : seul le rate-limit peut encore bloquer temporairement `run-start`.
 
 La fonction `cleanup_stale_verified_run_tickets()` est exécutée une première fois pendant la migration `009_verified_run_ticket_hygiene.sql`, puis toutes les heures via Supabase Cron / `pg_cron`. Elle n'est exécutable ni par `anon` ni par `authenticated`.
 
@@ -267,3 +267,14 @@ Cette séparation ne change aucun champ envoyé à `run-start` / `run-submit` et
 - `issue_verified_run()` et le nettoyage `issued/rejected` incrémentent les compteurs opérationnels avant insertion/purge.
 
 Les payloads `run-start` / `run-submit`, `flappy13-physics-v1`, la seed, le replay, les collisions et le score autoritaire restent inchangés. Les nouvelles tables Analytics sont privées et ne remplacent pas `verified_runs`; elles permettent simplement de conserver des statistiques agrégées après la rétention des lignes détaillées.
+
+## Abandon READY et émission non bloquante (v0.2.7.4b-dev5)
+
+Un ticket est créé avant l’arrivée sur READY afin que la partie classée soit entièrement déterministe. Si le joueur appuie ensuite sur **Home** sans commencer la partie, `VerifiedPlayController` détache le recorder et `VerifiedRunAbandoner` appelle `VerifiedRunClient.cancel(run_id)`. Cette méthode invoque la RPC authentifiée `cancel_verified_run()` : elle supprime uniquement une ligne `status = 'issued'` dont `player_id = auth.uid()`. Un ticket déjà résolu ou absent n’est jamais modifié.
+
+Le plafond bloquant de 10 tickets ouverts est supprimé. `issue_verified_run()` ne renvoie plus `too_many_pending_runs` : un joueur ne peut donc plus être empêché de lancer une partie classée simplement parce que des tickets historiques sont encore présents en base. Le garde-fou anti-abus indépendant reste **30 démarrages sur une minute glissante**.
+
+Pour conserver une borne de stockage sans sacrifier l’usage multi-device/offline, le serveur applique un plafond rotatif beaucoup plus large de **100 tickets `issued`** par joueur. Lorsqu’il est atteint, les plus anciens `issued` sont supprimés avant d’émettre le nouveau ticket. Le client ne peut stocker que 50 soumissions différées par appareil, ce qui laisse une marge importante avant cette rotation. Le TTL de 7 jours continue de traiter les tickets résiduels normalement.
+
+Si l’annulation Home échoue momentanément (perte réseau), la navigation n’est pas bloquée : le ticket reste soumis au TTL et, surtout, son existence ne peut plus verrouiller de futures parties.
+

@@ -1,12 +1,17 @@
 # Architecture frontend
 
+### Abandon de ticket Verified Run — v0.2.7.4b-dev5
+
+`session/verified-run-abandon.js` possède le lifecycle d’un ticket préparé mais abandonné avant gameplay. `VerifiedPlayController` reste l’orchestrateur : Home depuis READY détache immédiatement le recorder local puis délègue l’annulation serveur à `VerifiedRunAbandoner`. Cette séparation garde `verified-play.js` sous le garde-fou de 300 lignes.
+
+
 ## Objectif
 
 Depuis `v0.2.7.3b-dev6.3.4`, le frontend reste volontairement **sans framework et sans build**, mais n'utilise plus `main.js` ni `AuthClient` comme contrôleurs universels. Le projet conserve des modules ES natifs chargés directement par le navigateur et sépare désormais orchestration, transport réseau, état de session et rendu UI.
 
 Cette refactorisation est **structurelle uniquement** : elle ne modifie ni `flappy13-physics-v1`, ni les hitboxes, ni le RNG, ni les contrats Verified Runs. Depuis `v0.2.7.4b`, le dashboard Admin Analytics ajoute ses propres RPC privées et reste séparé du runtime gameplay.
 
-## Shell utilisateur — v0.2.7.4b-dev4
+## Shell utilisateur — v0.2.7.4b-dev5
 
 Le profil et toute l'authentification utilisateur sont séparés des Options. `main.js` orchestre une modale `#profile-dialog` distincte et `AccountUI` y rend identité, synchronisation, connexion Discord et déconnexion. `#options` ne contient plus aucun contrôle ni état d'authentification. Sur HOME, deux utilitaires coexistent : Profil à gauche et Menu à droite. READY / GAME OVER réutilisent uniquement le bouton de droite comme Home.
 
@@ -30,6 +35,7 @@ main.js
 ├── session/
 │   ├── ScoreSyncController
 │   ├── VerifiedPlayController
+│   ├── VerifiedRunAbandoner
 │   ├── VerifiedRunQueue
 │   └── VerifiedRunSubmitter
 ├── ui/
@@ -91,6 +97,10 @@ Orchestre le scénario côté navigateur d'une partie classée : interception de
 ### `replay/verified-run-recorder.js` — `VerifiedRunRecorder`
 
 Capture les taps effectifs par tick et construit la soumission canonique au tick terminal. Ce module ne connaît ni Supabase, ni l'UI, ni la file locale et peut être réutilisé par les futurs outils de replay.
+
+### `session/verified-run-abandon.js` — `VerifiedRunAbandoner`
+
+Isole l’abandon d’un ticket préparé mais non joué : capture du `run_id`, annulation owner-only via `VerifiedRunClient.cancel()`, journalisation et fallback non bloquant si le réseau est indisponible. Il ne touche jamais à une soumission déjà terminée/queueée.
 
 ### `session/verified-run-queue.js` — `VerifiedRunQueue`
 

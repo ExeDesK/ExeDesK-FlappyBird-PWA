@@ -8,7 +8,7 @@ The goal is not to create another Flappy Bird-inspired clone, but to **reproduce
 
 Gameplay runs entirely client-side without a framework and can be installed as an application on Windows, iPhone/iPad and Android. Optional community features use Supabase; no account is required to play.
 
-> **Project status: beta — v0.2.7.4b-dev4**
+> **Project status: beta — v0.2.7.4b-dev5**
 
 - Player statistics: career + 10 / 25 / 50-run windows derived only from verified runs.
 > On ProMotion iPhone/iPad devices, the Performance options include guidance for the Safari setting that can remove the near-60 Hz page-rendering preference.
@@ -32,7 +32,7 @@ Gameplay runs entirely client-side without a framework and can be installed as a
 - Authenticated personal leaderboard context: true global rank, verified record, lifetime verified-run count and record date, even outside the Top 100.
 - Authoritative lifetime statistics in Supabase (`player_stats`): verified run count, cumulative score, historical record and death causes, with no player statistics sent by the client.
 - Verified replay retention: **50 most recently started runs + the historical best run** per player, bounding detailed storage while preserving the record and a useful recent window for short-term statistics.
-- Verified Run ticket hygiene: abandoned `issued` tickets expire after **7 days**, `rejected` rows after **30 days**, hourly Supabase Cron cleanup, plus a per-player guard of **10 open tickets** and **30 starts/minute** on `run-start`.
+- Verified Run ticket hygiene: an `issued` ticket is explicitly cancelled when the player leaves **READY** through Home, residual `issued` tickets expire after **7 days**, `rejected` rows after **30 days**, and `run-start` never blocks because of pending-row count. A **100-issued** rotating safety ceiling bounds storage while the anti-abuse guard remains **30 starts/minute**.
 - **Original** and **Adapted** display modes.
 - Dynamic sky and ground extensions for displays taller than the original aspect ratio.
 - Performance mode to limit supersampling on high-DPR devices.

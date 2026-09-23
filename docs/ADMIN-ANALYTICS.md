@@ -74,7 +74,7 @@ Une ligne par jour UTC avec les compteurs opérationnels :
 - tickets `issued` expirés ;
 - lignes `rejected` purgées ;
 - réponses rate-limit ;
-- refus liés au plafond de 10 tickets ouverts ;
+- événements de rotation lorsque le compte atteint le seuil de 100 tickets `issued` ;
 - ticks de gameplay vérifié ;
 - score cumulé et meilleur score du jour.
 
@@ -185,7 +185,7 @@ Système
 ├─ rejected
 ├─ issued expirés
 ├─ rate-limit
-└─ plafond pending
+└─ rotation pending
 ```
 
 Les graphiques sont rendus en SVG natif par `site/src/admin/charts.js`, sans Chart.js ni dépendance externe.
@@ -202,3 +202,6 @@ Le dashboard nécessite Supabase et reste volontairement **hors du précache PWA
 4. Ouvrir `https://<pages>/<repo>/admin/` et se connecter avec le compte autorisé.
 
 Aucune Edge Function n'a besoin d'être redéployée : la migration remplace les fonctions PostgreSQL `issue_verified_run()` et `cleanup_stale_verified_run_tickets()` **sans changer leur signature**, donc le `run-start` déjà déployé en `6.3.6` reste compatible.
+
+
+Depuis `v0.2.7.4b-dev5`, `expired_issued_runs` agrège les tickets `issued` quittant le lifecycle sans soumission (TTL, annulation explicite depuis READY ou rotation serveur). `pending_limit_requests` devient un compteur historique/pression de seuil et est incrémenté lors d’une rotation à 100, plus lors d’un blocage utilisateur.

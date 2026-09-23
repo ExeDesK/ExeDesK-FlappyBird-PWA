@@ -1,5 +1,6 @@
 import {
   createVerifiedRunSubmission,
+  parseRunId,
   parseRunTicket,
   parseVerifiedRunResult,
 } from '../verified-runs.js';
@@ -43,6 +44,44 @@ export class VerifiedRunClient {
     }
 
     return parseRunTicket(payload);
+  }
+
+
+  async cancel(runId) {
+    const normalizedRunId = parseRunId(runId);
+
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      const error = new Error('Annulation du ticket indisponible hors connexion.');
+      error.code = 'offline';
+      error.retryable = true;
+      throw error;
+    }
+
+    const accessToken = await this.#requiredAccessToken('Connexion requise pour annuler une partie classée.');
+    const response = await fetch(`${this.url}/rest/v1/rpc/cancel_verified_run`, {
+      method: 'POST',
+      headers: {
+        ...supabaseHeaders(this.publishableKey, accessToken),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ target_run_id: normalizedRunId }),
+    });
+    const payload = await response.json().catch(() => null);
+
+    if (!response.ok) {
+      const error = new Error(
+        payload?.message || payload?.error || `Annulation du run HTTP ${response.status}`,
+      );
+      error.status = response.status;
+      error.code = payload?.error || null;
+      error.retryable = response.status === 429 || response.status >= 500;
+      throw error;
+    }
+
+    return {
+      run_id: normalizedRunId,
+      cancelled: payload === true,
+    };
   }
 
   async submit(submission) {

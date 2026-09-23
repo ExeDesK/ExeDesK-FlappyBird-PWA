@@ -41,6 +41,7 @@ MODULE_ORDER = [
     'pwa/update-manager.js',
     'session/score-sync.js',
     'session/verified-run-queue.js',
+    'session/verified-run-abandon.js',
     'session/verified-run-submit.js',
     'ui/game-transition.js',
     'ui/unranked-warning.js',

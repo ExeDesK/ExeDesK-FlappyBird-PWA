@@ -1,4 +1,4 @@
-const BUILD = '0.2.7.4b-dev4';
+const BUILD = '0.2.7.4b-dev5';
 const PREFIX = `flappy13-${encodeURIComponent(self.registration.scope)}-`;
 const CACHE = `${PREFIX}${BUILD}`;
 const ASSETS = [
@@ -41,6 +41,7 @@ const ASSETS = [
   './src/pwa/update-manager.js',
   './src/replay/verified-run-recorder.js',
   './src/session/score-sync.js',
+  './src/session/verified-run-abandon.js',
   './src/session/verified-run-queue.js',
   './src/session/verified-run-submit.js',
   './src/session/verified-play.js',
