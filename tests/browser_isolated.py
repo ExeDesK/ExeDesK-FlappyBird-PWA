@@ -220,6 +220,15 @@ def main() -> None:
         profile_box = page.locator('#open-profile').bounding_box()
         assert menu_box is not None and profile_box is not None
         assert profile_box['x'] + profile_box['width'] <= menu_box['x']
+
+        # On a wide desktop viewport, utilities must stay inside the centered
+        # game viewport instead of drifting into the black side bands.
+        game_box = page.locator('#game').bounding_box()
+        assert game_box is not None
+        game_right = game_box['x'] + game_box['width']
+        assert menu_box['x'] + menu_box['width'] <= game_right
+        assert abs((game_right - 10) - (menu_box['x'] + menu_box['width'])) < 0.75
+        assert profile_box['x'] >= game_box['x']
         page.screenshot(path=str(output / 'menu.png'))
 
         # The atlas press state must be pixel-stable horizontally, move down

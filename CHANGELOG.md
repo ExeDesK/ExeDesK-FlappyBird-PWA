@@ -1,4 +1,12 @@
-## v0.2.7.4b-dev6 - Pixel-stable atlas button press
+## v0.2.7.4b-dev7 - Utility buttons constrained to game width
+
+- Les boutons utilitaires `Menu`, `Home` et `Profil` sont désormais positionnés par rapport au bord droit de la **zone de jeu centrée**, et non plus au bord droit du viewport navigateur.
+- Sur un écran desktop large, les boutons restent donc à l'intérieur de la largeur rendue du jeu et ne dérivent plus dans les bandes noires latérales.
+- Sur mobile / écran étroit, où la zone de jeu occupe déjà toute la largeur disponible, le placement reste inchangé.
+- Le calcul utilise la largeur réelle issue de `computeDisplaySize()` à chaque resize, ce qui suit automatiquement les modes Original / Adapté et les changements de taille de fenêtre.
+- Aucun changement de gameplay, physique, hitbox de jeu, Verified Runs, authentification ou Supabase.
+
+## v0.2.7.4b-dev7 - Pixel-stable atlas button press
 
 - Corrige l'effet de pression des boutons atlas : **aucun déplacement horizontal** n'est désormais appliqué.
 - `Home`, `Menu` et `Profil` descendent d'**un pixel source** du sprite (soit 1,75 px CSS à leur échelle actuelle) et la dernière ligne source est masquée par clipping ; `Close` fait la même chose à x1.

@@ -1,4 +1,4 @@
-## v0.2.7.4b-dev6 — Press-state atlas pixel-stable
+## v0.2.7.4b-dev7 — Press-state atlas pixel-stable
 
 - Le smoke test Chromium vérifie que `Profil` ne se décale pas horizontalement pendant `pointerdown`, descend exactement de **1,75 px CSS** (un pixel source à x1,75) et clippe **1,75 px** en bas.
 - Le même test vérifie `Close` à **1 px** ainsi que la persistance de la classe `atlas-pressed` après un tap tactile très rapide, avant ouverture/fermeture effective de la modale.
@@ -32,7 +32,7 @@
 - Le cache PWA reste à **51 ressources runtime** : le changement backend n'ajoute aucun asset client, mais le build Service Worker est incrémenté pour publier la nouvelle version.
 - Suite complète : `npm test` (**152/152**) + `python tests/browser_isolated.py` (**OK, 0 erreur page**).
 
-# Rapport de tests - v0.2.7.4b-dev6
+# Rapport de tests - v0.2.7.4b-dev7
 
 ## Résultat
 
@@ -236,3 +236,4 @@ Le client valide strictement les deux états autorisés (classé / non classé),
 - Suite complète : `npm test`.
 
 - Vérifier manuellement que les boutons atlas `Home`, `Menu`, `Profil` et `Fermer` descendent de **1 px** au clic et perdent visuellement **1 px** en bas pour simuler l’écrasement du sprite.
+- Le smoke test desktop vérifie que `Menu` et `Profil` restent dans la largeur réelle du canvas centré et que le bord droit de `Menu` conserve un inset de 10 px par rapport au bord droit du jeu, jamais du viewport.

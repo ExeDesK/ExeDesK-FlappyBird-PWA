@@ -28,7 +28,7 @@ import {
 } from './themes.js';
 import { createCanonicalRunGame } from './verified-runs.js';
 
-const VERSION = '0.2.7.4b-dev6';
+const VERSION = '0.2.7.4b-dev7';
 const BEST_SCORE_KEY = 'flappy13-personal-best-v1';
 const SETTINGS_KEY = 'flappy13-settings-v1';
 const runtimeConfig = globalThis.FLAPPY_CONFIG && typeof globalThis.FLAPPY_CONFIG === 'object'
@@ -409,8 +409,11 @@ function resize() {
 
   displayLayout = size;
   stage.dataset.aspect = settings.aspect;
+  const gameSideGap = Math.max(0, (stage.clientWidth - size.gameWidth) / 2);
+
   stage.style.setProperty('--game-width', `${size.gameWidth}px`);
   stage.style.setProperty('--game-height', `${size.gameHeight}px`);
+  document.documentElement.style.setProperty('--game-side-gap', `${gameSideGap}px`);
   canvas.style.width = `${size.width}px`;
   canvas.style.height = `${size.height}px`;
   updateCanvasRect();

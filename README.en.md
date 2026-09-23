@@ -8,7 +8,7 @@ The goal is not to create another Flappy Bird-inspired clone, but to **reproduce
 
 Gameplay runs entirely client-side without a framework and can be installed as an application on Windows, iPhone/iPad and Android. Optional community features use Supabase; no account is required to play.
 
-> **Project status: beta — v0.2.7.4b-dev6**
+> **Project status: beta — v0.2.7.4b-dev7**
 
 - Player statistics: career + 10 / 25 / 50-run windows derived only from verified runs.
 > On ProMotion iPhone/iPad devices, the Performance options include guidance for the Safari setting that can remove the near-60 Hz page-rendering preference.
@@ -429,3 +429,6 @@ Since v0.2.6b, every push and pull request automatically compares the PWA engine
 
 
 - Atlas utility (`Home`, `Menu`, `Profile`) and `Close` buttons use a pixel-stable press state with no horizontal movement: the sprite moves down by **one source pixel** and its final source row is clipped. At 1.75x this is 1.75 CSS px for Home/Menu/Profile; `Close` remains 1 px. A minimum 70 ms visible press state keeps the effect perceptible on fast mobile taps.
+
+
+- On wide screens, `Menu`, `Home` and `Profile` are anchored to the right edge of the centered game viewport, so black side bars are excluded from their positioning area.

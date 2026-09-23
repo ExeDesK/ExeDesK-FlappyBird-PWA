@@ -8,7 +8,7 @@ L'objectif n'est pas de produire un simple clone « inspiré de » Flappy Bird, 
 
 Le gameplay fonctionne entièrement côté client, sans framework, et peut être installé comme une application sur Windows, iPhone/iPad et Android. Les fonctions communautaires utilisent un backend Supabase facultatif : aucun compte n'est nécessaire pour jouer.
 
-> **État du projet : bêta — v0.2.7.4b-dev6**
+> **État du projet : bêta — v0.2.7.4b-dev7**
 
 - Statistiques joueur : carrière + fenêtres 10 / 25 / 50 calculées uniquement depuis les runs vérifiées.
 > Sur iPhone/iPad ProMotion, un statut dynamique dans les options Performance mesure la cadence rAF sur iOS : il confirme la haute fréquence lorsqu’elle est active, sinon il propose le réglage Safari et un tutoriel au timecode utile.
@@ -429,3 +429,6 @@ Depuis la v0.2.6b, chaque push et chaque pull request compare automatiquement le
 
 
 - Les boutons atlas utilitaires (`Home`, `Menu`, `Profil`) et `Fermer` appliquent un press-state pixel-art sans déplacement horizontal : le sprite descend d’**un pixel source** et sa dernière ligne source est masquée. À x1,75 cela représente 1,75 px CSS pour Home/Menu/Profil ; `Close` reste à 1 px. Un maintien visuel minimal de 70 ms rend l’effet perceptible sur mobile même lors d’un tap très rapide.
+
+
+- Sur les écrans larges, les boutons `Menu`, `Home` et `Profil` sont ancrés au bord droit de la zone de jeu centrée : les bandes noires latérales ne font pas partie de leur espace de placement.

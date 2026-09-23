@@ -11,7 +11,7 @@ Depuis `v0.2.7.3b-dev6.3.4`, le frontend reste volontairement **sans framework e
 
 Cette refactorisation est **structurelle uniquement** : elle ne modifie ni `flappy13-physics-v1`, ni les hitboxes, ni le RNG, ni les contrats Verified Runs. Depuis `v0.2.7.4b`, le dashboard Admin Analytics ajoute ses propres RPC privées et reste séparé du runtime gameplay.
 
-## Shell utilisateur — v0.2.7.4b-dev6
+## Shell utilisateur — v0.2.7.4b-dev7
 
 Le profil et toute l'authentification utilisateur sont séparés des Options. `main.js` orchestre une modale `#profile-dialog` distincte et `AccountUI` y rend identité, synchronisation, connexion Discord et déconnexion. `#options` ne contient plus aucun contrôle ni état d'authentification. Sur HOME, deux utilitaires coexistent : Profil à gauche et Menu à droite. READY / GAME OVER réutilisent uniquement le bouton de droite comme Home.
 

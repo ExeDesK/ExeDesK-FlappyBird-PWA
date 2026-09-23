@@ -14,6 +14,7 @@
   --flappy-brown-dark: #302014;
   --flappy-green: #8eae5b;
   --flappy-green-dark: #5d7c3a;
+  --game-side-gap: 0px;
 }
 
 * {
@@ -106,7 +107,7 @@ body {
   position: fixed;
   z-index: 2;
   top: max(10px, env(safe-area-inset-top));
-  right: max(10px, env(safe-area-inset-right));
+  right: calc(var(--game-side-gap, 0px) + max(10px, env(safe-area-inset-right)));
   width: var(--utility-hit-size);
   height: var(--utility-hit-size);
   padding: 0;
@@ -118,7 +119,12 @@ body {
 }
 
 .profile-utility {
-  right: calc(max(10px, env(safe-area-inset-right)) + var(--utility-hit-size) + var(--utility-gap));
+  right: calc(
+    var(--game-side-gap, 0px)
+    + max(10px, env(safe-area-inset-right))
+    + var(--utility-hit-size)
+    + var(--utility-gap)
+  );
 }
 
 .utility:hover .atlas-utility-icon,
