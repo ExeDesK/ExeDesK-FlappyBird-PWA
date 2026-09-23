@@ -8,7 +8,7 @@ L'objectif n'est pas de produire un simple clone « inspiré de » Flappy Bird, 
 
 Le gameplay fonctionne entièrement côté client, sans framework, et peut être installé comme une application sur Windows, iPhone/iPad et Android. Les fonctions communautaires utilisent un backend Supabase facultatif : aucun compte n'est nécessaire pour jouer.
 
-> **État du projet : bêta — v0.2.7.4b-dev10**
+> **État du projet : bêta — v0.2.7.4b-dev11**
 
 - Statistiques joueur : carrière + fenêtres 10 / 25 / 50 calculées uniquement depuis les runs vérifiées.
 > Sur iPhone/iPad ProMotion, un statut dynamique dans les options Performance mesure la cadence rAF sur iOS : il confirme la haute fréquence lorsqu’elle est active, sinon il propose le réglage Safari et un tutoriel au timecode utile.
@@ -26,6 +26,7 @@ Le gameplay fonctionne entièrement côté client, sans framework, et peut être
 - Sauvegarde locale du meilleur score.
 - Connexion facultative via **Discord ou Google** avec Supabase Auth et profil joueur cross-platform.
 - Une modale **Profil** dédiée regroupe toute l'authentification utilisateur : connexion Discord/Google, avatar, identité, état de synchronisation, meilleur score, déconnexion et section **Connexions**. Un joueur connecté peut lier le provider manquant au **même `auth.users.id`**, sans déplacer son profil, son record, ses runs ou ses statistiques.
+- Le joueur peut personnaliser son **pseudo public** (initialisé depuis le premier compte connecté) et choisir sa **photo de profil** parmi les avatars Discord / Google disponibles. Le choix est enregistré dans `profiles` et réutilisé par le classement et l'Admin Analytics.
 - La stratégie de conservation des comptes et le linking multi-provider sont documentés dans [`docs/ACCOUNT-LINKING.md`](./docs/ACCOUNT-LINKING.md). La configuration Google Cloud/Supabase est détaillée dans [`docs/AUTH-GOOGLE.md`](./docs/AUTH-GOOGLE.md).
 - Synchronisation du meilleur score entre appareils en conservant toujours la valeur la plus élevée.
 - Verified Runs : ticket/seed serveur, capture déterministe, file locale auto-réparante, soumission différée et relecture autoritaire avant validation ou rejet du score.
@@ -134,13 +135,18 @@ site/
 │   │   ├── best-score-client.js
 │   │   ├── http.js
 │   │   ├── leaderboard-client.js
+│   │   ├── profile-client.js      Lecture/mise à jour du profil public
 │   │   └── verified-run-api.js
+│   ├── auth/
+│   │   ├── identity-linking.js    Liaison/déliaison des providers OAuth
+│   │   └── provider-profile.js    Métadonnées pseudo/avatar par provider
 │   ├── pwa/
 │   │   └── update-manager.js       Cycle de mise à jour Service Worker
 │   ├── replay/
 │   │   └── verified-run-recorder.js Capture déterministe des taps
 │   ├── session/
 │   │   ├── score-sync.js           Synchronisation du record
+│   │   ├── verified-run-abandon.js Annulation best-effort des tickets abandonnés
 │   │   ├── verified-play.js        Orchestration du PLAY vérifié
 │   │   ├── verified-run-queue.js   File locale / réparation / ownership
 │   │   └── verified-run-submit.js  Politique FIFO / retry / discard

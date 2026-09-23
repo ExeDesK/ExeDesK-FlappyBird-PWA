@@ -1,4 +1,5 @@
 import { AUTH_LINK_INTENT_KEY, IdentityLinkingController, identitiesFromUser, normalizeProvider, providerScopes } from './auth/identity-linking.js';
+import { ProfileClient, profileFromUser } from './api/profile-client.js';
 const AUTH_STORAGE_KEY = 'flappy13-auth-v1';
 const SESSION_SKEW_MS = 60 * 1000;
 
@@ -8,31 +9,6 @@ function safeJsonParse(value) {
   } catch {
     return null;
   }
-}
-
-function profileFromUser(user) {
-  const meta = user?.user_metadata || {};
-  const username =
-    meta.user_name ||
-    meta.preferred_username ||
-    meta.name ||
-    user?.email?.split('@')[0] ||
-    'player';
-  const displayName =
-    meta.full_name ||
-    meta.global_name ||
-    meta.name ||
-    meta.user_name ||
-    username;
-  const avatarUrl = meta.avatar_url || meta.picture || null;
-
-  return {
-    id: user?.id || null,
-    username,
-    display_name: displayName,
-    avatar_url: avatarUrl,
-    best_score: 0,
-  };
 }
 
 function defaultStorage() {
@@ -55,6 +31,7 @@ export class AuthClient {
     this.callbackResult = null;
     this.callbackProvider = null;
     this.listeners = new Set();
+    this.profileClient = new ProfileClient({ url: this.url, publishableKey: this.publishableKey });
     this.identityLinking = new IdentityLinkingController({
       url: this.url, publishableKey: this.publishableKey, storage: this.storage,
       getAccessToken: () => this._validAccessToken(), getUser: () => this.user,
@@ -342,53 +319,7 @@ export class AuthClient {
     return response.json();
   }
 
-  async _fetchProfile(accessToken, user) {
-    const endpoint = new URL(`${this.url}/rest/v1/profiles`);
-    endpoint.searchParams.set('id', `eq.${user.id}`);
-    endpoint.searchParams.set('select', 'id,username,display_name,avatar_url,best_score,created_at,updated_at');
 
-    const response = await fetch(endpoint, {
-      headers: this._authHeaders(accessToken),
-      cache: 'no-store',
-    });
-
-    if (!response.ok) {
-      this.error = `Profil Supabase indisponible (HTTP ${response.status}).`;
-      return profileFromUser(user);
-    }
-
-    const rows = await response.json();
-    if (rows[0]) {
-      this.error = null;
-      return rows[0];
-    }
-
-    return this._insertProfile(accessToken, user);
-  }
-
-  async _insertProfile(accessToken, user) {
-    const fallback = profileFromUser(user);
-    const response = await fetch(`${this.url}/rest/v1/profiles`, {
-      method: 'POST',
-      headers: {
-        ...this._authHeaders(accessToken),
-        'Content-Type': 'application/json',
-        Prefer: 'return=representation',
-      },
-      body: JSON.stringify(fallback),
-    });
-
-    if (!response.ok) {
-      // Authentication is valid even if the optional profile table has not yet
-      // been provisioned. Use provider metadata locally and surface the DB issue.
-      this.error = `Profil Supabase non initialisé (HTTP ${response.status}).`;
-      return fallback;
-    }
-
-    const rows = await response.json();
-    this.error = null;
-    return rows[0] || fallback;
-  }
 
   async accessToken() {
     return this._validAccessToken();
@@ -411,7 +342,9 @@ export class AuthClient {
       const accessToken = await this._validAccessToken();
       const user = await this._fetchUser(accessToken);
       this.user = user;
-      this.profile = await this._fetchProfile(accessToken, user);
+      const result = await this.profileClient.fetch(accessToken, user);
+      this.profile = result.profile;
+      this.error = result.error;
       this._save();
       this._setStatus('signed_in', this.error);
       return this.snapshot();
@@ -425,6 +358,22 @@ export class AuthClient {
       }
       return this.snapshot();
     }
+  }
+
+  async updateProfilePreferences(preferences) {
+    if (!this.user?.id || !this.session) {
+      throw new Error('Connecte-toi avant de modifier le profil.');
+    }
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      throw new Error('Une connexion Internet est nécessaire pour modifier le profil.');
+    }
+
+    const accessToken = await this._validAccessToken();
+    this.profile = await this.profileClient.updatePreferences(accessToken, this.user, preferences);
+    this.error = null;
+    this._save();
+    this._emit();
+    return this.snapshot();
   }
 
   async signOut() {

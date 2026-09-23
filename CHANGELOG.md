@@ -1,3 +1,14 @@
+## v0.2.7.4b-dev11 - Profile personalization
+
+- Ajoute la personnalisation du **pseudo public** directement dans Profil. Le pseudo initial reste celui créé depuis le premier provider connecté ; le joueur peut ensuite le modifier sans changer son `auth.users.id`, son record ni son historique.
+- Ajoute le choix de la **photo de profil** entre les avatars fournis par Discord et Google lorsque les deux identités sont liées. Le provider choisi est mémorisé dans `profiles.avatar_provider` et `avatar_url` continue d'alimenter le leaderboard/Admin.
+- Le choix d'avatar est dérivé des `identity_data` Supabase de chaque identité OAuth. Si un provider ne fournit pas d'image, il n'est pas proposé comme source d'avatar.
+- Ajoute `supabase/012_profile_customization.sql`, sans backfill destructif : les profils existants gardent leur pseudo et leur avatar actuels ; la nouvelle préférence provider reste `NULL` jusqu'à un choix explicite.
+- Ajoute `auth/provider-profile.js` et `api/profile-client.js` pour isoler la lecture des métadonnées provider et les mises à jour de profil. `auth.js` redescend sous son garde-fou architectural.
+- Le Service Worker précache désormais **55 ressources runtime**.
+- Aucun changement de physique, Verified Runs, score, leaderboard ranking ou ownership joueur.
+- Validation : `npm test` **180/180**, `python tests/browser_isolated.py` **OK**, `python tests/admin_browser_isolated.py` **OK**.
+
 ## v0.2.7.4b-dev10 - Google OAuth & account linking
 
 - Ajoute **SE CONNECTER AVEC GOOGLE** dans la modale Profil aux côtés de Discord, sans SDK Google ni secret OAuth dans le frontend.

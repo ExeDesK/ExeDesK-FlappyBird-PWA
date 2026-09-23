@@ -204,3 +204,9 @@ Les prochaines fonctionnalités importantes (multijoueur, replay leaderboard, co
 ## Account linking
 
 La stratégie complète de conservation de l'UUID joueur, de compatibilité avec les comptes Discord existants et de future liaison d'un second provider est décrite dans [`ACCOUNT-LINKING.md`](./ACCOUNT-LINKING.md).
+
+### Personnalisation de profil — v0.2.7.4b-dev11
+
+`auth/provider-profile.js` normalise les métadonnées publiques renvoyées par les identités OAuth (pseudo provider, avatar, date de liaison) sans les confondre avec l'UUID canonique du joueur. `api/profile-client.js` possède la lecture/écriture de `public.profiles`, dont le pseudo public et le provider d'avatar sélectionné. `AuthClient` orchestre seulement la session et délègue ces opérations au client de profil.
+
+Le leaderboard et Admin Analytics continuent de consommer `profiles.display_name` et `profiles.avatar_url`; aucun changement de clé étrangère ni de modèle d'ownership n'est nécessaire.

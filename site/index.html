@@ -81,7 +81,7 @@
         <button id="close-options" class="close-options atlas-close-button" aria-label="Fermer"><span id="close-options-icon" class="atlas-close-icon" aria-hidden="true"></span></button>
       </header>
 
-      <p class="version">BETA 0.2.7.4b-dev10</p>
+      <p class="version">BETA 0.2.7.4b-dev11</p>
       <p id="offline-status" class="status-card">Préparation du mode hors ligne...</p>
 
       <section class="menu-card" aria-labelledby="game-settings-title">
@@ -179,7 +179,7 @@
         <button id="close-profile" class="close-options atlas-close-button" type="button" aria-label="Fermer le profil"><span id="close-profile-icon" class="atlas-close-icon" aria-hidden="true"></span></button>
       </header>
 
-      <p class="version">BETA 0.2.7.4b-dev10</p>
+      <p class="version">BETA 0.2.7.4b-dev11</p>
 
       <section class="menu-card account-card" aria-labelledby="profile-account-title">
         <h2 id="profile-account-title">COMPTE</h2>
@@ -206,6 +206,28 @@
               <span id="account-username"></span>
             </div>
           </div>
+
+          <form id="profile-customization-form" class="profile-customization" hidden>
+            <span class="account-section-label">PERSONNALISATION</span>
+
+            <label class="profile-name-field" for="profile-display-name">
+              <span>PSEUDO</span>
+              <span class="profile-name-input-row">
+                <input id="profile-display-name" type="text" maxlength="24" autocomplete="off" spellcheck="false" aria-describedby="profile-customization-status">
+                <small id="profile-display-name-count">0/24</small>
+              </span>
+            </label>
+
+            <fieldset class="profile-avatar-fieldset">
+              <legend>PHOTO DE PROFIL</legend>
+              <div id="profile-avatar-choices" class="profile-avatar-choices"></div>
+            </fieldset>
+
+            <button id="profile-customization-save" type="submit">ENREGISTRER</button>
+            <p id="profile-customization-status" class="hint profile-customization-status">
+              Ton pseudo et ta photo sont visibles dans le classement.
+            </p>
+          </form>
 
           <div id="account-linked-identities" class="account-linked-identities" hidden>
             <span class="account-section-label">CONNEXIONS</span>
@@ -239,7 +261,7 @@
         <button id="close-leaderboard" class="close-options atlas-close-button" type="button" aria-label="Fermer le classement"><span id="close-leaderboard-icon" class="atlas-close-icon" aria-hidden="true"></span></button>
       </header>
 
-      <p class="version">BETA 0.2.7.4b-dev10</p>
+      <p class="version">BETA 0.2.7.4b-dev11</p>
 
       <div class="leaderboard-toolbar">
         <p id="leaderboard-status" class="hint">Chargement du classement...</p>

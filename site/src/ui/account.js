@@ -1,3 +1,6 @@
+import { PROFILE_DISPLAY_NAME_MAX } from '../api/profile-client.js';
+import { availableAvatarProviders, resolvedAvatarProvider } from '../auth/provider-profile.js';
+
 const PROVIDER_LABELS = Object.freeze({
   discord: 'Discord',
   google: 'Google',
@@ -105,6 +108,55 @@ function renderLinkedIdentities(container, identities = [], {
   }
 }
 
+function renderAvatarChoices(container, state, preferredProvider = null) {
+  if (!container) return null;
+
+  const choices = availableAvatarProviders(state.user);
+  const selected = preferredProvider
+    || resolvedAvatarProvider(state.user, state.profile)
+    || choices[0]?.provider
+    || null;
+
+  container.replaceChildren();
+  if (!choices.length) {
+    const empty = document.createElement('p');
+    empty.className = 'hint profile-avatar-empty';
+    empty.textContent = 'Aucune photo de profil fournie par les comptes liés.';
+    container.append(empty);
+    return null;
+  }
+
+  for (const choice of choices) {
+    const label = document.createElement('label');
+    label.className = 'profile-avatar-option';
+    label.dataset.provider = choice.provider;
+
+    const radio = document.createElement('input');
+    radio.type = 'radio';
+    radio.name = 'profile-avatar-provider';
+    radio.value = choice.provider;
+    radio.checked = choice.provider === selected;
+
+    const content = document.createElement('span');
+    content.className = 'profile-avatar-option-content';
+
+    const image = document.createElement('img');
+    image.src = choice.avatar_url;
+    image.alt = '';
+    image.loading = 'lazy';
+    image.referrerPolicy = 'no-referrer';
+
+    const name = document.createElement('strong');
+    name.textContent = providerLabel(choice.provider).toUpperCase();
+
+    content.append(image, name);
+    label.append(radio, content);
+    container.append(label);
+  }
+
+  return selected;
+}
+
 export class AccountUI {
   constructor({ auth, getBest, getScoreSyncState, getElement, onLinkProvider } = {}) {
     this.auth = auth;
@@ -112,11 +164,99 @@ export class AccountUI {
     this.getScoreSyncState = getScoreSyncState;
     this.$ = getElement || (id => document.getElementById(id));
     this.onLinkProvider = onLinkProvider;
+    this.customizationDirty = false;
+    this.avatarSignature = null;
 
     this.$('account-avatar')?.addEventListener('error', () => {
       this.$('account-avatar').hidden = true;
       this.$('account-avatar-fallback').hidden = false;
     });
+
+    this.$('profile-display-name')?.addEventListener('input', () => {
+      this.customizationDirty = true;
+      this.updateNameCounter();
+    });
+    this.$('profile-avatar-choices')?.addEventListener('change', () => {
+      this.customizationDirty = true;
+    });
+    this.$('profile-customization-form')?.addEventListener('submit', event => {
+      event.preventDefault();
+      void this.saveCustomization();
+    });
+  }
+
+  updateNameCounter() {
+    const input = this.$('profile-display-name');
+    const counter = this.$('profile-display-name-count');
+    if (input && counter) {
+      counter.textContent = `${input.value.length}/${PROFILE_DISPLAY_NAME_MAX}`;
+    }
+  }
+
+  renderCustomization(state, { signed, online }) {
+    const section = this.$('profile-customization-form');
+    if (!section) return;
+    section.hidden = !signed;
+    if (!signed) return;
+
+    const input = this.$('profile-display-name');
+    const choices = this.$('profile-avatar-choices');
+    const save = this.$('profile-customization-save');
+    const status = this.$('profile-customization-status');
+    const available = availableAvatarProviders(state.user);
+    const preferred = choices?.querySelector('input[name="profile-avatar-provider"]:checked')?.value || null;
+    const signature = JSON.stringify({
+      selected: state.profile?.avatar_provider || null,
+      choices: available.map(item => [item.provider, item.avatar_url]),
+    });
+
+    if (input && !this.customizationDirty) {
+      input.value = accountDisplayName(state);
+      this.updateNameCounter();
+    }
+
+    if (choices && signature !== this.avatarSignature) {
+      renderAvatarChoices(choices, state, preferred);
+      this.avatarSignature = signature;
+    }
+
+    if (input) input.disabled = !online || state.status === 'loading';
+    if (save) save.disabled = !online || state.status === 'loading';
+    for (const radio of choices?.querySelectorAll('input[type="radio"]') || []) {
+      radio.disabled = !online || state.status === 'loading';
+    }
+
+    if (status && !this.customizationDirty) {
+      status.textContent = online
+        ? 'Ton pseudo et ta photo sont visibles dans le classement.'
+        : 'Reconnecte-toi pour modifier le pseudo ou la photo de profil.';
+    }
+  }
+
+  async saveCustomization() {
+    const input = this.$('profile-display-name');
+    const save = this.$('profile-customization-save');
+    const status = this.$('profile-customization-status');
+    const checked = this.$('profile-avatar-choices')
+      ?.querySelector('input[name="profile-avatar-provider"]:checked');
+
+    if (!input || !save) return;
+    save.disabled = true;
+    if (status) status.textContent = 'ENREGISTREMENT…';
+
+    try {
+      const state = await this.auth.updateProfilePreferences({
+        displayName: input.value,
+        avatarProvider: checked?.value || null,
+      });
+      this.customizationDirty = false;
+      this.avatarSignature = null;
+      this.render(state);
+      if (status) status.textContent = 'Profil mis à jour.';
+    } catch (error) {
+      if (status) status.textContent = String(error?.message || error || 'Mise à jour impossible.');
+      save.disabled = false;
+    }
   }
 
   render(state = this.auth.snapshot()) {
@@ -130,12 +270,8 @@ export class AccountUI {
     const linkedSection = this.$('account-linked-identities');
     const linkedList = this.$('linked-identities-list');
 
-    if (this.$('account-signed-out')) {
-      this.$('account-signed-out').hidden = signed;
-    }
-    if (this.$('account-signed-in')) {
-      this.$('account-signed-in').hidden = !signed;
-    }
+    if (this.$('account-signed-out')) this.$('account-signed-out').hidden = signed;
+    if (this.$('account-signed-in')) this.$('account-signed-in').hidden = !signed;
     for (const login of [discordLogin, googleLogin]) {
       if (!login) continue;
       login.hidden = signed;
@@ -145,9 +281,7 @@ export class AccountUI {
       logout.hidden = !signed;
       logout.disabled = state.status === 'loading';
     }
-    if (linkedSection) {
-      linkedSection.hidden = !signed;
-    }
+    if (linkedSection) linkedSection.hidden = !signed;
     if (linkedList) {
       renderLinkedIdentities(linkedList, signed ? state.identities || [] : [], {
         online,
@@ -155,9 +289,8 @@ export class AccountUI {
         onLinkProvider: this.onLinkProvider,
       });
     }
-    if (this.$('profile-best-score')) {
-      this.$('profile-best-score').textContent = String(this.getBest());
-    }
+    this.renderCustomization(state, { signed, online });
+    if (this.$('profile-best-score')) this.$('profile-best-score').textContent = String(this.getBest());
 
     const connectionStatus = this.$('connection-status');
     if (connectionStatus) {
@@ -176,9 +309,7 @@ export class AccountUI {
     }
 
     const accountStatus = this.$('account-status');
-    if (!accountStatus) {
-      return;
-    }
+    if (!accountStatus) return;
 
     if (!signed) {
       accountStatus.textContent = !state.configured
@@ -223,4 +354,4 @@ export class AccountUI {
   }
 }
 
-export { accountAvatar, accountDisplayName, accountUsername, linkedProviderCount, providerLabel, renderLinkedIdentities, SUPPORTED_PROVIDER_ORDER };
+export { accountAvatar, accountDisplayName, accountUsername, linkedProviderCount, providerLabel, renderAvatarChoices, renderLinkedIdentities, SUPPORTED_PROVIDER_ORDER };

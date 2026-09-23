@@ -1,4 +1,4 @@
-const BUILD = '0.2.7.4b-dev10';
+const BUILD = '0.2.7.4b-dev11';
 const PREFIX = `flappy13-${encodeURIComponent(self.registration.scope)}-`;
 const CACHE = `${PREFIX}${BUILD}`;
 const ASSETS = [
@@ -28,9 +28,11 @@ const ASSETS = [
   './src/audio.js',
   './src/auth.js',
   './src/auth/identity-linking.js',
+  './src/auth/provider-profile.js',
   './src/api/http.js',
   './src/api/best-score-client.js',
   './src/api/leaderboard-client.js',
+  './src/api/profile-client.js',
   './src/api/verified-run-api.js',
   './src/clock.js',
   './src/display.js',

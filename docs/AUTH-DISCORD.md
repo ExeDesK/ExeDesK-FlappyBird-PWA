@@ -65,11 +65,14 @@ La PWA utilise directement l'API HTTP Supabase Auth afin de ne pas ajouter de d�
 Aucun token utilisateur n'est ajouté aux diagnostics du jeu.
 
 
-## Présentation du profil — v0.2.7.4b-dev10
+## Présentation du profil — v0.2.7.4b-dev11
 
 Toute l'interface d'authentification utilisateur est désormais regroupée dans la modale **Profil**, accessible depuis HOME par `button_profile`. **Options ne contient plus aucune section Connexion, aucun bouton OAuth et aucun état de session.**
 
 Lorsque le joueur est déconnecté, Profil affiche **SE CONNECTER AVEC DISCORD** et **SE CONNECTER AVEC GOOGLE**. Une fois connecté, Profil affiche l'identité, l'état de synchronisation et une section **CONNEXIONS** listant Discord et Google. Le provider absent propose **LIER** ; **SE DÉCONNECTER** reste placé en bas de la modale.
+
+
+Depuis `v0.2.7.4b-dev11`, le nom affiché n'est plus figé sur Discord : il sert seulement de valeur initiale lors de la création du profil. Le joueur peut modifier son pseudo public et, si plusieurs providers sont liés, choisir l'avatar Discord ou Google comme photo publique.
 
 Depuis `v0.2.7.4b-dev10`, Google utilise cette infrastructure provider-agnostic. Les comptes Discord existants conservent leur `auth.users.id`, leur `profiles.id`, leur record et leur historique. La clé locale `flappy13-auth-v1` reste inchangée afin de conserver les sessions déjà stockées.
 

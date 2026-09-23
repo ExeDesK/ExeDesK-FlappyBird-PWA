@@ -8,7 +8,7 @@ The goal is not to create another Flappy Bird-inspired clone, but to **reproduce
 
 Gameplay runs entirely client-side without a framework and can be installed as an application on Windows, iPhone/iPad and Android. Optional community features use Supabase; no account is required to play.
 
-> **Project status: beta — v0.2.7.4b-dev10**
+> **Project status: beta — v0.2.7.4b-dev11**
 
 - Player statistics: career + 10 / 25 / 50-run windows derived only from verified runs.
 > On ProMotion iPhone/iPad devices, the Performance options include guidance for the Safari setting that can remove the near-60 Hz page-rendering preference.
@@ -26,6 +26,7 @@ Gameplay runs entirely client-side without a framework and can be installed as a
 - Local high-score persistence.
 - Optional Discord or Google sign-in through Supabase Auth with a cross-platform player profile.
 - A dedicated **Profile** modal owns the complete user-authentication surface: Discord/Google sign-in, avatar, identity, sync status, best score, sign-out and a **Connections** view. Signed-in players can link the missing provider to the same `auth.users.id`, preserving the existing game profile, record, runs and statistics.
+- Players can customize their **public nickname** (initially taken from the first connected account) and choose their **profile picture** from the available Discord / Google avatars. The selection is stored in `profiles` and reused by the leaderboard and Admin Analytics.
 - Existing-account preservation and the future multi-provider flow are documented in [`docs/ACCOUNT-LINKING.md`](./docs/ACCOUNT-LINKING.md).
 - Cross-device best-score sync that always keeps the highest value.
 - Verified Runs: server-issued ticket/seed, deterministic capture, self-healing local queue, deferred submission, and authoritative replay before a score is accepted or rejected.
@@ -134,13 +135,18 @@ site/
 │   │   ├── best-score-client.js
 │   │   ├── http.js
 │   │   ├── leaderboard-client.js
+│   │   ├── profile-client.js      Public-profile reads and updates
 │   │   └── verified-run-api.js
+│   ├── auth/
+│   │   ├── identity-linking.js    OAuth provider linking/unlinking
+│   │   └── provider-profile.js    Provider nickname/avatar metadata
 │   ├── pwa/
 │   │   └── update-manager.js       Service Worker update lifecycle
 │   ├── replay/
 │   │   └── verified-run-recorder.js Deterministic tap recording
 │   ├── session/
 │   │   ├── score-sync.js           Best-score synchronisation
+│   │   ├── verified-run-abandon.js Best-effort abandoned-ticket cancellation
 │   │   ├── verified-play.js        Verified PLAY orchestration
 │   │   ├── verified-run-queue.js   Local queue / repair / ownership
 │   │   └── verified-run-submit.js  FIFO / retry / discard policy
@@ -152,7 +158,7 @@ site/
 │   │   └── toast.js                Top-layer toasts
 │   ├── atlas.js            Canvas rendering, original/custom atlases and interpolation
 │   ├── audio.js            Audio handling
-│   ├── auth.js             Discord OAuth, Supabase session and profile only
+│   ├── auth.js             Discord/Google OAuth, Supabase session and profile orchestration
 │   ├── clock.js            60 Hz simulation clock
 │   ├── display.js          Display modes and sizing
 │   ├── game.js             Gameplay and state machine

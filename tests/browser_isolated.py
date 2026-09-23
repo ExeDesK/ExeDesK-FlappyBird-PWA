@@ -33,6 +33,8 @@ MODULE_ORDER = [
     'audio.js',
     'leaderboard.js',
     'api/http.js',
+    'auth/provider-profile.js',
+    'api/profile-client.js',
     'auth/identity-linking.js',
     'auth.js',
     'api/best-score-client.js',
@@ -94,6 +96,10 @@ def build_embedded_page(site_root: Path) -> tuple[str, str]:
             # page.set_content() uses about:blank. Give URL-based update/scope
             # calculations a stable synthetic origin inside this harness.
             script = script.replace("location.href", "'http://test.invalid/'")
+            script = script.replace(
+                'const accountUI = new AccountUI(',
+                'const accountUI = window.__accountUI = new AccountUI(',
+            )
 
         if name == 'atlas.js':
             # The browser harness concatenates ES modules into one script.
@@ -294,6 +300,50 @@ def main() -> None:
             "document.querySelector('#close-profile-icon').style.height"
         ) == '28px'
         page.screenshot(path=str(output / 'profile.png'))
+
+        # A linked Discord + Google account exposes a public pseudo editor and
+        # one avatar choice per provider. The first linked provider remains the
+        # default until the player explicitly selects another one.
+        page.evaluate("""
+          () => window.__accountUI.render({
+            configured: true,
+            status: 'signed_in',
+            user: {
+              id: 'user-profile-test',
+              app_metadata: { provider: 'discord', providers: ['discord', 'google'] },
+              user_metadata: {
+                user_name: 'firstbird',
+                global_name: 'First Bird',
+                avatar_url: 'https://cdn.example/discord-current.png',
+              },
+              identities: [
+                {
+                  id: 'discord-id', provider: 'discord', created_at: '2026-09-20T12:00:00Z',
+                  identity_data: { user_name: 'firstbird', avatar_url: 'https://cdn.example/discord.png' },
+                },
+                {
+                  id: 'google-id', provider: 'google', created_at: '2026-09-23T12:00:00Z',
+                  identity_data: { name: 'Google Bird', picture: 'https://cdn.example/google.png' },
+                },
+              ],
+            },
+            profile: {
+              id: 'user-profile-test', username: 'firstbird', display_name: 'First Bird',
+              avatar_url: 'https://cdn.example/discord.png', avatar_provider: 'discord', best_score: 12,
+            },
+            identities: [
+              { provider: 'discord', identity_id: 'discord-id' },
+              { provider: 'google', identity_id: 'google-id' },
+            ],
+            error: null,
+          })
+        """)
+        assert not page.is_hidden('#profile-customization-form')
+        assert page.input_value('#profile-display-name') == 'First Bird'
+        assert page.locator('#profile-avatar-choices .profile-avatar-option').count() == 2
+        assert page.is_checked('input[name="profile-avatar-provider"][value="discord"]')
+        assert not page.is_checked('input[name="profile-avatar-provider"][value="google"]')
+        page.screenshot(path=str(output / 'profile-customization.png'))
 
         close_probe = page.evaluate("""
           () => {

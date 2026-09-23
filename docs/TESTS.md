@@ -1,3 +1,11 @@
+## v0.2.7.4b-dev11 — Profile personalization
+
+- `tests/profile-customization.test.mjs` couvre l'ordre du premier provider, l'extraction des avatars Discord/Google depuis `identity_data`, la normalisation du pseudo, le PATCH du profil et la migration `012_profile_customization.sql`.
+- Le smoke test Chromium rend un profil Discord+Google et vérifie le formulaire de pseudo ainsi que les deux choix d'avatar, avec Discord sélectionné par défaut lorsqu'il est le premier provider lié.
+- `auth.js` reste sous **450 lignes** grâce au nouveau `api/profile-client.js`; les métadonnées provider sont isolées dans `auth/provider-profile.js`.
+- Le cache PWA contient désormais **55 ressources runtime**.
+- Suite complète : `npm test` **180/180** + smoke tests gameplay et Admin **OK**.
+
 ## v0.2.7.4b-dev10 — Google OAuth & account linking
 
 - `tests/auth.test.mjs` couvre la connexion Google, les scopes OAuth, la liaison Google depuis un compte Discord existant sans changement d'UUID, les métadonnées de profil Google et les garde-fous de linking.
@@ -51,15 +59,15 @@
 - Le cache PWA reste à **51 ressources runtime** : le changement backend n'ajoute aucun asset client, mais le build Service Worker est incrémenté pour publier la nouvelle version.
 - Suite complète : `npm test` (**152/152**) + `python tests/browser_isolated.py` (**OK, 0 erreur page**).
 
-# Rapport de tests - v0.2.7.4b-dev10
+# Rapport de tests - v0.2.7.4b-dev11
 
 ## Résultat
 
-- **170/170 tests Node passent** avec `npm test`.
+- **180/180 tests Node passent** avec `npm test`.
 - Le bundle concaténé utilisé par le smoke test passe le contrôle de syntaxe JavaScript.
 - Le smoke test Chromium isolé passe sans erreur page et couvre aussi la composition des nouveaux modules ES, le catalogue dynamique, le thème Vietnam jour/nuit, le panneau diagnostic repliable, la modale Profil, les boutons utilitaires x1,75 et le module d’abandon de ticket Verified Run.
 - Le smoke test Admin Analytics dédié passe également sans erreur page avec Auth/RPC Supabase mockés et couvre les vues Overview, Joueurs, Rétention et Système.
-- Le cache PWA contient **53 ressources** et refuse de se déclarer complet si une ressource de précache manque.
+- Le cache PWA contient **55 ressources** et refuse de se déclarer complet si une ressource de précache manque.
 - `version.json` reste volontairement hors du cache du Service Worker afin de servir de sonde réseau réelle pour la mise à jour.
 - Les liens et ressources du site utilisent des chemins relatifs compatibles avec un projet GitHub Pages publié sous `/<repository>/`.
 

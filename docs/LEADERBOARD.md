@@ -92,3 +92,7 @@ La modale classement affiche désormais, pour le joueur connecté, un bloc `VOS 
 Les RPC du classement sont appelées par `site/src/api/leaderboard-client.js` (`LeaderboardClient`). Le cache de session, le chargement et le rendu de la modale appartiennent à `site/src/ui/leaderboard-ui.js` (`LeaderboardUI`). `AuthClient` ne contient plus de méthode leaderboard ; il fournit uniquement le token quand une RPC authentifiée en a besoin.
 
 Cette séparation ne change aucun contrat SQL/RPC.
+
+## Identité publique personnalisable
+
+Le leaderboard continue de lire `profiles.display_name` et `profiles.avatar_url`. Depuis `v0.2.7.4b-dev11`, ces valeurs peuvent être personnalisées depuis la modale Profil : le pseudo est indépendant des providers liés et l'avatar peut provenir de Discord ou Google. Cette personnalisation ne modifie ni le rang, ni l'UUID du joueur, ni les runs vérifiées.

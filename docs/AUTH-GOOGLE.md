@@ -120,3 +120,9 @@ Le `profiles.id`, les records, les runs et les Analytics restent rattachés au m
 Supabase peut automatiquement rattacher une nouvelle identité OAuth à un utilisateur existant lorsque les deux providers utilisent la même adresse e-mail vérifiée.
 
 Ce mécanisme est utile mais **ne remplace pas** le linking manuel : si Discord et Google utilisent des e-mails différents, il faut impérativement démarrer depuis le profil existant et utiliser **LIER** pour conserver le même UUID.
+
+## 8. Pseudo et photo de profil
+
+Une identité Google liée expose ses métadonnées publiques à Supabase Auth dans `user.identities[].identity_data`. Lorsque Google fournit `picture`, la PWA peut proposer cette image comme photo de profil, au même titre que l'avatar Discord.
+
+Le joueur choisit la source dans **Profil > Personnalisation**. Le choix est enregistré dans `profiles.avatar_provider` et l'URL correspondante dans `profiles.avatar_url`, afin que le leaderboard et Admin Analytics utilisent la même photo. Le pseudo public (`profiles.display_name`) reste indépendant du provider et peut être modifié sans changer d'identité Auth.

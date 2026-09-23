@@ -1,6 +1,6 @@
 # Account linking
 
-## État actuel — v0.2.7.4b-dev10
+## État actuel — v0.2.7.4b-dev11
 
 Discord et Google sont maintenant tous les deux exposés dans la modale **Profil**. Le joueur peut :
 
@@ -35,6 +35,15 @@ Pour garantir que Google est ajouté au profil déjà existant :
 5. revenir sur la PWA : Discord et Google sont alors rattachés au **même `auth.users.id`**.
 
 Le frontend conserve une intention temporaire `flappy13-auth-link-intent-v1` pendant la redirection afin de distinguer une liaison d'une connexion normale.
+
+
+## Personnalisation du profil
+
+Le linking ne dicte plus l'identité visuelle publique du joueur. `profiles.display_name` est le **pseudo public** et reste initialisé depuis le provider d'inscription du compte (`app_metadata.provider`, donc le premier moyen de connexion). Lier Google à un profil Discord existant ne remplace donc jamais automatiquement ce pseudo.
+
+`profiles.avatar_provider` mémorise la source de la photo de profil (`discord` ou `google`) et `profiles.avatar_url` conserve l'URL effectivement publiée au leaderboard/Admin. Les avatars disponibles sont lus depuis `user.identities[].identity_data`; si une identité ne fournit pas d'image, elle n'est pas proposée comme source.
+
+La migration `012_profile_customization.sql` ajoute uniquement `avatar_provider` et ne réécrit aucun profil existant. Les anciens comptes conservent ainsi leur pseudo et leur avatar actuels jusqu'à ce que le joueur enregistre explicitement ses préférences.
 
 ## Connexion Google directe
 

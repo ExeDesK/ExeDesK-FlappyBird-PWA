@@ -205,3 +205,7 @@ Aucune Edge Function n'a besoin d'être redéployée : la migration remplace les
 
 
 Depuis `v0.2.7.4b-dev5`, `expired_issued_runs` agrège les tickets `issued` quittant le lifecycle sans soumission (TTL, annulation explicite depuis READY ou rotation serveur). `pending_limit_requests` devient un compteur historique/pression de seuil et est incrémenté lors d’une rotation à 100, plus lors d’un blocage utilisateur.
+
+## Identité affichée
+
+Les vues joueurs continuent d'utiliser `profiles.display_name` et `profiles.avatar_url`. La personnalisation introduite en `v0.2.7.4b-dev11` est donc reflétée automatiquement dans l'Admin sans changer l'allow-list, qui reste basée exclusivement sur `auth.users.id`.
