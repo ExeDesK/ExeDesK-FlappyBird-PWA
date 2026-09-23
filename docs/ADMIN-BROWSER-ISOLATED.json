@@ -1,0 +1,9 @@
+{
+  "environment": "Isolated Chromium DOM + mocked Supabase Auth/RPCs",
+  "errors": [],
+  "overview": "OK",
+  "players": "OK",
+  "retention": "OK",
+  "system": "OK",
+  "realSupabase": "NOT_TESTED"
+}

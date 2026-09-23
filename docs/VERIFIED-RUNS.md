@@ -256,3 +256,14 @@ Le cycle reste piloté par `VerifiedPlayController`, mais ses mécanismes intern
 - `ui/unranked-warning.js` possède le dialogue de fallback non classé.
 
 Cette séparation ne change aucun champ envoyé à `run-start` / `run-submit` et ne modifie pas `flappy13-physics-v1`.
+
+
+## Agrégats Analytics — v0.2.7.4b
+
+`010_admin_analytics.sql` observe les **mêmes transitions autoritaires** sans changer le protocole Verified Runs :
+
+- une transition vers `verified` incrémente les statistiques lifetime existantes, le temps suivi et l'activité quotidienne ;
+- une transition vers `rejected` incrémente le compteur journalier de rejets ;
+- `issue_verified_run()` et le nettoyage `issued/rejected` incrémentent les compteurs opérationnels avant insertion/purge.
+
+Les payloads `run-start` / `run-submit`, `flappy13-physics-v1`, la seed, le replay, les collisions et le score autoritaire restent inchangés. Les nouvelles tables Analytics sont privées et ne remplacent pas `verified_runs`; elles permettent simplement de conserver des statistiques agrégées après la rétention des lignes détaillées.

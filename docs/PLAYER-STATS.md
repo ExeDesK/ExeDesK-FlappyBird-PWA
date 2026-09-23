@@ -138,3 +138,12 @@ Un index partiel `player_stats_rank_idx` accélère l'ordre du classement person
 - tendance 50 dernières vs moyenne carrière.
 
 Les fenêtres sont ordonnées par `issued_at DESC, run_id DESC`. Le record historique éventuellement conservé comme 51e ligne par la politique de rétention n'entre donc pas dans les 50 dernières. Le navigateur ne fournit aucun score, compteur ou agrégat.
+
+
+## v0.2.7.4b — Temps de jeu Analytics
+
+`supabase/010_admin_analytics.sql` ajoute `player_stats.tracked_play_ticks`. Ce compteur est alimenté uniquement lorsqu'une nouvelle run passe autoritairement à `verified`, à partir de son `terminal_tick`; il n'est jamais envoyé ni calculé par le navigateur.
+
+Le dashboard d'administration convertit ce compteur à **60 ticks/s** pour afficher le temps de gameplay vérifié. Cette métrique commence à la première application de la migration `010` : les runs détaillées plus anciennes ont pu être supprimées par la rétention 50 + record, donc aucun backfill incomplet n'est inventé. Les autres compteurs lifetime (`verified_runs_count`, `total_score`, record, causes de mort, première/dernière run) conservent leur historique complet.
+
+La même transition `verified` alimente également `player_activity_daily`, une ligne privée maximum par joueur et par jour UTC. Cette table sert aux courbes d'activité, DAU/WAU/MAU et cohortes D0/D1/D7/D30 du dashboard. Voir [`ADMIN-ANALYTICS.md`](./ADMIN-ANALYTICS.md).

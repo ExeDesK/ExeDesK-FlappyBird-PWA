@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex,nofollow">
+  <meta name="theme-color" content="#0b0d12">
+  <title>FlappyBird Analytics</title>
+  <link rel="stylesheet" href="./admin.css">
+  <script src="../config.js"></script>
+  <script type="module" src="../src/admin/dashboard.js"></script>
+</head>
+<body>
+  <main class="admin-shell">
+    <header class="topbar">
+      <div>
+        <p class="eyebrow">FLAPPY BIRD 1.3 · ADMIN</p>
+        <h1>Analytics</h1>
+        <p id="tracking-note" class="muted">Chargement des informations de suivi…</p>
+      </div>
+      <div class="topbar-actions">
+        <a class="button secondary" href="../">Retour au jeu</a>
+        <button id="sign-out" class="button secondary" type="button" hidden>Déconnexion</button>
+      </div>
+    </header>
+
+    <section id="auth-gate" class="gate card">
+      <div>
+        <p class="eyebrow">ACCÈS PRIVÉ</p>
+        <h2 id="gate-title">Connexion requise</h2>
+        <p id="gate-message" class="muted">
+          Connecte-toi avec Discord. L'accès au dashboard est ensuite validé côté Supabase.
+        </p>
+      </div>
+      <button id="sign-in" class="button primary" type="button">Connexion Discord</button>
+    </section>
+
+    <section id="dashboard" hidden>
+      <div class="toolbar card">
+        <nav class="tabs" aria-label="Sections Analytics">
+          <button class="tab active" data-section="overview" type="button">Vue d'ensemble</button>
+          <button class="tab" data-section="players" type="button">Joueurs</button>
+          <button class="tab" data-section="retention" type="button">Rétention</button>
+          <button class="tab" data-section="system" type="button">Système</button>
+        </nav>
+        <div class="toolbar-controls">
+          <label>
+            Période
+            <select id="window-days">
+              <option value="7">7 jours</option>
+              <option value="30" selected>30 jours</option>
+              <option value="90">90 jours</option>
+              <option value="365">1 an</option>
+              <option value="3650">Tout</option>
+            </select>
+          </label>
+          <button id="refresh" class="button secondary" type="button">Actualiser</button>
+        </div>
+      </div>
+
+      <p id="dashboard-status" class="status-line" role="status"></p>
+
+      <section id="section-overview" class="dashboard-section">
+        <div class="kpi-grid">
+          <article class="kpi-card card">
+            <span>Joueurs</span>
+            <strong id="kpi-players">—</strong>
+            <small id="kpi-new-players">— nouveaux</small>
+          </article>
+          <article class="kpi-card card">
+            <span>Joueurs actifs</span>
+            <strong id="kpi-active">—</strong>
+            <small id="kpi-audience">DAU — · WAU — · MAU —</small>
+          </article>
+          <article class="kpi-card card">
+            <span>Runs vérifiées</span>
+            <strong id="kpi-runs">—</strong>
+            <small id="kpi-runs-lifetime">— lifetime</small>
+          </article>
+          <article class="kpi-card card">
+            <span>Temps de jeu</span>
+            <strong id="kpi-playtime">—</strong>
+            <small>vérifié · suivi Analytics</small>
+          </article>
+          <article class="kpi-card card">
+            <span>Record global</span>
+            <strong id="kpi-record">—</strong>
+            <small id="kpi-average">moy. —</small>
+          </article>
+          <article class="kpi-card card">
+            <span>Vérification</span>
+            <strong id="kpi-verification">—</strong>
+            <small>runs résolues / tickets émis*</small>
+          </article>
+        </div>
+
+        <div class="chart-grid">
+          <article class="card chart-card">
+            <div class="card-heading">
+              <div>
+                <p class="eyebrow">ACTIVITÉ</p>
+                <h2>Runs par jour</h2>
+              </div>
+              <div class="legend"><span class="dot primary"></span> Vérifiées <span class="dot secondary"></span> Émises</div>
+            </div>
+            <div id="runs-chart" class="chart"></div>
+          </article>
+
+          <article class="card chart-card">
+            <div class="card-heading">
+              <div>
+                <p class="eyebrow">AUDIENCE</p>
+                <h2>Joueurs actifs / jour</h2>
+              </div>
+            </div>
+            <div id="active-chart" class="chart"></div>
+          </article>
+        </div>
+
+        <div class="split-grid">
+          <article class="card">
+            <div class="card-heading"><div><p class="eyebrow">GAMEPLAY</p><h2>Causes de mort lifetime</h2></div></div>
+            <div class="distribution">
+              <div><span>Pipe haut</span><strong id="death-top">—</strong><progress id="death-top-progress" max="100" value="0"></progress></div>
+              <div><span>Pipe bas</span><strong id="death-bottom">—</strong><progress id="death-bottom-progress" max="100" value="0"></progress></div>
+              <div><span>Sol</span><strong id="death-ground">—</strong><progress id="death-ground-progress" max="100" value="0"></progress></div>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-heading"><div><p class="eyebrow">QUALITÉ</p><h2>Résumé du pipeline</h2></div></div>
+            <dl class="metrics-list">
+              <div><dt>Score moyen période</dt><dd id="period-average">—</dd></div>
+              <div><dt>Tickets en attente maintenant</dt><dd id="pending-now">—</dd></div>
+              <div><dt>Runs rejetées conservées</dt><dd id="rejected-now">—</dd></div>
+              <div><dt>Temps suivi total</dt><dd id="tracked-total">—</dd></div>
+            </dl>
+          </article>
+        </div>
+      </section>
+
+      <section id="section-players" class="dashboard-section" hidden>
+        <article class="card">
+          <div class="card-heading players-heading">
+            <div>
+              <p class="eyebrow">JOUEURS</p>
+              <h2>Statistiques individuelles</h2>
+            </div>
+            <form id="player-filter" class="player-filter">
+              <input id="player-search" type="search" placeholder="Pseudo, nom ou UUID" autocomplete="off">
+              <select id="player-sort" aria-label="Trier les joueurs">
+                <option value="runs">Plus de runs</option>
+                <option value="record">Meilleur record</option>
+                <option value="playtime">Temps de jeu suivi</option>
+                <option value="recent">Activité récente</option>
+              </select>
+              <button class="button secondary" type="submit">Filtrer</button>
+            </form>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Joueur</th>
+                  <th>Rang</th>
+                  <th>Runs</th>
+                  <th>Record</th>
+                  <th>Moy.</th>
+                  <th>Temps suivi</th>
+                  <th>Pending</th>
+                  <th>Dernière run</th>
+                </tr>
+              </thead>
+              <tbody id="players-body"></tbody>
+            </table>
+          </div>
+          <p id="players-empty" class="empty" hidden>Aucun joueur trouvé.</p>
+        </article>
+      </section>
+
+      <section id="section-retention" class="dashboard-section" hidden>
+        <article class="card">
+          <div class="card-heading players-heading">
+            <div>
+              <p class="eyebrow">COHORTES</p>
+              <h2>Rétention des nouveaux comptes</h2>
+              <p class="muted compact">Cohorte = date de création du profil. Actif = au moins une run autoritaire vérifiée le jour concerné.</p>
+            </div>
+            <label>
+              Cohortes
+              <select id="retention-days">
+                <option value="90" selected>90 jours</option>
+                <option value="180">180 jours</option>
+                <option value="365">1 an</option>
+                <option value="3650">Tout</option>
+              </select>
+            </label>
+          </div>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Cohorte</th>
+                  <th>Comptes</th>
+                  <th>D0</th>
+                  <th>D1</th>
+                  <th>D7</th>
+                  <th>D30</th>
+                </tr>
+              </thead>
+              <tbody id="retention-body"></tbody>
+            </table>
+          </div>
+          <p id="retention-empty" class="empty" hidden>Pas encore de cohorte exploitable depuis l'activation des Analytics.</p>
+        </article>
+      </section>
+
+      <section id="section-system" class="dashboard-section" hidden>
+        <div class="kpi-grid system-grid">
+          <article class="kpi-card card"><span>run-start</span><strong id="sys-starts">—</strong><small>requêtes</small></article>
+          <article class="kpi-card card"><span>Tickets émis</span><strong id="sys-issued">—</strong><small>créés</small></article>
+          <article class="kpi-card card"><span>Rejetées</span><strong id="sys-rejected">—</strong><small>replay invalide</small></article>
+          <article class="kpi-card card"><span>Abandonnées</span><strong id="sys-expired">—</strong><small>issued expirés</small></article>
+          <article class="kpi-card card"><span>Rate limit</span><strong id="sys-rate">—</strong><small>30/min</small></article>
+          <article class="kpi-card card"><span>Cap pending</span><strong id="sys-pending-cap">—</strong><small>10 ouverts</small></article>
+        </div>
+
+        <article class="card chart-card">
+          <div class="card-heading">
+            <div><p class="eyebrow">BACKEND</p><h2>Tickets émis / rejetés</h2></div>
+            <div class="legend"><span class="dot primary"></span> Émis <span class="dot secondary"></span> Rejetés</div>
+          </div>
+          <div id="system-chart" class="chart"></div>
+        </article>
+
+        <article class="card notice">
+          <h2>Lecture des métriques</h2>
+          <p>
+            Les compteurs journaliers sont conservés même lorsque les tickets détaillés sont purgés. Le taux de vérification d'une période compare les runs résolues pendant cette période aux tickets émis pendant cette même période : une soumission différée peut donc légèrement décaler le ratio entre deux fenêtres.
+          </p>
+        </article>
+      </section>
+    </section>
+  </main>
+</body>
+</html>

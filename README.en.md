@@ -8,7 +8,7 @@ The goal is not to create another Flappy Bird-inspired clone, but to **reproduce
 
 Gameplay runs entirely client-side without a framework and can be installed as an application on Windows, iPhone/iPad and Android. Optional community features use Supabase; no account is required to play.
 
-> **Project status: beta — v0.2.7.3b-dev6.3.6**
+> **Project status: beta — v0.2.7.4b**
 
 - Player statistics: career + 10 / 25 / 50-run windows derived only from verified runs.
 > On ProMotion iPhone/iPad devices, the Performance options include guidance for the Safari setting that can remove the near-60 Hz page-rendering preference.
@@ -45,6 +45,8 @@ Gameplay runs entirely client-side without a framework and can be installed as a
 - Diagnostic tools are split into collapsible sections, include an internal close control and keep browser-native dark selectors.
 - Complementary atlas versioned through `assets/customatlas.json`, kept separate from the original atlas to preserve the 1:1 reference assets and gameplay behaviour. Home / Options atlas buttons are now rendered at **2x** size.
 - Frontend split into domain-focused ES modules: `main.js` orchestrates the game while authentication, Supabase clients, leaderboard UI, Verified Play, replay recording, the local run queue, UI transitions, toasts, score synchronisation and PWA updates live in focused modules that can be tested independently.
+- Private **Admin Analytics** dashboard under `site/admin/`: active players, DAU/WAU/MAU, runs per day/player, records, average score, verified play time, death causes, D0/D1/D7/D30 retention and verified-run lifecycle metrics. Access requires Discord Auth plus a PostgreSQL allow-list and never exposes a server secret.
+- Daily Analytics tracking starts when `010_admin_analytics.sql` is applied: existing lifetime counters stay authoritative, but no fake historical play-time/retention is reconstructed from runs already pruned by 50 + record retention.
 
 ---
 
@@ -89,6 +91,7 @@ Detailed notes are available in:
 - [`docs/RETENTION.md`](./docs/RETENTION.md) (French)
 - [`docs/THEMES.md`](./docs/THEMES.md) (French)
 - [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) (French)
+- [`docs/ADMIN-ANALYTICS.md`](./docs/ADMIN-ANALYTICS.md) (French)
 
 ---
 
@@ -119,9 +122,11 @@ The project is intentionally lightweight.
 
 ```text
 site/
+├── admin/                  Private Analytics dashboard (online-only)
 ├── assets/                 Graphics/audio assets + custom atlas + themes.json
 ├── icons/                  PWA icons
 ├── src/
+│   ├── admin/              Analytics client, SVG charts and dashboard controller
 │   ├── api/                Focused Supabase clients + shared HTTP helpers
 │   │   ├── best-score-client.js
 │   │   ├── http.js

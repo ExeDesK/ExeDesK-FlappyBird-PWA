@@ -96,6 +96,20 @@ supabase/006_verified_run_retention.sql
 ...
 supabase/008_player_performance_stats.sql
 supabase/009_verified_run_ticket_hygiene.sql
+supabase/010_admin_analytics.sql
 ```
 
-Après `009`, redéployer l'Edge Function `run-start`, car elle dépend désormais de `issue_verified_run()`. `run-submit` n'est pas modifiée.
+Après `009`, redéployer l'Edge Function `run-start`, car elle dépend désormais de `issue_verified_run()`. `run-submit` n'est pas modifiée. Après `010`, **aucune Edge Function n'a besoin d'être redéployée** : `issue_verified_run()` et `cleanup_stale_verified_run_tickets()` sont remplacées sans changement de signature.
+
+
+## Analytics durables — v0.2.7.4b
+
+`supabase/010_admin_analytics.sql` ne change aucun TTL ni la règle 50 + record. Elle ajoute une couche d'agrégats qui **survit aux purges** :
+
+- `player_activity_daily` conserve les runs/ticks/scores autoritaires par joueur et par jour UTC à partir du début du tracking ;
+- `run_metrics_daily` conserve par jour les émissions, vérifications, rejets, tickets `issued` expirés, rejets purgés et réponses de rate-limit ;
+- `player_stats.tracked_play_ticks` conserve le temps de gameplay vérifié cumulé depuis l'activation Analytics.
+
+Avant de supprimer des `issued` / `rejected`, la version `010` de `cleanup_stale_verified_run_tickets()` incrémente les compteurs durables correspondants. La signature de la fonction reste identique : le Cron créé par `009` continue donc de fonctionner sans modification. De même, `issue_verified_run()` conserve sa signature pour le `run-start` déjà déployé, tout en alimentant les métriques de lifecycle.
+
+La collecte quotidienne n'est volontairement **pas reconstruite** depuis les runs détaillées encore présentes : l'historique a déjà pu être réduit par la rétention, ce qui rendrait un backfill faux.

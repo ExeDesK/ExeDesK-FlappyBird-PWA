@@ -1,3 +1,11 @@
+## v0.2.7.4b — Admin Analytics
+
+- Ajout de `tests/admin-analytics.test.mjs` pour verrouiller les tables privées, l'allow-list admin, le suivi du temps de jeu autoritaire, les agrégats quotidiens, les cohortes D0/D1/D7/D30 et les compteurs de lifecycle `run-start`.
+- `admin_analytics_daily()` expose une série UTC cohérente incluant DAU, WAU et MAU glissants en plus des runs, scores, temps et compteurs backend.
+- Ajout de `tests/admin_browser_isolated.py` : smoke test Chromium du dashboard avec Supabase Auth/RPC mockés, sans accès réseau réel ni secret.
+- Le dashboard reste hors précache ; le runtime PWA gameplay reste à **51 ressources**.
+- Suite complète : `npm test` (**159/159**) + `python tests/browser_isolated.py` (**OK**) + `python tests/admin_browser_isolated.py` (**OK**).
+
 ## v0.2.7.3b-dev6.3.6
 
 - Ajout de `tests/ticket-hygiene.test.mjs` pour vérifier les TTL `issued` / `rejected`, les index partiels, le verrou par joueur, le cap de 10 tickets ouverts, la fenêtre 30/minute, les droits server-only et le job Supabase Cron.
@@ -6,13 +14,14 @@
 - Le cache PWA reste à **51 ressources runtime** : le changement backend n'ajoute aucun asset client, mais le build Service Worker est incrémenté pour publier la nouvelle version.
 - Suite complète : `npm test` (**152/152**) + `python tests/browser_isolated.py` (**OK, 0 erreur page**).
 
-# Rapport de tests - v0.2.7.3b-dev6.3.6
+# Rapport de tests - v0.2.7.4b
 
 ## Résultat
 
-- **152/152 tests Node passent** avec `npm test`.
+- **159/159 tests Node passent** avec `npm test`.
 - Le bundle concaténé utilisé par le smoke test passe le contrôle de syntaxe JavaScript.
 - Le smoke test Chromium isolé passe sans erreur page et couvre aussi la composition des nouveaux modules ES, le catalogue dynamique, le thème Vietnam jour/nuit, le panneau diagnostic repliable et les boutons utilitaires x2.
+- Le smoke test Admin Analytics dédié passe également sans erreur page avec Auth/RPC Supabase mockés et couvre les vues Overview, Joueurs, Rétention et Système.
 - Le cache PWA contient **51 ressources** et refuse de se déclarer complet si une ressource de précache manque.
 - `version.json` reste volontairement hors du cache du Service Worker afin de servir de sonde réseau réelle pour la mise à jour.
 - Les liens et ressources du site utilisent des chemins relatifs compatibles avec un projet GitHub Pages publié sous `/<repository>/`.

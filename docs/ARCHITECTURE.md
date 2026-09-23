@@ -4,7 +4,7 @@
 
 Depuis `v0.2.7.3b-dev6.3.4`, le frontend reste volontairement **sans framework et sans build**, mais n'utilise plus `main.js` ni `AuthClient` comme contrôleurs universels. Le projet conserve des modules ES natifs chargés directement par le navigateur et sépare désormais orchestration, transport réseau, état de session et rendu UI.
 
-Cette refactorisation est **structurelle uniquement** : elle ne modifie ni `flappy13-physics-v1`, ni les hitboxes, ni le RNG, ni les contrats Verified Runs, ni les RPC/Edge Functions Supabase.
+Cette refactorisation est **structurelle uniquement** : elle ne modifie ni `flappy13-physics-v1`, ni les hitboxes, ni le RNG, ni les contrats Verified Runs. Depuis `v0.2.7.4b`, le dashboard Admin Analytics ajoute ses propres RPC privées et reste séparé du runtime gameplay.
 
 ## Composition
 
@@ -152,9 +152,28 @@ Depuis `v0.2.7.3b-dev6.3.6`, `run-start` ne possède plus la décision d'inserti
 
 La maintenance globale reste en base avec `cleanup_stale_verified_run_tickets()` : `issued` > 7 jours et `rejected` > 30 jours sont purgés par un job Supabase Cron horaire. Les runs `verified` restent exclusivement régies par la rétention 50 + record de `006_verified_run_retention.sql`.
 
+## Admin Analytics — v0.2.7.4b
+
+Le dashboard d'administration est une application légère séparée sous `site/admin/`. Il réutilise `AuthClient` pour la session Discord/Supabase, puis appelle uniquement des RPC Analytics authentifiées via un client dédié :
+
+```text
+site/admin/
+├── index.html
+└── admin.css
+
+site/src/admin/
+├── analytics-client.js   # transport RPC + JWT utilisateur
+├── charts.js             # graphiques SVG natifs
+└── dashboard.js          # composition / rendu des vues admin
+```
+
+Le navigateur n'accède jamais directement aux tables privées `analytics_admins`, `analytics_meta`, `player_activity_daily` ou `run_metrics_daily`. L'autorisation est vérifiée côté PostgreSQL par `is_analytics_admin()` / `require_analytics_admin()` avant chaque RPC `admin_analytics_*`. Aucune clé `service_role` n'est embarquée dans le site.
+
+Côté serveur, `010_admin_analytics.sql` étend les triggers autoritaires existants afin d'agréger le temps de jeu, l'activité quotidienne et le lifecycle des tickets avant que les politiques de rétention ne suppriment les détails. Les signatures de `issue_verified_run()` et `cleanup_stale_verified_run_tickets()` restent compatibles avec la `6.3.6`.
+
 ## Hors ligne
 
-Tous les nouveaux modules runtime sont précachés par `site/sw.js`. `v0.2.7.3b-dev6.3.6` contient **51 ressources de précache** : la modularisation ne retire donc aucune capacité offline.
+Les **51 ressources runtime du jeu** restent précachées par `site/sw.js` en `v0.2.7.4b`. Le dashboard `site/admin/` et ses modules sont volontairement **online-only** et ne sont pas ajoutés au précache : une indisponibilité de l'administration ne peut donc pas empêcher l'installation ou le fonctionnement hors ligne du gameplay.
 
 ## Évolution future
 

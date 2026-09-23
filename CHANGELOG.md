@@ -1,3 +1,17 @@
+## v0.2.7.4b - Admin Analytics
+
+- Ajoute un dashboard privé sous `site/admin/` avec quatre vues : **Vue d'ensemble**, **Joueurs**, **Rétention** et **Système**.
+- Ajoute `supabase/010_admin_analytics.sql` : allow-list `analytics_admins`, date de début de tracking, activité quotidienne par joueur et compteurs opérationnels quotidiens durables.
+- Étend `player_stats` avec `tracked_play_ticks`, calculé uniquement à partir du `terminal_tick` autoritaire des nouvelles runs vérifiées ; le temps de jeu historique déjà supprimé par la rétention n'est volontairement pas inventé.
+- Le dashboard expose joueurs total / actifs, **DAU / WAU / MAU**, nouvelles inscriptions, runs vérifiées, record global, score moyen, temps de jeu suivi, causes de mort, tickets pending/rejected et métriques de rate-limit / abandon.
+- Ajoute la table joueurs avec recherche et tri (runs, record, temps suivi, activité récente) ainsi que le nombre de tickets `issued` ouverts par compte.
+- Ajoute des cohortes de rétention **D0 / D1 / D7 / D30** basées sur la création du profil et une activité composée exclusivement de runs autoritaires `verified`.
+- Les métriques de lifecycle survivent désormais à la purge des lignes détaillées : `run-start`, issued, verified, rejected, issued expirés, rejected purgés, rate-limit et plafond pending sont agrégés par jour UTC.
+- L'accès est protégé par une allow-list PostgreSQL et des RPC `security definer`; aucune table Analytics ni clé `service_role` n'est exposée au navigateur.
+- Le dashboard reste volontairement online-only et hors du précache PWA, afin de ne pas coupler l'administration à la disponibilité offline du jeu.
+- Ajoute `docs/ADMIN-ANALYTICS.md`, `tests/admin-analytics.test.mjs` et un smoke test Chromium dédié avec Supabase mocké.
+- Aucun changement de physique, collision, RNG, format de replay, leaderboard public ou contrat Edge `run-start` / `run-submit`.
+
 ## v0.2.7.3b-dev6.3.6 - Verified Run ticket hygiene
 
 - Ajoute `supabase/009_verified_run_ticket_hygiene.sql` pour borner le cycle de vie des tickets non vérifiés sans toucher à la rétention 50+record des runs `verified`.

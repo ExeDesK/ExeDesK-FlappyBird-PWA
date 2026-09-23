@@ -101,3 +101,10 @@ Le statut du meilleur score est désormais indépendant des erreurs transitoires
 `AuthClient` est désormais limité à OAuth Discord, session Supabase et profil. La synchronisation du meilleur score utilise `api/BestScoreClient` + `session/ScoreSyncController`; le leaderboard utilise `api/LeaderboardClient`; les Verified Runs utilisent `api/VerifiedRunClient` et `session/VerifiedPlayController`. Le token utilisateur est fourni à ces clients via `AuthClient.accessToken()` au lieu de faire transiter toutes les fonctionnalités communautaires par la classe d'authentification.
 
 Voir [`ARCHITECTURE.md`](./ARCHITECTURE.md) pour la séparation complète des responsabilités.
+
+
+## Réutilisation pour Admin Analytics — v0.2.7.4b
+
+Le dashboard `/admin/` réutilise exactement la même session Discord/Supabase et le même `AuthClient`. Une session authentifiée **ne donne pas** automatiquement accès aux statistiques : après connexion, le frontend appelle `is_analytics_admin()`, puis les RPC `admin_analytics_*` vérifient à nouveau l'allow-list privée `analytics_admins` côté PostgreSQL.
+
+Le navigateur continue d'utiliser uniquement la publishable key et le JWT utilisateur. Aucune clé `service_role` ni secret d'administration n'est exposé dans GitHub Pages.
