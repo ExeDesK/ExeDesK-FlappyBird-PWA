@@ -8,7 +8,7 @@ The goal is not to create another Flappy Bird-inspired clone, but to **reproduce
 
 Gameplay runs entirely client-side without a framework and can be installed as an application on Windows, iPhone/iPad and Android. Optional community features use Supabase; no account is required to play.
 
-> **Project status: beta — v0.2.7.3b-dev6.3.4**
+> **Project status: beta — v0.2.7.3b-dev6.3.5**
 
 - Player statistics: career + 10 / 25 / 50-run windows derived only from verified runs.
 > On ProMotion iPhone/iPad devices, the Performance options include guidance for the Safari setting that can remove the near-60 Hz page-rendering preference.
@@ -43,7 +43,7 @@ Gameplay runs entirely client-side without a framework and can be installed as a
 - Declarative `assets/themes.json` catalog: the base theme, Auto pools, each pool's global chance and each theme's relative `weight` are configured alongside backgrounds, pipes, bird frames, ground, adapted-fill colours and ground scroll mode. Adding more countries therefore does not increase the global `1/30` country-pool probability; the debug selector is fully generated from this catalog.
 - Diagnostic tools are split into collapsible sections, include an internal close control and keep browser-native dark selectors.
 - Complementary atlas versioned through `assets/customatlas.json`, kept separate from the original atlas to preserve the 1:1 reference assets and gameplay behaviour. Home / Options atlas buttons are now rendered at **2x** size.
-- Frontend split into domain-focused ES modules: `main.js` orchestrates the game while authentication, Supabase clients, leaderboard UI, Verified Play, toasts, score synchronisation and PWA updates live in focused modules that can be tested independently.
+- Frontend split into domain-focused ES modules: `main.js` orchestrates the game while authentication, Supabase clients, leaderboard UI, Verified Play, replay recording, the local run queue, UI transitions, toasts, score synchronisation and PWA updates live in focused modules that can be tested independently.
 
 ---
 
@@ -128,12 +128,18 @@ site/
 │   │   └── verified-run-api.js
 │   ├── pwa/
 │   │   └── update-manager.js       Service Worker update lifecycle
+│   ├── replay/
+│   │   └── verified-run-recorder.js Deterministic tap recording
 │   ├── session/
 │   │   ├── score-sync.js           Best-score synchronisation
-│   │   └── verified-play.js        Verified-run start, queue and submission flow
+│   │   ├── verified-play.js        Verified PLAY orchestration
+│   │   ├── verified-run-queue.js   Local queue / repair / ownership
+│   │   └── verified-run-submit.js  FIFO / retry / discard policy
 │   ├── ui/
 │   │   ├── account.js              Account rendering
+│   │   ├── game-transition.js      Native launch fade
 │   │   ├── leaderboard-ui.js       Leaderboard dialog/state
+│   │   ├── unranked-warning.js     Unranked fallback dialog
 │   │   └── toast.js                Top-layer toasts
 │   ├── atlas.js            Canvas rendering, original/custom atlases and interpolation
 │   ├── audio.js            Audio handling
@@ -146,7 +152,7 @@ site/
 │   ├── math.js             Math, RNG, animation and tweens
 │   ├── perf.js             Performance profiler
 │   ├── themes.js           Visual theme selection/remapping
-│   ├── verified-run-client.js  Replay recorder and local queue
+│   ├── verified-run-client.js  PLAY interception / release-hitbox rules
 │   └── verified-runs.js    Verified-run contract and simulation
 ├── config.example.js       Runtime configuration template (Supabase)
 ├── index.html

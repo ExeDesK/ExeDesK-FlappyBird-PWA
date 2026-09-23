@@ -223,6 +223,19 @@ Lors du remplacement du menu noir par le `Game` canonique, le constructeur du no
 
 ## Architecture frontend depuis v0.2.7.3b-dev6.3.4
 
-Le transport `run-start` / `run-submit` est isolé dans `site/src/api/verified-run-api.js` (`VerifiedRunClient`). Le cycle navigateur — interception de PLAY, fade, recorder, fallback non classé, file locale et flush différé — est regroupé dans `site/src/session/verified-play.js` (`VerifiedPlayController`). `main.js` ne conserve que l'installation du `Game` canonique et les points d'accroche avec la boucle du moteur.
+Le transport `run-start` / `run-submit` est isolé dans `site/src/api/verified-run-api.js` (`VerifiedRunClient`). En `dev6.3.4`, le cycle navigateur a d'abord été sorti de `main.js` vers `site/src/session/verified-play.js` (`VerifiedPlayController`). `main.js` ne conserve que l'installation du `Game` canonique et les points d'accroche avec la boucle du moteur ; `dev6.3.5` affine ensuite ce découpage en séparant recorder, queue, submitter et UI de transition.
 
 Aucun contrat Verified Runs, payload, version de physique ou Edge Function n'est modifié par cette refactorisation.
+
+
+### Second découpage v0.2.7.3b-dev6.3.5
+
+Le cycle reste piloté par `VerifiedPlayController`, mais ses mécanismes internes sont désormais séparés :
+
+- `replay/verified-run-recorder.js` capture les taps et produit la soumission canonique ;
+- `session/verified-run-queue.js` possède la file locale et sa réparation ;
+- `session/verified-run-submit.js` applique la politique FIFO / retry / discard autour de `VerifiedRunClient.submit()` ;
+- `ui/game-transition.js` possède le fade noir du démarrage ;
+- `ui/unranked-warning.js` possède le dialogue de fallback non classé.
+
+Cette séparation ne change aucun champ envoyé à `run-start` / `run-submit` et ne modifie pas `flappy13-physics-v1`.

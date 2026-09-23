@@ -1,4 +1,4 @@
-const BUILD = '0.2.7.3b-dev6.3.4';
+const BUILD = '0.2.7.3b-dev6.3.5';
 const PREFIX = `flappy13-${encodeURIComponent(self.registration.scope)}-`;
 const CACHE = `${PREFIX}${BUILD}`;
 const ASSETS = [
@@ -39,11 +39,16 @@ const ASSETS = [
   './src/math.js',
   './src/perf.js',
   './src/pwa/update-manager.js',
+  './src/replay/verified-run-recorder.js',
   './src/session/score-sync.js',
+  './src/session/verified-run-queue.js',
+  './src/session/verified-run-submit.js',
   './src/session/verified-play.js',
   './src/themes.js',
   './src/ui/account.js',
+  './src/ui/game-transition.js',
   './src/ui/leaderboard-ui.js',
+  './src/ui/unranked-warning.js',
   './src/ui/toast.js',
   './src/verified-run-client.js',
   './src/verified-runs.js',

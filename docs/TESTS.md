@@ -1,44 +1,19 @@
-## v0.2.7.3b-dev6.3.4
+## v0.2.7.3b-dev6.3.5
 
-- La suite couvre désormais la séparation architecturale des domaines : `main.js` doit rester sous **1600 lignes**, `auth.js` sous **450 lignes**, et les endpoints leaderboard / Verified Runs / best-score ne doivent plus réapparaître dans `AuthClient`.
-- `tests/auth.test.mjs`, `tests/leaderboard.test.mjs` et `tests/player-performance.test.mjs` testent directement `BestScoreClient`, `VerifiedRunClient` et `LeaderboardClient` au lieu de dépendre d'une classe d'authentification multifonction.
-- `tests/ci.test.mjs` suit le déplacement du cycle PLAY vérifié vers `session/verified-play.js`, du cycle de mise à jour vers `pwa/update-manager.js`, des toasts vers `ui/toast.js` et du rendu leaderboard vers `ui/leaderboard-ui.js`.
-- `tests/browser_isolated.py` embarque les nouveaux sous-modules `api/`, `ui/`, `session/` et `pwa/` afin de tester exactement la nouvelle composition sans build.
-- Le Service Worker précache **46 ressources runtime**, dont tous les nouveaux contrôleurs et clients ES requis hors ligne.
-- Suite complète : `npm test` (**139/139**) + `python tests/browser_isolated.py` (**OK, 0 erreur page**).
+- `tests/ci.test.mjs` verrouille désormais le second découpage Verified Play : `verified-play.js` reste sous 300 lignes et dépend explicitement du recorder, de la queue, du submitter et des contrôleurs UI dédiés.
+- Tests unitaires dédiés ajoutés pour `VerifiedRunRecorder`, `VerifiedRunQueue`, `VerifiedRunSubmitter` et `GameTransitionController`.
+- `tests/browser_isolated.py` charge les nouveaux sous-modules `replay/`, `session/` et `ui/` et vérifie encore les parcours clavier / rendu sans erreur page.
+- Le Service Worker précache **51 ressources runtime**, y compris les cinq nouveaux modules requis hors ligne.
+- Suite complète : `npm test` (**144/144**) + `python tests/browser_isolated.py` (**OK, 0 erreur page**).
 
-## v0.2.7.3b-dev6.3.3
-
-- `tests/themes.test.mjs` valide les assets et remappings France + Vietnam, le custom atlas `1714 × 514`, le pool `country` fixe à `1/30` et le partage pondéré entre les deux pays.
-- `tests/ci.test.mjs` verrouille le sélecteur de thème piloté par `themes.json`, les six sections `<details>`, la croix interne et l'absence de style clair spécifique sur les `<select>` du diagnostic.
-- Le smoke test Chromium construit sa liste attendue directement depuis `themes.json`, force `Vietnam / Nuit`, vérifie le rendu, puis ferme le panneau via sa croix interne.
-- Le Service Worker conserve **36 ressources runtime** : l'atlas et son manifest sont remplacés sans ajouter de nouveau fichier au précache.
-- Suite complète : `npm test` (**138/138**) + `python tests/browser_isolated.py` (**OK, 0 erreur page**).
-
-## v0.2.7.3b-dev6.3.2
-
-- `tests/themes.test.mjs` valide désormais le schéma v2 de `assets/themes.json` : thème `base`, pool `country` à `1/30`, poids relatifs intra-pool, invariance de la probabilité du pool quand le nombre de pays augmente, remapping des sprites et modes de sol `original` / `defilement`.
-- Le renderer n'a plus de branche France hardcodée pour les sprites ou le sol : le comportement est piloté par le catalogue de thèmes.
-- Le smoke test Chromium vérifie que le menu de debug est généré depuis le JSON (`Auto`, `Original`, `France`) et que les boutons Home / Options sont affichés en **52 × 56** dans une zone **68 × 68**.
-- Le Service Worker précache **36 ressources runtime**, dont `assets/themes.json`.
-- Suite complète : `npm test` (**137/137**) + `python tests/browser_isolated.py` (**OK, 0 erreur page**).
-
-## v0.2.7.3b-dev6.3.1
-
-- Non-régression du sol France : l'offset visuel continue au travers du wrap natif `-22 → 0` au lieu de repartir au début de l'image toutes les 24 px.
-- Vérifie que `land_france` est rendu en deux tuiles adjacentes lorsque nécessaire, afin que la bande complète de 336 px puisse défiler sans trou.
-- Le test historique du `cyclicLerp(..., 24)` original reste inchangé et confirme que le thème Original conserve le comportement APK 1.3.
-- Le smoke test Chromium isolé a été remis à niveau pour charger `themes.js` et `customatlas.png`/`customatlas.json` dans son environnement embarqué.
-- Suite complète : `npm test` (**134/134**) + `python tests/browser_isolated.py`.
-
-# Rapport de tests - v0.2.7.3b-dev6.3.4
+# Rapport de tests - v0.2.7.3b-dev6.3.5
 
 ## Résultat
 
-- **139/139 tests Node passent** avec `npm test`.
+- **144/144 tests Node passent** avec `npm test`.
 - Le bundle concaténé utilisé par le smoke test passe le contrôle de syntaxe JavaScript.
 - Le smoke test Chromium isolé passe sans erreur page et couvre aussi la composition des nouveaux modules ES, le catalogue dynamique, le thème Vietnam jour/nuit, le panneau diagnostic repliable et les boutons utilitaires x2.
-- Le cache PWA contient **46 ressources** et refuse de se déclarer complet si une ressource de précache manque.
+- Le cache PWA contient **51 ressources** et refuse de se déclarer complet si une ressource de précache manque.
 - `version.json` reste volontairement hors du cache du Service Worker afin de servir de sonde réseau réelle pour la mise à jour.
 - Les liens et ressources du site utilisent des chemins relatifs compatibles avec un projet GitHub Pages publié sous `/<repository>/`.
 

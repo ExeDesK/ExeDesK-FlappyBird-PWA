@@ -8,7 +8,7 @@ L'objectif n'est pas de produire un simple clone « inspiré de » Flappy Bird, 
 
 Le gameplay fonctionne entièrement côté client, sans framework, et peut être installé comme une application sur Windows, iPhone/iPad et Android. Les fonctions communautaires utilisent un backend Supabase facultatif : aucun compte n'est nécessaire pour jouer.
 
-> **État du projet : bêta — v0.2.7.3b-dev6.3.4**
+> **État du projet : bêta — v0.2.7.3b-dev6.3.5**
 
 - Statistiques joueur : carrière + fenêtres 10 / 25 / 50 calculées uniquement depuis les runs vérifiées.
 > Sur iPhone/iPad ProMotion, un statut dynamique dans les options Performance mesure la cadence rAF sur iOS : il confirme la haute fréquence lorsqu’elle est active, sinon il propose le réglage Safari et un tutoriel au timecode utile.
@@ -43,7 +43,7 @@ Le gameplay fonctionne entièrement côté client, sans framework, et peut être
 - Catalogue de thèmes déclaratif `assets/themes.json` : le thème `base`, les pools Auto, leur probabilité globale et le `weight` relatif de chaque thème sont configurés avec les backgrounds, tuyaux, frames d’oiseau, sol, couleurs d’extension et mode de défilement. Ajouter des pays ne change donc pas la probabilité globale `1/30` du pool `country`; le sélecteur de debug est entièrement généré depuis ce catalogue.
 - Les outils de diagnostic sont organisés en sections repliables, disposent d'une fermeture interne et utilisent les contrôles natifs sombres du navigateur pour les sélecteurs.
 - Atlas complémentaire versionné par `assets/customatlas.json`, séparé de l’atlas original pour préserver la parité graphique et comportementale de référence. Les boutons Home / Options utilisent désormais les sprites de cet atlas affichés en **x2**.
-- Frontend découpé en modules ES par domaine : `main.js` orchestre le jeu, tandis que l’authentification, les clients Supabase, le leaderboard, les Verified Runs, les toasts, la synchronisation du score et les mises à jour PWA vivent dans des modules ciblés et testables séparément.
+- Frontend découpé en modules ES par domaine : `main.js` orchestre le jeu, tandis que l’authentification, les clients Supabase, le leaderboard, les Verified Runs, les replays, la file locale, les transitions UI, les toasts, la synchronisation du score et les mises à jour PWA vivent dans des modules ciblés et testables séparément.
 
 ---
 
@@ -128,12 +128,18 @@ site/
 │   │   └── verified-run-api.js
 │   ├── pwa/
 │   │   └── update-manager.js       Cycle de mise à jour Service Worker
+│   ├── replay/
+│   │   └── verified-run-recorder.js Capture déterministe des taps
 │   ├── session/
 │   │   ├── score-sync.js           Synchronisation du record
-│   │   └── verified-play.js        Lancement, file et soumission des runs vérifiés
+│   │   ├── verified-play.js        Orchestration du PLAY vérifié
+│   │   ├── verified-run-queue.js   File locale / réparation / ownership
+│   │   └── verified-run-submit.js  Politique FIFO / retry / discard
 │   ├── ui/
 │   │   ├── account.js              Rendu du compte
+│   │   ├── game-transition.js      Fade natif du lancement
 │   │   ├── leaderboard-ui.js       Modale et état du classement
+│   │   ├── unranked-warning.js     Dialogue fallback non classé
 │   │   └── toast.js                Toasts Top Layer
 │   ├── atlas.js            Rendu Canvas, atlas original + custom et interpolation
 │   ├── audio.js            Gestion audio
@@ -146,7 +152,7 @@ site/
 │   ├── math.js             Maths, RNG, animations et tweens
 │   ├── perf.js             Profiler de performances
 │   ├── themes.js           Sélection/remapping des thèmes visuels
-│   ├── verified-run-client.js  Recorder et file locale des replays
+│   ├── verified-run-client.js  Règles d’interception PLAY / hitbox de release
 │   └── verified-runs.js    Contrat et simulation des runs vérifiés
 ├── config.example.js       Modèle de configuration runtime (Supabase)
 ├── index.html

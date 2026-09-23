@@ -1,3 +1,16 @@
+## v0.2.7.3b-dev6.3.5 - Verified Play second architecture pass
+
+- Découpe `session/verified-play.js` d'environ **415 à 296 lignes** : il reste le contrôleur d'orchestration du scénario PLAY vérifié au lieu d'implémenter lui-même stockage, retry et animation de transition.
+- Déplace le recorder déterministe vers `replay/verified-run-recorder.js`, prêt à être réutilisé par les futurs replays sans dépendre du contrôleur de session.
+- Isole la file locale dans `session/verified-run-queue.js` via `VerifiedRunQueue` : réparation des entrées legacy, ownership joueur, déduplication, borne à 50 et suppression des runs résolus.
+- Isole la politique d'envoi dans `session/verified-run-submit.js` via `VerifiedRunSubmitter` : FIFO, classification des erreurs permanentes, arrêt sur erreur transitoire, agrégation du meilleur score vérifié.
+- Déplace le fade PLAY dans `ui/game-transition.js` et le dialogue de fallback non classé dans `ui/unranked-warning.js`; `VerifiedPlayController` décide désormais **quand** les utiliser sans posséder leur implémentation UI.
+- Réduit `verified-run-client.js` à ses deux règles d'interception PLAY (`verifiedRunStartMode` et hitbox de release), au lieu d'en faire un second module fourre-tout.
+- Ajoute des tests unitaires dédiés recorder / queue / submitter / transition et verrouille `verified-play.js` à **300 lignes maximum** dans le garde-fou architectural.
+- Le Service Worker précache les cinq nouveaux modules ; le bundle offline contient désormais **51 ressources runtime**.
+- Suite locale : `npm test` **144/144** + `python tests/browser_isolated.py` **OK, 0 erreur page**.
+- Aucun changement Supabase, SQL, Edge Function, physique, collision, RNG, contrat Verified Runs ou format de replay.
+
 ## v0.2.7.3b-dev6.3.4 - Frontend architecture split
 
 - Refactorise le frontend sans framework ni étape de build : `main.js` reste l'orchestrateur du jeu mais passe d'environ **2699 à 1411 lignes**, avec les domaines UI, PWA, synchronisation et Verified Play déplacés vers des modules ES natifs dédiés.

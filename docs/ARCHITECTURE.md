@@ -17,13 +17,19 @@ main.js
 │   ├── BestScoreClient
 │   ├── LeaderboardClient
 │   └── VerifiedRunClient
+├── replay/
+│   └── VerifiedRunRecorder
 ├── session/
 │   ├── ScoreSyncController
-│   └── VerifiedPlayController
+│   ├── VerifiedPlayController
+│   ├── VerifiedRunQueue
+│   └── VerifiedRunSubmitter
 ├── ui/
 │   ├── AccountUI
+│   ├── GameTransitionController
 │   ├── LeaderboardUI
-│   └── ToastController
+│   ├── ToastController
+│   └── UnrankedWarningDialog
 └── pwa/
     └── PwaUpdateManager
 ```
@@ -72,18 +78,27 @@ Le client valide/normalise les contrats réseau mais ne pilote ni l'écran, ni l
 
 ### `session/verified-play.js` — `VerifiedPlayController`
 
-Orchestre le cycle côté navigateur d'une partie classée :
+Orchestre le scénario côté navigateur d'une partie classée : interception de PLAY, obtention du ticket, installation du `Game` canonique, branchement du recorder, fallback non classé et application des résultats au meilleur score / leaderboard. Depuis `v0.2.7.3b-dev6.3.5`, il ne possède plus l'implémentation du storage, du retry ou du fade.
 
-- interception de PLAY lorsqu'une session Discord existe ;
-- fade natif pendant `run-start` ;
-- fallback explicite non classé hors ligne / en cas d'erreur ;
-- création et alimentation du `VerifiedRunRecorder` ;
-- ajout à la file locale ;
-- envoi différé à `run-submit` ;
-- retrait des soumissions résolues ou définitivement invalides ;
-- invalidation du leaderboard après une nouvelle run vérifiée.
+### `replay/verified-run-recorder.js` — `VerifiedRunRecorder`
 
-Le moteur autoritaire, les contrats et la logique de replay restent dans les modules Verified Runs existants.
+Capture les taps effectifs par tick et construit la soumission canonique au tick terminal. Ce module ne connaît ni Supabase, ni l'UI, ni la file locale et peut être réutilisé par les futurs outils de replay.
+
+### `session/verified-run-queue.js` — `VerifiedRunQueue`
+
+Repository local des soumissions terminées : ownership joueur, normalisation/réparation des entrées legacy, déduplication par `run_id`, borne à 50, lecture par joueur et suppression d'un run résolu. L'accès à `localStorage` est résolu paresseusement afin qu'un contexte qui l'interdit ne fasse pas échouer l'initialisation de l'application.
+
+### `session/verified-run-submit.js` — `VerifiedRunSubmitter`
+
+Applique la politique d'envoi FIFO à `run-submit` : suppression des résultats résolus, abandon des erreurs permanentes connues, arrêt et conservation de la file sur erreur transitoire, remontée du meilleur score vérifié et du dernier résultat. Le transport HTTP reste dans `api/verified-run-api.js`.
+
+### `ui/game-transition.js` — `GameTransitionController`
+
+Possède le mécanisme de fade PLAY (durée minimale, attente du noir complet, restauration du menu) sans connaître les Verified Runs.
+
+### `ui/unranked-warning.js` — `UnrankedWarningDialog`
+
+Possède le dialogue de confirmation du fallback non classé et son cycle `showModal` / résolution. Le contrôleur de session choisit seulement quand le demander.
 
 ### `session/score-sync.js` — `ScoreSyncController`
 
@@ -125,6 +140,7 @@ Supabase HTTP endpoints
 
 - `main.js` doit rester sous 1600 lignes ;
 - `auth.js` doit rester sous 450 lignes ;
+- `session/verified-play.js` doit rester sous 300 lignes ;
 - `AuthClient` ne doit pas réabsorber `get_leaderboard`, `run-start`, `run-submit` ou `sync_best_score` ;
 - les modules dédiés doivent continuer à exister/importés depuis le composition root.
 
@@ -132,7 +148,7 @@ Ces seuils ne sont pas des objectifs de qualité absolus : ils servent à détec
 
 ## Hors ligne
 
-Tous les nouveaux modules runtime sont précachés par `site/sw.js`. `v0.2.7.3b-dev6.3.4` contient **46 ressources de précache** : la modularisation ne retire donc aucune capacité offline.
+Tous les nouveaux modules runtime sont précachés par `site/sw.js`. `v0.2.7.3b-dev6.3.5` contient **51 ressources de précache** : la modularisation ne retire donc aucune capacité offline.
 
 ## Évolution future
 

@@ -70,13 +70,18 @@ test('iOS ProMotion guidance is dynamic and links to the timestamped tutorial', 
 test('authenticated PLAY requests a verified ticket and offers an explicit unranked fallback', () => {
   const main = read('site/src/main.js');
   const verifiedPlay = read('site/src/session/verified-play.js');
+  const queue = read('site/src/session/verified-run-queue.js');
+  const warning = read('site/src/ui/unranked-warning.js');
   const html = read('site/index.html');
 
   assert.match(verifiedPlay, /this\.api\.start\(\)/);
   assert.match(main, /createCanonicalRunGame/);
   assert.match(verifiedPlay, /new VerifiedRunRecorder\(ticket\)/);
-  assert.match(verifiedPlay, /enqueueVerifiedRun\(submission, \{ playerId \}\)/);
+  assert.match(verifiedPlay, /this\.queue\.enqueue\(submission, \{ playerId \}\)/);
+  assert.match(queue, /class VerifiedRunQueue/);
   assert.match(verifiedPlay, /hasSession: Boolean\(this\.auth\.session\)/);
+  assert.match(verifiedPlay, /this\.warning\.ask\(/);
+  assert.match(warning, /class UnrankedWarningDialog/);
   assert.match(html, /id="unranked-warning"/);
   assert.match(html, /id="unranked-continue"/);
   assert.match(html, /JOUER QUAND MÊME/);
@@ -85,21 +90,22 @@ test('authenticated PLAY requests a verified ticket and offers an explicit unran
 test('completed verified runs flush automatically without trusting a client score', () => {
   const main = read('site/src/main.js');
   const verifiedPlay = read('site/src/session/verified-play.js');
+  const verifiedSubmit = read('site/src/session/verified-run-submit.js');
   const verifiedApi = read('site/src/api/verified-run-api.js');
-  const verifiedClient = read('site/src/verified-run-client.js');
   const submitMethod = verifiedApi.slice(
     verifiedApi.indexOf('async submit(submission)'),
     verifiedApi.indexOf('async #requiredAccessToken', verifiedApi.indexOf('async submit(submission)')),
   );
 
-  assert.match(verifiedPlay, /this\.api\.submit\(submission\)/);
-  assert.match(verifiedPlay, /removePendingVerifiedRun\(submission\.run_id\)/);
+  assert.match(verifiedPlay, /this\.submitter[\s\S]*\.flushForPlayer\(playerId, \{ reason \}\)/);
+  assert.match(verifiedSubmit, /this\.api\.submit\(submission\)/);
+  assert.match(verifiedSubmit, /this\.queue\.remove\(submission\.run_id\)/);
   assert.match(main, /verifiedPlay\.flush\(\{ reason: 'online', notify: true \}\)/);
   assert.match(main, /type === 'record' && !verifiedPlay\.recording/);
-  assert.match(verifiedPlay, /highestVerifiedScore >= 0[\s\S]*this\.saveBest\?\.\(highestVerifiedScore\)/);
-  assert.match(verifiedPlay, /shouldDiscardVerifiedRunSubmission\(error\)/);
-  assert.match(verifiedPlay, /shouldDiscardVerifiedRunSubmission\(error\)[\s\S]*continue;/);
-  assert.match(verifiedClient, /error\?\.code === 'run_not_found'/);
+  assert.match(verifiedPlay, /result\.highestVerifiedScore >= 0[\s\S]*this\.saveBest\?\.\(result\.highestVerifiedScore\)/);
+  assert.match(verifiedSubmit, /shouldDiscardVerifiedRunSubmission\(error\)/);
+  assert.match(verifiedSubmit, /shouldDiscardVerifiedRunSubmission\(error\)[\s\S]*continue;/);
+  assert.match(verifiedSubmit, /error\?\.code === 'run_not_found'/);
   assert.match(verifiedApi, /functions\/v1\/run-submit/);
   assert.match(submitMethod, /createVerifiedRunSubmission\(submission\)/);
   assert.match(submitMethod, /body: JSON\.stringify\(normalized\)/);
@@ -168,15 +174,16 @@ test('error toasts use the top layer and routine success chatter stays silent', 
 test('verified PLAY hides ticket latency behind the native one-second fade cadence', () => {
   const main = read('site/src/main.js');
   const verifiedPlay = read('site/src/session/verified-play.js');
+  const transition = read('site/src/ui/game-transition.js');
 
   assert.match(main, /PLAY_FADE_SECONDS = 0\.5/);
   assert.match(main, /playFadeSeconds: PLAY_FADE_SECONDS/);
-  assert.match(verifiedPlay, /this\.playFadeMinMs = playFadeSeconds \* 1000/);
-  assert.match(verifiedPlay, /originGame\.transition\(true, 0, this\.playFadeSeconds\)/);
-  assert.match(verifiedPlay, /mode === 'ticket' \? this\.#startFade\(game\) : null/);
-  assert.match(verifiedPlay, /this\.#ensureFadeToBlack\(originGame, fadeStartedAt\)/);
+  assert.match(transition, /this\.minDurationMs = durationSeconds \* 1000/);
+  assert.match(transition, /originGame\.transition\(true, 0, this\.durationSeconds\)/);
+  assert.match(verifiedPlay, /mode === 'ticket'[\s\S]*this\.transition\.startToBlack\(game\)/);
+  assert.match(verifiedPlay, /this\.transition\.ensureBlack\(originGame, fadeStartedAt\)/);
   assert.match(verifiedPlay, /Promise\.all\(\[ticketPromise, fadePromise\]\)/);
-  assert.match(verifiedPlay, /performance\.now\(\) - startedAt < this\.playFadeMinMs/);
+  assert.match(transition, /this\.now\(\) - startedAt < this\.minDurationMs/);
   assert.match(main, /game\.transition\(false, 0, PLAY_FADE_SECONDS\)/);
 });
 
@@ -206,9 +213,16 @@ test('application domains stay split across focused ES modules', () => {
   const leaderboardApi = read('site/src/api/leaderboard-client.js');
   const verifiedApi = read('site/src/api/verified-run-api.js');
   const bestScoreApi = read('site/src/api/best-score-client.js');
+  const verifiedPlay = read('site/src/session/verified-play.js');
+  const verifiedQueue = read('site/src/session/verified-run-queue.js');
+  const verifiedSubmit = read('site/src/session/verified-run-submit.js');
+  const recorder = read('site/src/replay/verified-run-recorder.js');
+  const transition = read('site/src/ui/game-transition.js');
+  const unrankedWarning = read('site/src/ui/unranked-warning.js');
 
   assert.ok(main.split('\n').length <= 1600, 'main.js should stay an orchestration layer, not a monolith');
   assert.ok(auth.split('\n').length <= 450, 'auth.js should stay focused on auth/session/profile');
+  assert.ok(verifiedPlay.split('\n').length <= 300, 'verified-play.js should stay focused on orchestration');
 
   assert.match(main, /import \{ LeaderboardUI \} from '\.\/ui\/leaderboard-ui\.js'/);
   assert.match(main, /import \{ ToastController \} from '\.\/ui\/toast\.js'/);
@@ -224,6 +238,16 @@ test('application domains stay split across focused ES modules', () => {
   assert.match(verifiedApi, /functions\/v1\/run-start/);
   assert.match(verifiedApi, /functions\/v1\/run-submit/);
   assert.match(bestScoreApi, /sync_best_score/);
+  assert.match(verifiedPlay, /import \{ VerifiedRunRecorder \} from '\.\.\/replay\/verified-run-recorder\.js'/);
+  assert.match(verifiedPlay, /import \{ VerifiedRunQueue \} from '\.\/verified-run-queue\.js'/);
+  assert.match(verifiedPlay, /import \{ VerifiedRunSubmitter \} from '\.\/verified-run-submit\.js'/);
+  assert.match(verifiedPlay, /import \{ GameTransitionController \} from '\.\.\/ui\/game-transition\.js'/);
+  assert.match(verifiedPlay, /import \{ UnrankedWarningDialog \} from '\.\.\/ui\/unranked-warning\.js'/);
+  assert.match(verifiedQueue, /class VerifiedRunQueue/);
+  assert.match(verifiedSubmit, /class VerifiedRunSubmitter/);
+  assert.match(recorder, /class VerifiedRunRecorder/);
+  assert.match(transition, /class GameTransitionController/);
+  assert.match(unrankedWarning, /class UnrankedWarningDialog/);
 });
 
 test('diagnostic theme selector is catalog-driven, dark-native and split into collapsible sections', () => {
