@@ -67,7 +67,7 @@ export class AccountUI {
             ? 'Session Discord disponible hors connexion.'
             : 'Session Discord active.'
           : online
-            ? 'Connexion actuelle : Discord.'
+            ? 'Méthode disponible : Discord.'
             : 'Hors connexion · la connexion Discord sera disponible au retour du réseau.';
     }
 

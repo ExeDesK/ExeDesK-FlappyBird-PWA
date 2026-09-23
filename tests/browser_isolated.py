@@ -221,12 +221,11 @@ def main() -> None:
         assert profile_box['x'] + profile_box['width'] <= menu_box['x']
         page.screenshot(path=str(output / 'menu.png'))
 
-        # Profile remains a dedicated modal with no provider buttons or identity-linking
-        # actions. It now hosts only the sign-out action at the bottom when a
-        # session is active, and still closes with the atlas sprite.
+        # Profile owns the whole authentication surface. Discord is the only
+        # provider for now; there is still no identity-linking UI.
         page.click('#open-profile')
         page.wait_for_selector('#profile-dialog', state='visible')
-        assert page.locator('#profile-dialog #discord-login').count() == 0
+        assert page.locator('#profile-dialog #discord-login').count() == 1
         assert page.locator('#profile-dialog #discord-logout').count() == 1
         assert page.locator('#profile-dialog [id*=link]').count() == 0
         assert not page.is_hidden('#account-signed-out')
@@ -290,8 +289,9 @@ def main() -> None:
         assert page.locator('#debug').count() == 0
         assert page.locator('#debug-access').count() == 1
         assert page.locator('a.footer-link').get_attribute('href') == 'https://github.com/ExeDesK/FlappyBird-PWA'
-        assert page.locator('#discord-login').count() == 1
-        assert page.locator('#discord-logout').count() == 1
+        assert page.locator('#options #discord-login').count() == 0
+        assert page.locator('#options #discord-logout').count() == 0
+        assert page.locator('#options #connection-status').count() == 0
         assert page.locator('#options #account-signed-out').count() == 0
         assert page.locator('#options #account-signed-in').count() == 0
         assert page.locator('#options #profile-best-score').count() == 0

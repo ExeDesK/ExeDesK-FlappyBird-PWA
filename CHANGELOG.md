@@ -1,3 +1,13 @@
+## v0.2.7.4b-dev3 - Authentication moved to Profile
+
+- Supprime entièrement la section **Connexion** des Options : aucun bouton, état de session ou action d'authentification n'y reste.
+- Déplace **SE CONNECTER AVEC DISCORD** dans la modale Profil lorsque le joueur n'est pas connecté.
+- Conserve **SE DÉCONNECTER** en bas de la modale Profil lorsque la session est active.
+- L'état de connexion Discord est lui aussi affiché exclusivement dans Profil.
+- Aucun account linking ni second provider n'est ajouté à cette étape.
+- Aucun changement de gameplay, physique, RNG, Verified Runs, leaderboard ou Supabase.
+- Validation : `npm test` **159/159** et `python tests/browser_isolated.py` **OK / 0 erreur page**.
+
 ## v0.2.7.4b-dev2 - Profile controls polish
 
 - Réduit légèrement la zone cliquable des boutons utilitaires Home / Menu / Profil : la hitbox passe de **68 × 68** à **60 × 60**.

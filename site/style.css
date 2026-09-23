@@ -583,12 +583,13 @@ body {
   text-transform: uppercase;
 }
 
-.connection-card #discord-login,
-.connection-card #discord-logout {
+#profile-dialog .discord-login,
+#profile-dialog #discord-logout {
   width: 100%;
 }
 
-.connection-card .discord-login {
+#profile-dialog .discord-login {
+  margin-top: 8px;
   background: #ded39c;
 }
 
