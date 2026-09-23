@@ -219,3 +219,10 @@ Le lancement dure donc au minimum une seconde, comme la transition visuelle d’
 ### Hotfix dev6.2.2
 
 Lors du remplacement du menu noir par le `Game` canonique, le constructeur du nouveau jeu avait déjà commencé son propre tween de révélation. La première frame pouvait donc être partiellement visible avant le fade attendu. Le client force maintenant le nouveau jeu à un état 100 % noir, rend explicitement cette frame noire, puis démarre le fade retour de 0,5 s.
+
+
+## Architecture frontend depuis v0.2.7.3b-dev6.3.4
+
+Le transport `run-start` / `run-submit` est isolé dans `site/src/api/verified-run-api.js` (`VerifiedRunClient`). Le cycle navigateur — interception de PLAY, fade, recorder, fallback non classé, file locale et flush différé — est regroupé dans `site/src/session/verified-play.js` (`VerifiedPlayController`). `main.js` ne conserve que l'installation du `Game` canonique et les points d'accroche avec la boucle du moteur.
+
+Aucun contrat Verified Runs, payload, version de physique ou Edge Function n'est modifié par cette refactorisation.

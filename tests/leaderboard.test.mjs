@@ -3,6 +3,7 @@ import test from 'node:test';
 import { readFile } from 'node:fs/promises';
 
 import { AuthClient } from '../site/src/auth.js';
+import { LeaderboardClient } from '../site/src/api/leaderboard-client.js';
 import { leaderboardName, parseLeaderboardRows } from '../site/src/leaderboard.js';
 
 class MemoryStorage {
@@ -77,7 +78,8 @@ test('public leaderboard RPC works without a Discord session', async () => {
   try {
     const auth = new AuthClient({ ...config, storage: new MemoryStorage() });
     assert.equal(auth.session, null);
-    const result = await auth.fetchLeaderboard({ limit: 100 });
+    const leaderboard = new LeaderboardClient(config);
+    const result = await leaderboard.fetchLeaderboard({ limit: 100 });
     assert.equal(result.length, 2);
     assert.equal(request.url, 'https://project-ref.supabase.co/rest/v1/rpc/get_leaderboard');
     assert.equal(request.init.method, 'POST');
@@ -104,6 +106,7 @@ test('leaderboard SQL exposes only verified per-player best scores through a pub
 test('leaderboard UI is public, dedicated, explains sign-in, and the original scores action opens it', async () => {
   const html = await readFile(new URL('../site/index.html', import.meta.url), 'utf8');
   const main = await readFile(new URL('../site/src/main.js', import.meta.url), 'utf8');
+  const leaderboardUi = await readFile(new URL('../site/src/ui/leaderboard-ui.js', import.meta.url), 'utf8');
   const css = await readFile(new URL('../site/style.css', import.meta.url), 'utf8');
   assert.match(html, /<dialog id="leaderboard-dialog"/);
   assert.match(html, /id="close-leaderboard"/);
@@ -113,8 +116,8 @@ test('leaderboard UI is public, dedicated, explains sign-in, and the original sc
   assert.match(main, /type === 'local-scores'[\s\S]*openLeaderboard\(\{ force: true \}\)/);
   assert.match(main, /const leaderboardDialog = \$\('leaderboard-dialog'\)/);
   assert.match(main, /leaderboardDialog\.showModal\(\)/);
-  assert.match(main, /auth\.fetchLeaderboard\(\{ limit: 100 \}\)/);
-  assert.match(main, /leaderboard-login-hint/);
+  assert.match(leaderboardUi, /client\.fetchLeaderboard\(\{ limit: 100 \}\)/);
+  assert.match(leaderboardUi, /leaderboard-login-hint/);
   assert.match(css, /#leaderboard-dialog\[open\]/);
   assert.match(css, /#leaderboard-dialog::backdrop/);
 });
@@ -188,7 +191,11 @@ test('personal leaderboard RPC is authenticated and never accepts a player id', 
     };
     auth.user = { id: '323e4567-e89b-12d3-a456-426614174000' };
 
-    const result = await auth.fetchMyLeaderboardContext();
+    const leaderboard = new LeaderboardClient({
+      ...config,
+      getAccessToken: () => auth.accessToken(),
+    });
+    const result = await leaderboard.fetchMyLeaderboardContext();
     assert.equal(result.global_rank, 42);
     assert.equal(result.best_score, 184);
     assert.equal(request.url, 'https://project-ref.supabase.co/rest/v1/rpc/get_my_leaderboard_context');
@@ -217,7 +224,7 @@ test('personal leaderboard SQL derives caller identity from auth.uid and is not 
 
 test('leaderboard modal contains a dedicated personal context card for signed-in players', async () => {
   const html = await readFile(new URL('../site/index.html', import.meta.url), 'utf8');
-  const main = await readFile(new URL('../site/src/main.js', import.meta.url), 'utf8');
+  const leaderboardUi = await readFile(new URL('../site/src/ui/leaderboard-ui.js', import.meta.url), 'utf8');
   const css = await readFile(new URL('../site/style.css', import.meta.url), 'utf8');
 
   assert.match(html, /id="leaderboard-player-card"/);
@@ -226,9 +233,9 @@ test('leaderboard modal contains a dedicated personal context card for signed-in
   assert.match(html, /id="leaderboard-player-best"/);
   assert.match(html, /id="leaderboard-player-runs"/);
   assert.match(html, /id="leaderboard-player-record-date"/);
-  assert.match(main, /auth\.fetchMyLeaderboardContext\(\)/);
-  assert.match(main, /PAS ENCORE CLASSÉ/);
-  assert.match(main, /leaderboardContext\.global_rank/);
+  assert.match(leaderboardUi, /client\.fetchMyLeaderboardContext\(\)/);
+  assert.match(leaderboardUi, /PAS ENCORE CLASSÉ/);
+  assert.match(leaderboardUi, /this\.context\.global_rank/);
   assert.match(css, /\.leaderboard-player-card/);
   assert.match(css, /\.leaderboard-player-metrics/);
 });

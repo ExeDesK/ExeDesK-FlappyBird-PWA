@@ -1,4 +1,4 @@
-const BUILD = '0.2.7.3b-dev6.3.3';
+const BUILD = '0.2.7.3b-dev6.3.4';
 const PREFIX = `flappy13-${encodeURIComponent(self.registration.scope)}-`;
 const CACHE = `${PREFIX}${BUILD}`;
 const ASSETS = [
@@ -27,6 +27,10 @@ const ASSETS = [
   './src/atlas.js',
   './src/audio.js',
   './src/auth.js',
+  './src/api/http.js',
+  './src/api/best-score-client.js',
+  './src/api/leaderboard-client.js',
+  './src/api/verified-run-api.js',
   './src/clock.js',
   './src/display.js',
   './src/game.js',
@@ -34,7 +38,13 @@ const ASSETS = [
   './src/main.js',
   './src/math.js',
   './src/perf.js',
+  './src/pwa/update-manager.js',
+  './src/session/score-sync.js',
+  './src/session/verified-play.js',
   './src/themes.js',
+  './src/ui/account.js',
+  './src/ui/leaderboard-ui.js',
+  './src/ui/toast.js',
   './src/verified-run-client.js',
   './src/verified-runs.js',
   './style.css',

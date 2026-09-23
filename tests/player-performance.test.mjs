@@ -3,6 +3,7 @@ import test from 'node:test';
 import { readFile } from 'node:fs/promises';
 
 import { AuthClient } from '../site/src/auth.js';
+import { LeaderboardClient } from '../site/src/api/leaderboard-client.js';
 import { parsePlayerPerformanceStats } from '../site/src/leaderboard.js';
 
 class MemoryStorage {
@@ -66,7 +67,12 @@ test('player performance RPC is authenticated and caller-only', async () => {
     });
     auth.session = { accessToken: 'access', refreshToken: 'refresh', tokenType: 'bearer', expiresAt: Date.now() + 3600000 };
     auth.user = { id: playerId };
-    const stats = await auth.fetchMyPlayerPerformanceStats();
+    const leaderboard = new LeaderboardClient({
+      url: 'https://project-ref.supabase.co',
+      publishableKey: 'sb_publishable_test',
+      getAccessToken: () => auth.accessToken(),
+    });
+    const stats = await leaderboard.fetchMyPlayerPerformanceStats();
     assert.equal(stats.recent_25.average, 31.2);
     assert.equal(request.url, 'https://project-ref.supabase.co/rest/v1/rpc/get_my_player_performance_stats');
     assert.equal(request.init.headers.Authorization, 'Bearer access');
@@ -94,7 +100,7 @@ test('performance SQL uses lifetime aggregates plus only the 50 most recent reta
 
 test('leaderboard modal exposes career and recent performance blocks', async () => {
   const html = await readFile(new URL('../site/index.html', import.meta.url), 'utf8');
-  const main = await readFile(new URL('../site/src/main.js', import.meta.url), 'utf8');
+  const leaderboardUi = await readFile(new URL('../site/src/ui/leaderboard-ui.js', import.meta.url), 'utf8');
   assert.match(html, /<details id="leaderboard-stats-card"[^>]*>/);
   assert.match(html, /<summary class="leaderboard-stats-summary">/);
   assert.match(html, /leaderboard-stats-chevron/);
@@ -104,6 +110,6 @@ test('leaderboard modal exposes career and recent performance blocks', async () 
   assert.match(html, /id="stats-10-average"/);
   assert.match(html, /id="stats-25-average"/);
   assert.match(html, /id="stats-50-average"/);
-  assert.match(main, /auth\.fetchMyPlayerPerformanceStats\(\)/);
-  assert.match(main, /recent_50_vs_career_pct/);
+  assert.match(leaderboardUi, /client\.fetchMyPlayerPerformanceStats\(\)/);
+  assert.match(leaderboardUi, /recent_50_vs_career_pct/);
 });

@@ -8,7 +8,7 @@ The goal is not to create another Flappy Bird-inspired clone, but to **reproduce
 
 Gameplay runs entirely client-side without a framework and can be installed as an application on Windows, iPhone/iPad and Android. Optional community features use Supabase; no account is required to play.
 
-> **Project status: beta — v0.2.7.3b-dev6.3.3**
+> **Project status: beta — v0.2.7.3b-dev6.3.4**
 
 - Player statistics: career + 10 / 25 / 50-run windows derived only from verified runs.
 > On ProMotion iPhone/iPad devices, the Performance options include guidance for the Safari setting that can remove the near-60 Hz page-rendering preference.
@@ -43,6 +43,7 @@ Gameplay runs entirely client-side without a framework and can be installed as a
 - Declarative `assets/themes.json` catalog: the base theme, Auto pools, each pool's global chance and each theme's relative `weight` are configured alongside backgrounds, pipes, bird frames, ground, adapted-fill colours and ground scroll mode. Adding more countries therefore does not increase the global `1/30` country-pool probability; the debug selector is fully generated from this catalog.
 - Diagnostic tools are split into collapsible sections, include an internal close control and keep browser-native dark selectors.
 - Complementary atlas versioned through `assets/customatlas.json`, kept separate from the original atlas to preserve the 1:1 reference assets and gameplay behaviour. Home / Options atlas buttons are now rendered at **2x** size.
+- Frontend split into domain-focused ES modules: `main.js` orchestrates the game while authentication, Supabase clients, leaderboard UI, Verified Play, toasts, score synchronisation and PWA updates live in focused modules that can be tested independently.
 
 ---
 
@@ -86,6 +87,7 @@ Detailed notes are available in:
 - [`docs/PLAYER-STATS.md`](./docs/PLAYER-STATS.md) (French)
 - [`docs/RETENTION.md`](./docs/RETENTION.md) (French)
 - [`docs/THEMES.md`](./docs/THEMES.md) (French)
+- [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) (French)
 
 ---
 
@@ -119,39 +121,52 @@ site/
 ├── assets/                 Graphics/audio assets + custom atlas + themes.json
 ├── icons/                  PWA icons
 ├── src/
+│   ├── api/                Focused Supabase clients + shared HTTP helpers
+│   │   ├── best-score-client.js
+│   │   ├── http.js
+│   │   ├── leaderboard-client.js
+│   │   └── verified-run-api.js
+│   ├── pwa/
+│   │   └── update-manager.js       Service Worker update lifecycle
+│   ├── session/
+│   │   ├── score-sync.js           Best-score synchronisation
+│   │   └── verified-play.js        Verified-run start, queue and submission flow
+│   ├── ui/
+│   │   ├── account.js              Account rendering
+│   │   ├── leaderboard-ui.js       Leaderboard dialog/state
+│   │   └── toast.js                Top-layer toasts
 │   ├── atlas.js            Canvas rendering, original/custom atlases and interpolation
 │   ├── audio.js            Audio handling
-│   ├── auth.js             Discord/Supabase auth and local session
+│   ├── auth.js             Discord OAuth, Supabase session and profile only
 │   ├── clock.js            60 Hz simulation clock
 │   ├── display.js          Display modes and sizing
 │   ├── game.js             Gameplay and state machine
-│   ├── leaderboard.js      Public leaderboard payload validation
-│   ├── main.js             Input, PWA, options and main loop
+│   ├── leaderboard.js      Leaderboard payload validation/normalisation
+│   ├── main.js             Module composition, input, themes/debug and main loop
 │   ├── math.js             Math, RNG, animation and tweens
 │   ├── perf.js             Performance profiler
 │   ├── themes.js           Visual theme selection/remapping
+│   ├── verified-run-client.js  Replay recorder and local queue
 │   └── verified-runs.js    Verified-run contract and simulation
-├── config.example.js      Runtime configuration template (Supabase)
+├── config.example.js       Runtime configuration template (Supabase)
 ├── index.html
 ├── manifest.webmanifest
 ├── style.css
 ├── sw.js                   Service Worker / offline cache
 └── version.json            Published version / uncached network probe
 
-tests/
-├── replay.mjs              Deterministic replay runner
-└── …                       Engine, cache and display tests
+tests/                      Engine, client, cache, architecture and browser tests
 docs/                       Technical notes and analysis evidence
 supabase/                   Versioned Supabase SQL and Edge Functions
-.github/                     GitHub project automation
-CHANGELOG.md                 Version history
-README.md                    French documentation
-README.en.md                 English documentation
+.github/                    GitHub project automation
+CHANGELOG.md                Version history
+README.md                   French documentation
+README.en.md                English documentation
 ```
 
-The **`site/` directory is self-contained** and is the static root that should be published by an HTTPS host.
+The **`site/` directory is self-contained** and is the static root that should be published by an HTTPS host. `main.js` now acts as the **composition root**: it wires domain clients/controllers together instead of implementing auth, leaderboard, Verified Run queueing or PWA update handling itself.
 
-No compilation step is required to run the game.
+No compilation step is required to run the game: all of these components remain native ES modules.
 
 ---
 

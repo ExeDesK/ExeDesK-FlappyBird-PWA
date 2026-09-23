@@ -31,8 +31,18 @@ MODULE_ORDER = [
     'atlas.js',
     'audio.js',
     'leaderboard.js',
+    'api/http.js',
     'auth.js',
+    'api/best-score-client.js',
+    'api/leaderboard-client.js',
+    'api/verified-run-api.js',
     'display.js',
+    'pwa/update-manager.js',
+    'session/score-sync.js',
+    'session/verified-play.js',
+    'ui/account.js',
+    'ui/leaderboard-ui.js',
+    'ui/toast.js',
     'main.js',
 ]
 

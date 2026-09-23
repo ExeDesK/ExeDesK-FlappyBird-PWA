@@ -1,3 +1,15 @@
+## v0.2.7.3b-dev6.3.4 - Frontend architecture split
+
+- Refactorise le frontend sans framework ni étape de build : `main.js` reste l'orchestrateur du jeu mais passe d'environ **2699 à 1411 lignes**, avec les domaines UI, PWA, synchronisation et Verified Play déplacés vers des modules ES natifs dédiés.
+- Réduit `auth.js` d'environ **643 à 399 lignes** et recentre `AuthClient` sur OAuth Discord, session Supabase et profil. Les accès leaderboard, Verified Runs et best-score ne font plus partie de cette classe.
+- Ajoute des clients réseau ciblés : `api/LeaderboardClient`, `api/VerifiedRunClient` et `api/BestScoreClient`, construits sur les helpers Supabase partagés de `api/http.js`.
+- Ajoute les contrôleurs `ui/LeaderboardUI`, `ui/AccountUI`, `ui/ToastController`, `session/VerifiedPlayController`, `session/ScoreSyncController` et `pwa/PwaUpdateManager` afin d'isoler les responsabilités auparavant concentrées dans `main.js`.
+- Le cycle Verified Runs, y compris le fade PLAY, la file locale, le fallback hors classement et l'envoi différé, est regroupé dans `VerifiedPlayController` sans modifier le protocole ni `flappy13-physics-v1`.
+- Le Service Worker précache les nouveaux modules ; le bundle offline contient désormais **46 ressources runtime**.
+- Ajoute `docs/ARCHITECTURE.md` et un test de non-régression architectural qui verrouille la séparation des clients Supabase et empêche `main.js` / `auth.js` de redevenir les deux monolithes d'origine.
+- Suite locale : `npm test` **139/139** + `python tests/browser_isolated.py` **OK, 0 erreur page**.
+- Aucun changement Supabase, SQL, Edge Function, physique, collision, RNG, replay ou format de Verified Run n'est requis.
+
 ## v0.2.7.3b-dev6.3.3 - Vietnam theme & collapsible diagnostics
 
 - Intègre le nouveau `customatlas.png` / `customatlas.json` (1714 × 514) avec les assets **Vietnam / Hanoï** : backgrounds jour/nuit, échafaudages bambou, oiseau dédié et `land_vietnam`.

@@ -3,6 +3,8 @@ import test from 'node:test';
 import { readFile } from 'node:fs/promises';
 
 import { AuthClient, profileFromUser } from '../site/src/auth.js';
+import { BestScoreClient } from '../site/src/api/best-score-client.js';
+import { VerifiedRunClient } from '../site/src/api/verified-run-api.js';
 
 class MemoryStorage {
   constructor() { this.values = new Map(); }
@@ -161,7 +163,7 @@ test('Discord user metadata provides a profile fallback if the profile table is 
   });
 });
 
-test('personal best sync calls the atomic Supabase RPC and accepts the higher remote score', async () => {
+test('BestScoreClient calls the atomic Supabase RPC and accepts the higher remote score', async () => {
   const browser = installBrowser();
   const previousFetch = globalThis.fetch;
   let request = null;
@@ -181,9 +183,13 @@ test('personal best sync calls the atomic Supabase RPC and accepts the higher re
     auth.user = { id: 'user-1', user_metadata: { user_name: 'birdplayer' } };
     auth.profile = { id: 'user-1', username: 'birdplayer', display_name: 'Bird Player', avatar_url: null, best_score: 12 };
 
-    const merged = await auth.syncBestScore(12);
+    const scoreClient = new BestScoreClient({
+      ...config,
+      getAccessToken: () => auth.accessToken(),
+    });
+    const merged = await scoreClient.sync(12);
     assert.equal(merged, 42);
-    assert.equal(auth.profile.best_score, 42);
+    assert.equal(auth.profile.best_score, 12, 'score transport must not mutate auth/profile state');
     assert.equal(request.url, 'https://project-ref.supabase.co/rest/v1/rpc/sync_best_score');
     assert.equal(request.init.method, 'POST');
     assert.deepEqual(JSON.parse(request.init.body), { candidate_score: 12 });
@@ -194,7 +200,7 @@ test('personal best sync calls the atomic Supabase RPC and accepts the higher re
   }
 });
 
-test('verified run start sends the user JWT and validates the server ticket', async () => {
+test('VerifiedRunClient start sends the user JWT and validates the server ticket', async () => {
   const browser = installBrowser();
   const previousFetch = globalThis.fetch;
   let request = null;
@@ -218,7 +224,11 @@ test('verified run start sends the user JWT and validates the server ticket', as
       expiresAt: Date.now() + 3600000,
     };
 
-    const ticket = await auth.startVerifiedRun();
+    const verifiedRuns = new VerifiedRunClient({
+      ...config,
+      getAccessToken: () => auth.accessToken(),
+    });
+    const ticket = await verifiedRuns.start();
 
     assert.equal(ticket.seed, -123456789);
     assert.equal(ticket.physics_version, 'flappy13-physics-v1');
@@ -233,7 +243,7 @@ test('verified run start sends the user JWT and validates the server ticket', as
   }
 });
 
-test('verified run submission sends only replay inputs and validates the server result', async () => {
+test('VerifiedRunClient submission sends only replay inputs and validates the server result', async () => {
   const browser = installBrowser();
   const previousFetch = globalThis.fetch;
   let request = null;
@@ -262,7 +272,11 @@ test('verified run submission sends only replay inputs and validates the server 
       expiresAt: Date.now() + 3600000,
     };
 
-    const result = await auth.submitVerifiedRun({
+    const verifiedRuns = new VerifiedRunClient({
+      ...config,
+      getAccessToken: () => auth.accessToken(),
+    });
+    const result = await verifiedRuns.submit({
       schema: 'flappy13-verified-run-v1',
       run_id: '123e4567-e89b-12d3-a456-426614174000',
       physics_version: 'flappy13-physics-v1',

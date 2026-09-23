@@ -69,13 +69,14 @@ test('iOS ProMotion guidance is dynamic and links to the timestamped tutorial', 
 
 test('authenticated PLAY requests a verified ticket and offers an explicit unranked fallback', () => {
   const main = read('site/src/main.js');
+  const verifiedPlay = read('site/src/session/verified-play.js');
   const html = read('site/index.html');
 
-  assert.match(main, /auth\.startVerifiedRun\(\)/);
+  assert.match(verifiedPlay, /this\.api\.start\(\)/);
   assert.match(main, /createCanonicalRunGame/);
-  assert.match(main, /new VerifiedRunRecorder\(ticket\)/);
-  assert.match(main, /enqueueVerifiedRun\(submission, \{ playerId \}\)/);
-  assert.match(main, /hasSession: Boolean\(auth\.session\)/);
+  assert.match(verifiedPlay, /new VerifiedRunRecorder\(ticket\)/);
+  assert.match(verifiedPlay, /enqueueVerifiedRun\(submission, \{ playerId \}\)/);
+  assert.match(verifiedPlay, /hasSession: Boolean\(this\.auth\.session\)/);
   assert.match(html, /id="unranked-warning"/);
   assert.match(html, /id="unranked-continue"/);
   assert.match(html, /JOUER QUAND MÊME/);
@@ -83,22 +84,23 @@ test('authenticated PLAY requests a verified ticket and offers an explicit unran
 
 test('completed verified runs flush automatically without trusting a client score', () => {
   const main = read('site/src/main.js');
-  const auth = read('site/src/auth.js');
+  const verifiedPlay = read('site/src/session/verified-play.js');
+  const verifiedApi = read('site/src/api/verified-run-api.js');
   const verifiedClient = read('site/src/verified-run-client.js');
-  const submitMethod = auth.slice(
-    auth.indexOf('async submitVerifiedRun(submission)'),
-    auth.indexOf('\n  async sync(', auth.indexOf('async submitVerifiedRun(submission)')),
+  const submitMethod = verifiedApi.slice(
+    verifiedApi.indexOf('async submit(submission)'),
+    verifiedApi.indexOf('async #requiredAccessToken', verifiedApi.indexOf('async submit(submission)')),
   );
 
-  assert.match(main, /auth\.submitVerifiedRun\(submission\)/);
-  assert.match(main, /removePendingVerifiedRun\(submission\.run_id\)/);
-  assert.match(main, /flushVerifiedRunQueue\(\{ reason: 'online', notify: true \}\)/);
-  assert.match(main, /type === 'record' && !verifiedRunRecorder/);
-  assert.match(main, /highestVerifiedScore >= 0[\s\S]*saveBest\(highestVerifiedScore\)/);
-  assert.match(main, /shouldDiscardVerifiedRunSubmission\(error\)/);
-  assert.match(main, /shouldDiscardVerifiedRunSubmission\(error\)[\s\S]*continue;/);
+  assert.match(verifiedPlay, /this\.api\.submit\(submission\)/);
+  assert.match(verifiedPlay, /removePendingVerifiedRun\(submission\.run_id\)/);
+  assert.match(main, /verifiedPlay\.flush\(\{ reason: 'online', notify: true \}\)/);
+  assert.match(main, /type === 'record' && !verifiedPlay\.recording/);
+  assert.match(verifiedPlay, /highestVerifiedScore >= 0[\s\S]*this\.saveBest\?\.\(highestVerifiedScore\)/);
+  assert.match(verifiedPlay, /shouldDiscardVerifiedRunSubmission\(error\)/);
+  assert.match(verifiedPlay, /shouldDiscardVerifiedRunSubmission\(error\)[\s\S]*continue;/);
   assert.match(verifiedClient, /error\?\.code === 'run_not_found'/);
-  assert.match(auth, /functions\/v1\/run-submit/);
+  assert.match(verifiedApi, /functions\/v1\/run-submit/);
   assert.match(submitMethod, /createVerifiedRunSubmission\(submission\)/);
   assert.match(submitMethod, /body: JSON\.stringify\(normalized\)/);
   assert.doesNotMatch(submitMethod, /JSON\.stringify\([^)]*(seed|score)/);
@@ -149,27 +151,32 @@ test('repository does not contain a production Supabase runtime configuration', 
 test('error toasts use the top layer and routine success chatter stays silent', () => {
   const html = read('site/index.html');
   const main = read('site/src/main.js');
+  const verifiedPlay = read('site/src/session/verified-play.js');
+  const toastUi = read('site/src/ui/toast.js');
+  const appSources = `${main}\n${verifiedPlay}`;
 
   assert.match(html, /id="toast"[^>]*popover="manual"/);
-  assert.match(main, /node\.showPopover\(\)/);
-  assert.match(main, /Pas d’internet · envoi reporté/);
-  assert.doesNotMatch(main, /Tout est prêt · vous pouvez jouer même hors connexion/);
-  assert.doesNotMatch(main, /Partie classée prête · touchez pour commencer/);
-  assert.doesNotMatch(main, /Run terminé · vérification serveur/);
-  assert.doesNotMatch(main, /Run vérifié · score/);
-  assert.doesNotMatch(main, /Préparation de la partie classée/);
+  assert.match(toastUi, /node\.showPopover\(\)/);
+  assert.match(verifiedPlay, /Pas d’internet · envoi reporté/);
+  assert.doesNotMatch(appSources, /Tout est prêt · vous pouvez jouer même hors connexion/);
+  assert.doesNotMatch(appSources, /Partie classée prête · touchez pour commencer/);
+  assert.doesNotMatch(appSources, /Run terminé · vérification serveur/);
+  assert.doesNotMatch(appSources, /Run vérifié · score/);
+  assert.doesNotMatch(appSources, /Préparation de la partie classée/);
 });
 
 test('verified PLAY hides ticket latency behind the native one-second fade cadence', () => {
   const main = read('site/src/main.js');
+  const verifiedPlay = read('site/src/session/verified-play.js');
 
   assert.match(main, /PLAY_FADE_SECONDS = 0\.5/);
-  assert.match(main, /PLAY_FADE_MIN_MS = PLAY_FADE_SECONDS \* 1000/);
-  assert.match(main, /originGame\.transition\(true, 0, PLAY_FADE_SECONDS\)/);
-  assert.match(main, /mode === 'ticket' \? startVerifiedPlayFade\(game\) : null/);
-  assert.match(main, /ensureVerifiedPlayFadeToBlack\(originGame, fadeStartedAt\)/);
-  assert.match(main, /Promise\.all\(\[ticketPromise, fadePromise\]\)/);
-  assert.match(main, /performance\.now\(\) - startedAt < PLAY_FADE_MIN_MS/);
+  assert.match(main, /playFadeSeconds: PLAY_FADE_SECONDS/);
+  assert.match(verifiedPlay, /this\.playFadeMinMs = playFadeSeconds \* 1000/);
+  assert.match(verifiedPlay, /originGame\.transition\(true, 0, this\.playFadeSeconds\)/);
+  assert.match(verifiedPlay, /mode === 'ticket' \? this\.#startFade\(game\) : null/);
+  assert.match(verifiedPlay, /this\.#ensureFadeToBlack\(originGame, fadeStartedAt\)/);
+  assert.match(verifiedPlay, /Promise\.all\(\[ticketPromise, fadePromise\]\)/);
+  assert.match(verifiedPlay, /performance\.now\(\) - startedAt < this\.playFadeMinMs/);
   assert.match(main, /game\.transition\(false, 0, PLAY_FADE_SECONDS\)/);
 });
 
@@ -191,6 +198,32 @@ test('verified game swap paints a fully black cached frame before reveal fade', 
   assert.ok(currentCache > previousCache, 'current interpolation cache should be black');
   assert.ok(renderBlack > currentCache, 'black cached scene should be rendered before reveal');
   assert.ok(reveal > renderBlack, 'reveal fade should start only after black frame is painted');
+});
+
+test('application domains stay split across focused ES modules', () => {
+  const main = read('site/src/main.js');
+  const auth = read('site/src/auth.js');
+  const leaderboardApi = read('site/src/api/leaderboard-client.js');
+  const verifiedApi = read('site/src/api/verified-run-api.js');
+  const bestScoreApi = read('site/src/api/best-score-client.js');
+
+  assert.ok(main.split('\n').length <= 1600, 'main.js should stay an orchestration layer, not a monolith');
+  assert.ok(auth.split('\n').length <= 450, 'auth.js should stay focused on auth/session/profile');
+
+  assert.match(main, /import \{ LeaderboardUI \} from '\.\/ui\/leaderboard-ui\.js'/);
+  assert.match(main, /import \{ ToastController \} from '\.\/ui\/toast\.js'/);
+  assert.match(main, /import \{ VerifiedPlayController \} from '\.\/session\/verified-play\.js'/);
+  assert.match(main, /import \{ PwaUpdateManager \} from '\.\/pwa\/update-manager\.js'/);
+  assert.match(main, /import \{ LeaderboardClient \} from '\.\/api\/leaderboard-client\.js'/);
+  assert.match(main, /import \{ VerifiedRunClient \} from '\.\/api\/verified-run-api\.js'/);
+
+  assert.doesNotMatch(auth, /get_leaderboard/);
+  assert.doesNotMatch(auth, /functions\/v1\/run-(?:start|submit)/);
+  assert.doesNotMatch(auth, /sync_best_score/);
+  assert.match(leaderboardApi, /get_leaderboard/);
+  assert.match(verifiedApi, /functions\/v1\/run-start/);
+  assert.match(verifiedApi, /functions\/v1\/run-submit/);
+  assert.match(bestScoreApi, /sync_best_score/);
 });
 
 test('diagnostic theme selector is catalog-driven, dark-native and split into collapsible sections', () => {

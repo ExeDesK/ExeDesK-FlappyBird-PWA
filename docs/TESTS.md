@@ -1,3 +1,12 @@
+## v0.2.7.3b-dev6.3.4
+
+- La suite couvre désormais la séparation architecturale des domaines : `main.js` doit rester sous **1600 lignes**, `auth.js` sous **450 lignes**, et les endpoints leaderboard / Verified Runs / best-score ne doivent plus réapparaître dans `AuthClient`.
+- `tests/auth.test.mjs`, `tests/leaderboard.test.mjs` et `tests/player-performance.test.mjs` testent directement `BestScoreClient`, `VerifiedRunClient` et `LeaderboardClient` au lieu de dépendre d'une classe d'authentification multifonction.
+- `tests/ci.test.mjs` suit le déplacement du cycle PLAY vérifié vers `session/verified-play.js`, du cycle de mise à jour vers `pwa/update-manager.js`, des toasts vers `ui/toast.js` et du rendu leaderboard vers `ui/leaderboard-ui.js`.
+- `tests/browser_isolated.py` embarque les nouveaux sous-modules `api/`, `ui/`, `session/` et `pwa/` afin de tester exactement la nouvelle composition sans build.
+- Le Service Worker précache **46 ressources runtime**, dont tous les nouveaux contrôleurs et clients ES requis hors ligne.
+- Suite complète : `npm test` (**139/139**) + `python tests/browser_isolated.py` (**OK, 0 erreur page**).
+
 ## v0.2.7.3b-dev6.3.3
 
 - `tests/themes.test.mjs` valide les assets et remappings France + Vietnam, le custom atlas `1714 × 514`, le pool `country` fixe à `1/30` et le partage pondéré entre les deux pays.
@@ -22,14 +31,14 @@
 - Le smoke test Chromium isolé a été remis à niveau pour charger `themes.js` et `customatlas.png`/`customatlas.json` dans son environnement embarqué.
 - Suite complète : `npm test` (**134/134**) + `python tests/browser_isolated.py`.
 
-# Rapport de tests - v0.2.7.3b-dev6.3.3
+# Rapport de tests - v0.2.7.3b-dev6.3.4
 
 ## Résultat
 
-- **138/138 tests Node passent** avec `npm test`.
+- **139/139 tests Node passent** avec `npm test`.
 - Le bundle concaténé utilisé par le smoke test passe le contrôle de syntaxe JavaScript.
-- Le smoke test Chromium isolé passe sans erreur page et couvre le catalogue dynamique, le thème Vietnam jour/nuit, le panneau diagnostic repliable et les boutons utilitaires x2.
-- Le cache PWA contient **36 ressources** et refuse de se déclarer complet si une ressource de précache manque.
+- Le smoke test Chromium isolé passe sans erreur page et couvre aussi la composition des nouveaux modules ES, le catalogue dynamique, le thème Vietnam jour/nuit, le panneau diagnostic repliable et les boutons utilitaires x2.
+- Le cache PWA contient **46 ressources** et refuse de se déclarer complet si une ressource de précache manque.
 - `version.json` reste volontairement hors du cache du Service Worker afin de servir de sonde réseau réelle pour la mise à jour.
 - Les liens et ressources du site utilisent des chemins relatifs compatibles avec un projet GitHub Pages publié sous `/<repository>/`.
 

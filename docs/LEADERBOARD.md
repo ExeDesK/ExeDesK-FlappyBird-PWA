@@ -85,3 +85,10 @@ Le Top 100 reste public et indépendant de cette RPC personnelle. La table `play
 ## Statistiques personnelles — dev6
 
 La modale classement affiche désormais, pour le joueur connecté, un bloc `VOS STATISTIQUES` alimenté par `get_my_player_performance_stats()`. Il compare la carrière aux fenêtres 10 / 25 / 50 de runs vérifiées, sans rendre ces statistiques accessibles anonymement.
+
+
+## Architecture frontend depuis v0.2.7.3b-dev6.3.4
+
+Les RPC du classement sont appelées par `site/src/api/leaderboard-client.js` (`LeaderboardClient`). Le cache de session, le chargement et le rendu de la modale appartiennent à `site/src/ui/leaderboard-ui.js` (`LeaderboardUI`). `AuthClient` ne contient plus de méthode leaderboard ; il fournit uniquement le token quand une RPC authentifiée en a besoin.
+
+Cette séparation ne change aucun contrat SQL/RPC.

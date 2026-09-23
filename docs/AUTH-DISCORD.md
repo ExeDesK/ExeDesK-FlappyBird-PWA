@@ -94,3 +94,10 @@ Depuis `v0.2.7.2b-dev4`, la file est auto-réparante : les anciennes entrées sa
 ## v0.2.7.1n-hotfix1
 
 Le statut du meilleur score est désormais indépendant des erreurs transitoires du profil : une synchronisation de record réussie affiche toujours l'état synchronisé. Les erreurs de profil sont effacées dès qu'une lecture ou création ultérieure réussit.
+
+
+## Architecture client depuis v0.2.7.3b-dev6.3.4
+
+`AuthClient` est désormais limité à OAuth Discord, session Supabase et profil. La synchronisation du meilleur score utilise `api/BestScoreClient` + `session/ScoreSyncController`; le leaderboard utilise `api/LeaderboardClient`; les Verified Runs utilisent `api/VerifiedRunClient` et `session/VerifiedPlayController`. Le token utilisateur est fourni à ces clients via `AuthClient.accessToken()` au lieu de faire transiter toutes les fonctionnalités communautaires par la classe d'authentification.
+
+Voir [`ARCHITECTURE.md`](./ARCHITECTURE.md) pour la séparation complète des responsabilités.
