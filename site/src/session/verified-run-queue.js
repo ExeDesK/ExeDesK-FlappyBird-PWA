@@ -40,13 +40,22 @@ function writeQueue(storage, queue) {
 }
 
 function normalizedSubmission(submission) {
-  return {
+  const normalized = {
     schema: submission.schema,
     run_id: submission.run_id,
     physics_version: submission.physics_version,
     terminal_tick: submission.terminal_tick,
     taps: [...submission.taps],
   };
+
+  if (submission.visual_context) {
+    normalized.visual_context = {
+      theme: submission.visual_context.theme,
+      variant: submission.visual_context.variant,
+    };
+  }
+
+  return normalized;
 }
 
 function normalizeQueueItem(item) {

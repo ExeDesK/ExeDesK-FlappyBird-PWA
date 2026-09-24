@@ -50,6 +50,8 @@ result schema   : flappy13-run-result-v1
 
 `physics_version` ne suit pas `VERSION`. Un correctif d’interface, d’audio ou de PWA ne doit pas invalider les replays. Elle ne change que si une modification affecte la simulation autoritaire.
 
+Depuis `v0.2.7.6b`, le même schéma de soumission accepte en plus un champ **optionnel et cosmétique** `visual_context` : `{ theme, variant }`. Il est inclus dans le hash idempotent de la soumission mais n'intervient jamais dans la simulation, le score ou la collision autoritaires. Les anciennes soumissions dépourvues de ce champ restent valides.
+
 ## Ticket de départ
 
 `POST /functions/v1/run-start` exige le JWT Supabase du joueur. L’Edge Function génère une seed int32 avec `crypto.getRandomValues()`, crée le ticket via le client serveur puis répond :

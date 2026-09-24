@@ -97,6 +97,25 @@ test('canonical replay hash is independent from JSON property order', async () =
   assert.equal(first.replay_hash, second.replay_hash);
 });
 
+test('visual replay context is accepted, normalized and included in the canonical replay hash', async () => {
+  const withVisual = await inspectRunPayload(submission({
+    visual_context: { theme: 'vietnam', variant: 'night' },
+  }));
+  const reordered = await inspectRunPayload({
+    visual_context: { variant: 'night', theme: 'vietnam' },
+    taps: [0],
+    terminal_tick: 53,
+    physics_version: PHYSICS_VERSION,
+    run_id: RUN_ID,
+    schema: 'flappy13-verified-run-v1',
+  });
+  const withoutVisual = await inspectRunPayload(submission());
+
+  assert.deepEqual(withVisual.submission.visual_context, { theme: 'vietnam', variant: 'night' });
+  assert.equal(withVisual.replay_hash, reordered.replay_hash);
+  assert.notEqual(withVisual.replay_hash, withoutVisual.replay_hash);
+});
+
 test('run-submit authenticates ownership and resolves one issued row atomically', async () => {
   const source = await readFile(
     new URL('../supabase/functions/run-submit/index.ts', import.meta.url),
@@ -110,5 +129,7 @@ test('run-submit authenticates ownership and resolves one issued row atomically'
   assert.match(source, /ticket\.replay_hash === inspection\.replay_hash/);
   assert.match(source, /MAX_REQUEST_BYTES = 4 \* 1024 \* 1024/);
   assert.match(source, /verifyInspectedRun/);
+  assert.match(source, /visual_theme: visualContext\?\.theme \?\? null/);
+  assert.match(source, /visual_variant: visualContext\?\.variant \?\? null/);
   assert.doesNotMatch(source, /payload\??\.score/);
 });

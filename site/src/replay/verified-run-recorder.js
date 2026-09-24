@@ -20,8 +20,9 @@ function isEffectiveTap(game, tap) {
 }
 
 export class VerifiedRunRecorder {
-  constructor(ticket) {
+  constructor(ticket, { visualContext = null } = {}) {
     this.ticket = ticket;
+    this.visualContext = visualContext ? structuredClone(visualContext) : null;
     this.started = false;
     this.finished = false;
     this.tick = -1;
@@ -63,6 +64,7 @@ export class VerifiedRunRecorder {
       physics_version: this.ticket.physics_version,
       terminal_tick: this.tick,
       taps: this.taps,
+      visual_context: this.visualContext,
     });
     this.finished = true;
     return this.submission;
@@ -76,6 +78,7 @@ export class VerifiedRunRecorder {
       finished: this.finished,
       tick: this.tick,
       taps: [...this.taps],
+      visual_context: this.visualContext ? structuredClone(this.visualContext) : null,
       submission: this.submission ? structuredClone(this.submission) : null,
     };
   }

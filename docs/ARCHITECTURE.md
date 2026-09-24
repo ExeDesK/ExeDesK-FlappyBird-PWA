@@ -102,6 +102,10 @@ Orchestre le scénario côté navigateur d'une partie classée : interception de
 
 Capture les taps effectifs par tick et construit la soumission canonique au tick terminal. Ce module ne connaît ni Supabase, ni l'UI, ni la file locale et peut être réutilisé par les futurs outils de replay.
 
+### `replay/replay-viewer.js` — `ReplayViewer`
+
+Lecteur visuel des runs leaderboard. Il reconstruit un `Game` canonique depuis la seed, rejoue les taps à 60 Hz, rend le résultat dans un canvas dédié et vérifie le score terminal. Il applique le contexte visuel enregistré lorsqu'il existe ; les runs legacy utilisent un thème + jour/nuit aléatoires. Le transport reste dans `LeaderboardClient.fetchReplay()`.
+
 ### `session/verified-run-abandon.js` — `VerifiedRunAbandoner`
 
 Isole l’abandon d’un ticket préparé mais non joué : capture du `run_id`, annulation owner-only via `VerifiedRunClient.cancel()`, journalisation et fallback non bloquant si le réseau est indisponible. Il ne touche jamais à une soumission déjà terminée/queueée.
@@ -160,7 +164,7 @@ Supabase HTTP endpoints
 
 `tests/ci.test.mjs` contient un test de non-régression architectural :
 
-- `main.js` doit rester sous 1600 lignes ;
+- `main.js` doit rester sous 1650 lignes ;
 - `auth.js` doit rester sous 450 lignes ;
 - `session/verified-play.js` doit rester sous 300 lignes ;
 - `AuthClient` ne doit pas réabsorber `get_leaderboard`, `run-start`, `run-submit` ou `sync_best_score` ;
@@ -195,11 +199,11 @@ Côté serveur, `010_admin_analytics.sql` étend les triggers autoritaires exist
 
 ## Hors ligne
 
-Les **51 ressources runtime du jeu** restent précachées par `site/sw.js` en `v0.2.7.4b`. Le dashboard `site/admin/` et ses modules sont volontairement **online-only** et ne sont pas ajoutés au précache : une indisponibilité de l'administration ne peut donc pas empêcher l'installation ou le fonctionnement hors ligne du gameplay.
+Les **57 ressources runtime du jeu** sont précachées par `site/sw.js` en `v0.2.7.6b`, dont le nouveau lecteur de replay. Le dashboard `site/admin/` et ses modules restent volontairement **online-only** et ne sont pas ajoutés au précache : une indisponibilité de l'administration ne peut donc pas empêcher l'installation ou le fonctionnement hors ligne du gameplay.
 
 ## Évolution future
 
-Les prochaines fonctionnalités importantes (multijoueur, replay leaderboard, contrôles de replay) peuvent désormais obtenir leurs propres contrôleurs / clients sans grossir `AuthClient` ou réintroduire leur cycle complet dans `main.js`. Le même principe doit être conservé : transport réseau séparé de l'état UI/session, moteur déterministe séparé de l'orchestration navigateur.
+Les prochaines fonctionnalités importantes (multijoueur, historique/replay sharing, contrôles avancés de replay) peuvent continuer à obtenir leurs propres contrôleurs / clients sans grossir `AuthClient` ou réintroduire leur cycle complet dans `main.js`. Le même principe doit être conservé : transport réseau séparé de l'état UI/session, moteur déterministe séparé de l'orchestration navigateur.
 
 ## Account linking
 

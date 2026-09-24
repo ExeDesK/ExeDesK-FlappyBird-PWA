@@ -1,6 +1,7 @@
 import {
   LEADERBOARD_MAX_ROWS,
   parseLeaderboardContext,
+  parseLeaderboardReplay,
   parseLeaderboardRows,
   parsePlayerPerformanceStats,
 } from '../leaderboard.js';
@@ -50,6 +51,36 @@ export class LeaderboardClient {
     }
 
     return parseLeaderboardRows(await response.json(), { maxRows: normalizedLimit });
+  }
+
+  async fetchReplay(runId) {
+    if (!this.configured) {
+      throw new Error('Replay unavailable: Supabase is not configured.');
+    }
+
+    if (typeof navigator !== 'undefined' && !navigator.onLine) {
+      const error = new Error('Replay indisponible hors connexion.');
+      error.code = 'offline';
+      throw error;
+    }
+
+    const response = await fetch(`${this.url}/rest/v1/rpc/get_leaderboard_replay`, {
+      method: 'POST',
+      headers: {
+        ...supabaseHeaders(this.publishableKey),
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ target_run_id: runId }),
+      cache: 'no-store',
+    });
+
+    if (!response.ok) {
+      const error = await responseError(response, `Replay HTTP ${response.status}`);
+      error.status = response.status;
+      throw error;
+    }
+
+    return parseLeaderboardReplay(await response.json());
   }
 
   async fetchMyLeaderboardContext() {

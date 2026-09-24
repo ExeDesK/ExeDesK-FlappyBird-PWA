@@ -21,6 +21,7 @@ export class VerifiedPlayController {
     prepareVisualThemeForRun,
     activatePendingVisualTheme,
     cancelPendingVisualTheme,
+    getVisualContextForRun,
     installVerifiedGame,
     isCurrentGame,
     saveBest,
@@ -40,6 +41,7 @@ export class VerifiedPlayController {
     this.prepareVisualThemeForRun = prepareVisualThemeForRun;
     this.activatePendingVisualTheme = activatePendingVisualTheme;
     this.cancelPendingVisualTheme = cancelPendingVisualTheme;
+    this.getVisualContextForRun = getVisualContextForRun;
     this.installVerifiedGame = installVerifiedGame;
     this.isCurrentGame = isCurrentGame || (() => true);
     this.saveBest = saveBest;
@@ -263,7 +265,9 @@ export class VerifiedPlayController {
 
         if (stillCurrent && this.isCurrentGame(originGame) && originGame.play.active) {
           const installed = this.installVerifiedGame?.(ticket) || {};
-          this.recorder = new VerifiedRunRecorder(ticket);
+          this.recorder = new VerifiedRunRecorder(ticket, {
+            visualContext: this.getVisualContextForRun?.() ?? null,
+          });
           this.lastRun = {
             status: 'ready',
             run_id: ticket.run_id,

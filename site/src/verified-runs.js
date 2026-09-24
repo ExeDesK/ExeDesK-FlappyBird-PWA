@@ -19,12 +19,15 @@ const INT32_MAX = 2147483647;
 const PREPARE_GUARD_TICKS = 1000;
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const COLLISIONS = new Set(['ground', 'upper-pipe', 'lower-pipe']);
+const VISUAL_VARIANTS = new Set(['day', 'night']);
+const THEME_ID_PATTERN = /^[a-z0-9][a-z0-9_-]{0,31}$/;
 const VERIFIED_RUN_SUBMISSION_KEYS = new Set([
   'schema',
   'run_id',
   'physics_version',
   'terminal_tick',
   'taps',
+  'visual_context',
 ]);
 
 function requireObject(value, label) {
@@ -130,21 +133,54 @@ export function validateTapTicks(taps, terminalTick) {
   return Object.freeze(normalized);
 }
 
+export function normalizeVerifiedRunVisualContext(value) {
+  if (value === null || value === undefined) {
+    return null;
+  }
+
+  const context = requireObject(value, 'Contexte visuel');
+  for (const key of Object.keys(context)) {
+    if (key !== 'theme' && key !== 'variant') {
+      throw new TypeError('Le contexte visuel contient un champ inconnu.');
+    }
+  }
+
+  const theme = typeof context.theme === 'string' ? context.theme.trim() : '';
+  if (!THEME_ID_PATTERN.test(theme)) {
+    throw new TypeError('theme visuel invalide.');
+  }
+
+  const variant = typeof context.variant === 'string' ? context.variant.trim() : '';
+  if (!VISUAL_VARIANTS.has(variant)) {
+    throw new TypeError('variant visuel invalide.');
+  }
+
+  return Object.freeze({ theme, variant });
+}
+
 export function createVerifiedRunSubmission({
   run_id: runId,
   physics_version: physicsVersion,
   terminal_tick: terminalTick,
   taps,
+  visual_context: visualContext = null,
 } = {}) {
   const normalizedTerminalTick = requireRunTick(terminalTick);
+  const normalizedVisualContext = normalizeVerifiedRunVisualContext(visualContext);
 
-  return Object.freeze({
+  const submission = {
     schema: VERIFIED_RUN_SCHEMA,
     run_id: requireRunId(runId),
     physics_version: requirePhysicsVersion(physicsVersion),
     terminal_tick: normalizedTerminalTick,
     taps: validateTapTicks(taps, normalizedTerminalTick),
-  });
+  };
+
+  if (normalizedVisualContext) {
+    submission.visual_context = normalizedVisualContext;
+  }
+
+  return Object.freeze(submission);
 }
 
 export function parseVerifiedRunSubmission(payload) {

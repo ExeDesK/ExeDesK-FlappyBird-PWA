@@ -1,3 +1,16 @@
+## v0.2.7.6b - Leaderboard Replay Viewing
+
+- Ajoute un bouton **VOIR** sur chaque ligne du leaderboard afin de visionner le meilleur run vérifié public du joueur.
+- Le lecteur reconstruit la partie à 60 ticks/s depuis la `seed`, `tap_ticks` et `terminal_tick` autoritaires déjà stockés ; aucune vidéo n’est enregistrée ni transférée.
+- À la fin du replay, le score simulé localement est comparé au score vérifié serveur ; une divergence est signalée comme incompatibilité de build.
+- Les nouvelles soumissions transportent un `visual_context` cosmétique (`theme` + variante effective `day`/`night`) sans modifier `flappy13-physics-v1` ni la décision de vérification. La file offline conserve également ce contexte.
+- Ajoute `supabase/014_replay_viewing.sql` : colonnes `visual_theme` / `visual_variant`, `run_id` dans `get_leaderboard()` et RPC public restreint `get_leaderboard_replay()` qui n’expose que le record actuellement visible dans le leaderboard. Aucun `SELECT` direct sur `verified_runs` n’est accordé au navigateur.
+- Les runs historiques sans contexte visuel restent visionnables ; leur thème et leur variante jour/nuit sont tirés aléatoirement à chaque lecture/relecture.
+- Ajoute `replay/replay-viewer.js`, une modale dédiée, les sons natifs déclenchés par les mêmes événements de jeu et le fallback **REVOIR** après fin de lecture. Les contrôles avancés (pause, vitesse, seek) restent hors scope pour une future release.
+- Le Service Worker précache désormais **57 ressources runtime**.
+- Déploiement requis : migration `014`, redéploiement de `run-submit`, puis frontend. `run-start` reste inchangé.
+- Validation : `npm test` **200/200**, smoke tests Chromium gameplay et Admin **OK / 0 erreur**.
+
 ## v0.2.7.5b - Accounts & Profiles
 
 - Finalise la gestion des identités Discord/Google dans Profil : chaque provider lié affiche **LIÉ**, le dernier moyen de connexion est marqué **DERNIER ACCÈS**, et `DÉLIER` n'est proposé que lorsqu'un second login Discord/Google reste disponible.

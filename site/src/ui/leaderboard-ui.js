@@ -19,12 +19,21 @@ function formatStat(value, digits = 1) {
 }
 
 export class LeaderboardUI {
-  constructor({ auth, client, dialog, toast, getElement, staleMs = DEFAULT_STALE_MS } = {}) {
+  constructor({
+    auth,
+    client,
+    dialog,
+    toast,
+    getElement,
+    onWatchReplay,
+    staleMs = DEFAULT_STALE_MS,
+  } = {}) {
     this.auth = auth;
     this.client = client;
     this.dialog = dialog;
     this.toast = toast;
     this.$ = getElement || (id => document.getElementById(id));
+    this.onWatchReplay = onWatchReplay;
     this.staleMs = staleMs;
 
     this.rows = [];
@@ -315,7 +324,19 @@ export class LeaderboardUI {
       const score = document.createElement('strong');
       score.className = 'leaderboard-score';
       score.textContent = String(row.score);
-      item.append(rank, avatarWrap, identity, score);
+
+      const replay = document.createElement('button');
+      replay.type = 'button';
+      replay.className = 'leaderboard-replay-button';
+      replay.textContent = 'VOIR';
+      replay.disabled = !row.run_id || (typeof navigator !== 'undefined' && !navigator.onLine);
+      replay.title = row.run_id ? 'Visionner cette run' : 'Replay indisponible';
+      replay.setAttribute('aria-label', `Visionner la run de ${leaderboardName(row)}`);
+      replay.addEventListener('click', () => {
+        if (row.run_id) this.onWatchReplay?.(row);
+      });
+
+      item.append(rank, avatarWrap, identity, score, replay);
       list.append(item);
     }
 

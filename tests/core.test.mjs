@@ -639,7 +639,7 @@ test('Static update probe uses version.json instead of a dynamic health endpoint
     readFileSync(new URL('../site/version.json', import.meta.url), 'utf8'),
   );
 
-  assert.equal(version.version, '0.2.7.5b');
+  assert.equal(version.version, '0.2.7.6b');
   assert.match(updates, /\.\/version\.json/);
   assert.doesNotMatch(updates, /__health/);
 });

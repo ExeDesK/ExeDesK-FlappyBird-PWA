@@ -20,6 +20,8 @@ const RESULT_COLUMNS = [
   'collision',
   'rejection_code',
   'replay_hash',
+  'visual_theme',
+  'visual_variant',
 ].join(',');
 
 function response(body: unknown, status = 200, extraHeaders: HeadersInit = {}) {
@@ -142,6 +144,9 @@ export default {
       seed: ticket.seed,
       ticketPhysicsVersion: ticket.physics_version,
     });
+    const visualContext = resolution.status === 'verified'
+      ? inspection.submission?.visual_context ?? null
+      : null;
     const resolvedAt = new Date().toISOString();
 
     const { data: resolved, error: resolveError } = await context.supabaseAdmin
@@ -156,6 +161,8 @@ export default {
         verified_score: resolution.verified_score,
         collision: resolution.collision,
         rejection_code: resolution.rejection_code,
+        visual_theme: visualContext?.theme ?? null,
+        visual_variant: visualContext?.variant ?? null,
       })
       .eq('run_id', runId)
       .eq('player_id', playerId)

@@ -39,6 +39,7 @@ export function parseLeaderboardRows(payload, { maxRows = LEADERBOARD_MAX_ROWS }
     players.add(raw.player_id);
     rows.push({
       rank,
+      run_id: isUuid(raw.run_id) ? raw.run_id.toLowerCase() : null,
       player_id: raw.player_id,
       username: optionalText(raw.username),
       display_name: optionalText(raw.display_name),
@@ -49,6 +50,57 @@ export function parseLeaderboardRows(payload, { maxRows = LEADERBOARD_MAX_ROWS }
   }
 
   return rows;
+}
+
+export function parseLeaderboardReplay(payload) {
+  const raw = Array.isArray(payload) ? payload[0] : payload;
+  if (!raw || typeof raw !== 'object') {
+    throw new Error('Replay introuvable.');
+  }
+
+  const seed = Number(raw.seed);
+  const terminalTick = Number(raw.terminal_tick);
+  const score = Number(raw.score);
+  const taps = Array.isArray(raw.taps) ? raw.taps.map(Number) : null;
+  const resolvedAt = typeof raw.resolved_at === 'string' ? raw.resolved_at : '';
+
+  if (!isUuid(raw.run_id) || !isUuid(raw.player_id)) throw new Error('Replay invalide.');
+  if (!Number.isInteger(seed) || seed < -2147483648 || seed > 2147483647) throw new Error('Seed de replay invalide.');
+  if (raw.physics_version !== 'flappy13-physics-v1') throw new Error('Version physique du replay non supportée.');
+  if (!Number.isInteger(terminalTick) || terminalTick < 0 || terminalTick > 216000) throw new Error('Durée de replay invalide.');
+  if (!taps || taps.length === 0 || taps[0] !== 0) throw new Error('Entrées de replay invalides.');
+
+  let previous = -1;
+  for (const tick of taps) {
+    if (!Number.isInteger(tick) || tick <= previous || tick > terminalTick) {
+      throw new Error('Entrées de replay invalides.');
+    }
+    previous = tick;
+  }
+
+  if (!Number.isInteger(score) || score < 0 || score > 2147483647) throw new Error('Score de replay invalide.');
+  if (!['ground', 'upper-pipe', 'lower-pipe'].includes(raw.collision)) throw new Error('Collision de replay invalide.');
+  if (!resolvedAt || Number.isNaN(Date.parse(resolvedAt))) throw new Error('Date de replay invalide.');
+
+  const theme = optionalText(raw.theme);
+  const variant = optionalText(raw.variant);
+  if ((theme === null) !== (variant === null)) throw new Error('Contexte visuel du replay incomplet.');
+  if (variant !== null && variant !== 'day' && variant !== 'night') throw new Error('Variante visuelle du replay invalide.');
+  if (theme !== null && !/^[a-z0-9][a-z0-9_-]{0,31}$/.test(theme)) throw new Error('Thème visuel du replay invalide.');
+
+  return {
+    run_id: raw.run_id.toLowerCase(),
+    player_id: raw.player_id.toLowerCase(),
+    seed,
+    physics_version: raw.physics_version,
+    terminal_tick: terminalTick,
+    taps,
+    score,
+    collision: raw.collision,
+    theme,
+    variant,
+    resolved_at: resolvedAt,
+  };
 }
 
 

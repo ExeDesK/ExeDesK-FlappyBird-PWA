@@ -1,3 +1,12 @@
+## v0.2.7.6b — Leaderboard Replay Viewing
+
+- `tests/leaderboard.test.mjs` couvre le `run_id` du leaderboard, le RPC public `get_leaderboard_replay`, la validation du payload déterministe, l'absence d'auth obligatoire, le contexte visuel enregistré et le fallback aléatoire des runs legacy.
+- `tests/verified-run-recorder.test.mjs` verrouille l'ajout du `visual_context` sans seed/score client-owned.
+- `tests/run-submit.test.mjs` vérifie que le contexte visuel est normalisé, inclus dans le hash idempotent et stocké séparément sans participer à la physique.
+- La migration `014_replay_viewing.sql` est testée pour ne jamais accorder de `SELECT` navigateur direct sur `verified_runs` et pour ne rendre que le meilleur run courant.
+- Le cache PWA contient **57 ressources runtime**, dont `replay/replay-viewer.js`.
+- Suite complète : `npm test` **200/200** + `python tests/browser_isolated.py` **OK / 0 erreur** + `python tests/admin_browser_isolated.py` **OK / 0 erreur**.
+
 ## v0.2.7.5b — Accounts & Profiles
 
 - `tests/auth.test.mjs` couvre les deux sens de linking Discord/Google, les comptes Google-first et Discord historiques, la reconnexion via chaque provider, le mode offline avec identités liées, le unlink et la persistance immédiate du profil dans le cache offline.
@@ -74,15 +83,15 @@
 - Le cache PWA reste à **51 ressources runtime** : le changement backend n'ajoute aucun asset client, mais le build Service Worker est incrémenté pour publier la nouvelle version.
 - Suite complète : `npm test` (**152/152**) + `python tests/browser_isolated.py` (**OK, 0 erreur page**).
 
-# Rapport de tests - v0.2.7.5b
+# Rapport de tests - v0.2.7.6b
 
 ## Résultat
 
-- **193/193 tests Node passent** avec `npm test`.
+- **200/200 tests Node passent** avec `npm test`.
 - Le bundle concaténé utilisé par le smoke test passe le contrôle de syntaxe JavaScript.
-- Le smoke test Chromium isolé passe sans erreur page et couvre aussi la composition des nouveaux modules ES, le catalogue dynamique, le thème Vietnam jour/nuit, le panneau diagnostic repliable, la modale Profil, les boutons utilitaires x1,75 et le module d’abandon de ticket Verified Run.
+- Le smoke test Chromium isolé passe sans erreur page et couvre aussi le lecteur de replay réel sur une run déterministe connue (seed/taps, France nuit, score terminal et événement audio `hit`), la composition des modules ES, le catalogue dynamique, le thème Vietnam jour/nuit, le panneau diagnostic repliable, la modale Profil, les boutons utilitaires x1,75 et le module d’abandon de ticket Verified Run.
 - Le smoke test Admin Analytics dédié passe également sans erreur page avec Auth/RPC Supabase mockés et couvre les vues Overview, Joueurs, Rétention et Système.
-- Le cache PWA contient **56 ressources** et refuse de se déclarer complet si une ressource de précache manque.
+- Le cache PWA contient **57 ressources** et refuse de se déclarer complet si une ressource de précache manque.
 - `version.json` reste volontairement hors du cache du Service Worker afin de servir de sonde réseau réelle pour la mise à jour.
 - Les liens et ressources du site utilisent des chemins relatifs compatibles avec un projet GitHub Pages publié sous `/<repository>/`.
 

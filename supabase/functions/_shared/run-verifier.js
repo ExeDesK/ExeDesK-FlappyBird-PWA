@@ -18,13 +18,22 @@ export async function sha256Hex(value) {
 }
 
 export function canonicalReplayJson(submission) {
-  return JSON.stringify({
+  const replay = {
     schema: submission.schema,
     run_id: submission.run_id,
     physics_version: submission.physics_version,
     terminal_tick: submission.terminal_tick,
     taps: [...submission.taps],
-  });
+  };
+
+  if (submission.visual_context) {
+    replay.visual_context = {
+      theme: submission.visual_context.theme,
+      variant: submission.visual_context.variant,
+    };
+  }
+
+  return JSON.stringify(replay);
 }
 
 export async function inspectRunPayload(payload) {

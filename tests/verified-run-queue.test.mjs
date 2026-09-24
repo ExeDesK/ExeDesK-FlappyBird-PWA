@@ -75,6 +75,27 @@ test('completed submissions are deduplicated and bounded in the offline queue', 
   assert.ok(storage.getItem(VERIFIED_RUN_QUEUE_KEY));
 });
 
+test('offline queue preserves optional replay visual context and legacy submissions stay valid', () => {
+  const storage = new MemoryStorage();
+  const contextualRun = {
+    ...submission(),
+    visual_context: { theme: 'vietnam', variant: 'night' },
+  };
+
+  enqueueVerifiedRun(contextualRun, { storage, playerId: PLAYER_ONE });
+  assert.deepEqual(
+    pendingVerifiedRuns(storage)[0].submission.visual_context,
+    { theme: 'vietnam', variant: 'night' },
+  );
+
+  const legacyStorage = new MemoryStorage();
+  enqueueVerifiedRun(submission(), { storage: legacyStorage, playerId: PLAYER_ONE });
+  assert.equal(
+    Object.hasOwn(pendingVerifiedRuns(legacyStorage)[0].submission, 'visual_context'),
+    false,
+  );
+});
+
 test('offline queue keeps account ownership local and removes one resolved run', () => {
   const storage = new MemoryStorage();
   const runOne = RUN_ID;

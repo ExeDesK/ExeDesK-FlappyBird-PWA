@@ -79,7 +79,8 @@ body {
 #unranked-warning,
 #options,
 #profile-dialog,
-#leaderboard-dialog {
+#leaderboard-dialog,
+#replay-dialog {
   font-family: var(--pixel-font);
   font-weight: 700;
   font-variant-ligatures: none;
@@ -291,7 +292,8 @@ body {
 #options button,
 #options select,
 #profile-dialog button,
-#leaderboard-dialog button {
+#leaderboard-dialog button,
+#replay-dialog button {
   font-family: var(--pixel-font);
   font-weight: 700;
   font-variant-ligatures: none;
@@ -299,7 +301,8 @@ body {
 
 #options button,
 #profile-dialog button,
-#leaderboard-dialog button {
+#leaderboard-dialog button,
+#replay-dialog button {
   padding: 9px 11px;
   border: 3px solid var(--flappy-brown-dark);
   border-radius: 0;
@@ -320,13 +323,16 @@ body {
 #profile-dialog button:hover,
 #profile-dialog button:focus-visible,
 #leaderboard-dialog button:hover,
-#leaderboard-dialog button:focus-visible {
+#leaderboard-dialog button:focus-visible,
+#replay-dialog button:hover,
+#replay-dialog button:focus-visible {
   background: #f7d36f;
 }
 
 #options button:active:not(:disabled),
 #profile-dialog button:active:not(:disabled),
-#leaderboard-dialog button:active:not(:disabled) {
+#leaderboard-dialog button:active:not(:disabled),
+#replay-dialog button:active:not(:disabled) {
   transform: translate(2px, 2px);
   box-shadow:
     inset 0 3px 0 #ffeaa0,
@@ -336,7 +342,8 @@ body {
 
 #options button:disabled,
 #profile-dialog button:disabled,
-#leaderboard-dialog button:disabled {
+#leaderboard-dialog button:disabled,
+#replay-dialog button:disabled {
   filter: saturate(0.35);
   opacity: 0.58;
   cursor: default;
@@ -347,6 +354,7 @@ body {
 #options input:focus-visible,
 #profile-dialog button:focus-visible,
 #leaderboard-dialog button:focus-visible,
+#replay-dialog button:focus-visible,
 .utility:focus-visible {
   outline: 3px solid #fff;
   outline-offset: 3px;
@@ -354,7 +362,8 @@ body {
 
 #options .atlas-close-button,
 #profile-dialog .atlas-close-button,
-#leaderboard-dialog .atlas-close-button {
+#leaderboard-dialog .atlas-close-button,
+#replay-dialog .atlas-close-button {
   position: relative;
   flex: 0 0 auto;
   width: 44px;
@@ -370,13 +379,16 @@ body {
 #profile-dialog .atlas-close-button:hover,
 #profile-dialog .atlas-close-button:focus-visible,
 #leaderboard-dialog .atlas-close-button:hover,
-#leaderboard-dialog .atlas-close-button:focus-visible {
+#leaderboard-dialog .atlas-close-button:focus-visible,
+#replay-dialog .atlas-close-button:hover,
+#replay-dialog .atlas-close-button:focus-visible {
   background: transparent;
 }
 
 #options .atlas-close-button:active:not(:disabled),
 #profile-dialog .atlas-close-button:active:not(:disabled),
-#leaderboard-dialog .atlas-close-button:active:not(:disabled) {
+#leaderboard-dialog .atlas-close-button:active:not(:disabled),
+#replay-dialog .atlas-close-button:active:not(:disabled) {
   transform: none;
   box-shadow: none;
 }
@@ -769,7 +781,7 @@ body {
 
 .leaderboard-row {
   display: grid;
-  grid-template-columns: 30px 34px minmax(0, 1fr) auto;
+  grid-template-columns: 30px 34px minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 7px;
   min-height: 42px;
@@ -777,6 +789,124 @@ body {
   border: 2px solid #b39555;
   background: #fff7cf;
   box-shadow: inset 0 -2px 0 #e5ce87;
+}
+
+.leaderboard-replay-button {
+  min-width: 48px;
+  padding: 6px 7px !important;
+  font-size: 7px !important;
+}
+
+#replay-dialog {
+  width: min(380px, 94vw);
+  max-height: 94dvh;
+  padding: 14px;
+  overflow: auto;
+  border: 4px solid var(--flappy-brown-dark);
+  border-radius: 0;
+  background: var(--flappy-cream);
+  box-shadow:
+    inset 0 0 0 3px var(--flappy-cream-light),
+    7px 7px 0 #0009;
+  color: var(--flappy-brown-dark);
+  line-height: 1.45;
+}
+
+#replay-dialog::backdrop {
+  background: #000c;
+}
+
+#replay-dialog .version {
+  margin: 8px 0;
+}
+
+.replay-meta {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.replay-meta > div {
+  min-width: 0;
+  padding: 7px 8px;
+  border: 2px solid #b39555;
+  background: #fff7cf;
+}
+
+.replay-meta span,
+.replay-meta strong {
+  display: block;
+}
+
+.replay-meta span {
+  color: #806438;
+  font-size: 6px;
+}
+
+.replay-meta strong {
+  margin-top: 3px;
+  overflow: hidden;
+  font-size: 11px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.replay-context {
+  margin: 0 0 8px;
+  padding: 6px 8px;
+  border-left: 4px solid var(--flappy-green-dark);
+  background: #dbe7a5;
+  color: #344422;
+  font-size: 7px;
+  line-height: 1.5;
+  text-align: center;
+}
+
+.replay-stage {
+  display: grid;
+  place-items: center;
+  width: 100%;
+  overflow: hidden;
+  border: 3px solid var(--flappy-brown-dark);
+  background: #000;
+  box-shadow: inset 0 0 0 2px #fff2;
+}
+
+#replay-canvas {
+  display: block;
+  width: min(288px, 100%);
+  height: auto;
+  aspect-ratio: 9 / 16;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}
+
+#replay-canvas[hidden] {
+  display: none;
+}
+
+.replay-stage:has(#replay-canvas[hidden]) {
+  min-height: min(420px, 58dvh);
+}
+
+.replay-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 9px;
+}
+
+.replay-footer .hint {
+  margin: 0;
+  font-size: 7px;
+}
+
+#replay-restart {
+  flex: 0 0 auto;
+  padding: 7px 9px !important;
+  font-size: 8px !important;
 }
 
 .leaderboard-row.is-current-player {
@@ -1201,9 +1331,14 @@ noscript {
   }
 
   .leaderboard-row {
-    grid-template-columns: 28px 32px minmax(0, 1fr) auto;
+    grid-template-columns: 28px 32px minmax(0, 1fr) auto auto;
     gap: 6px;
     padding-inline: 5px;
+  }
+
+  .leaderboard-replay-button {
+    min-width: 42px;
+    padding-inline: 5px !important;
   }
 
   .leaderboard-avatar-wrap {

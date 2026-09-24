@@ -67,3 +67,23 @@ test('READY waiting time and ignored pause-zone taps do not shift tick zero', ()
   assert.deepEqual(recorder.snapshot().taps, [0]);
   assert.equal(recorder.snapshot().tick, 0);
 });
+
+test('new verified runs carry replay-only visual context without changing physics inputs', () => {
+  const runTicket = ticket(42);
+  const { game } = createCanonicalRunGame({ seed: runTicket.seed });
+  const recorder = new VerifiedRunRecorder(runTicket, {
+    visualContext: { theme: 'france', variant: 'night' },
+  });
+  let submission = null;
+
+  for (let tick = 0; tick < 100 && !submission; tick++) {
+    const input = tick === 0 ? { tap: VERIFIED_RUN_TAP } : {};
+    recorder.beforeTick(game, input);
+    game.tick(input);
+    submission = recorder.afterTick(game);
+  }
+
+  assert.deepEqual(submission.visual_context, { theme: 'france', variant: 'night' });
+  assert.equal('seed' in submission, false);
+  assert.equal('score' in submission, false);
+});

@@ -1,4 +1,4 @@
-# Leaderboard - contrat v0.2.7.3b-dev5
+# Leaderboard - contrat v0.2.7.6b
 
 ## Objectif
 
@@ -13,12 +13,14 @@ La migration `supabase/004_leaderboard.sql` crée `public.get_leaderboard(limit_
 3. en cas de plusieurs runs au même meilleur score, conserve le plus ancien `resolved_at`;
 4. joint uniquement les champs publics du profil (`username`, `display_name`, `avatar_url`);
 5. classe les joueurs par score décroissant puis date d'accomplissement croissante;
-6. limite la réponse à 100 joueurs.
+6. expose le `run_id` du meilleur run afin de pouvoir demander son replay ;
+7. limite la réponse à 100 joueurs.
 
 La table `verified_runs` reste sans privilège direct pour `anon` et `authenticated`. La fonction `security definer` n'expose que :
 
 ```text
 rank
+run_id
 player_id
 username
 display_name
@@ -27,7 +29,9 @@ score
 achieved_at
 ```
 
-Aucune seed, liste de taps, collision, empreinte de replay ou raison de rejet n'est publiée.
+La liste principale ne publie toujours aucune seed, liste de taps, collision, empreinte de replay ou raison de rejet.
+
+Depuis `v0.2.7.6b`, `get_leaderboard_replay(target_run_id)` permet ensuite de récupérer les seules entrées nécessaires au visionnage du record affiché. Le RPC refuse implicitement tout run qui n'est plus le meilleur run vérifié de son joueur et n'accorde aucun `SELECT` direct sur `verified_runs`. Voir [`REPLAYS.md`](./REPLAYS.md).
 
 ## Accès public
 
@@ -46,6 +50,8 @@ Le bouton SCORES du menu Flappy Bird 1.3 reste le point d'entrée naturel. Depui
 Le Top 100 possède son propre scroll interne afin que le header, l'état de chargement, l'action `ACTUALISER`, la mention de connexion et la provenance des scores restent lisibles. La modale est responsive sur mobile et bloque les entrées/simulation de jeu tant qu'elle est ouverte.
 
 Le joueur courant est surligné lorsqu'il apparaît dans le Top 100. Un bouton `ACTUALISER` force une nouvelle lecture; sinon un classement chargé depuis moins d'une minute est réutilisé pendant la session de page.
+
+Chaque ligne possède également un bouton **VOIR** lorsque son `run_id` est disponible. Il ouvre une modale Replay au-dessus du leaderboard et lance automatiquement la relecture déterministe. Le bouton est désactivé hors connexion.
 
 ## Hors connexion réseau
 

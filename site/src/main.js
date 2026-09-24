@@ -14,6 +14,7 @@ import {
 import { Game } from './game.js';
 import { PerfProfiler } from './perf.js';
 import { PwaUpdateManager } from './pwa/update-manager.js';
+import { ReplayViewer } from './replay/replay-viewer.js';
 import { ScoreSyncController } from './session/score-sync.js';
 import { VerifiedPlayController } from './session/verified-play.js';
 import { AccountUI, providerLabel } from './ui/account.js';
@@ -28,7 +29,7 @@ import {
 } from './themes.js';
 import { createCanonicalRunGame } from './verified-runs.js';
 
-const VERSION = '0.2.7.5b';
+const VERSION = '0.2.7.6b';
 const BEST_SCORE_KEY = 'flappy13-personal-best-v1';
 const SETTINGS_KEY = 'flappy13-settings-v1';
 const runtimeConfig = globalThis.FLAPPY_CONFIG && typeof globalThis.FLAPPY_CONFIG === 'object'
@@ -54,6 +55,7 @@ const stage = $('stage');
 const options = $('options');
 const profileDialog = $('profile-dialog');
 const leaderboardDialog = $('leaderboard-dialog');
+const replayDialog = $('replay-dialog');
 const unrankedWarning = $('unranked-warning');
 const audio = new Audio({ version: VERSION });
 const auth = new AuthClient({
@@ -78,6 +80,7 @@ const leaderboardUI = new LeaderboardUI({
   dialog: leaderboardDialog,
   toast,
   getElement: $,
+  onWatchReplay: row => openLeaderboardReplay(row),
 });
 async function linkAccountProvider(provider) {
   try {
@@ -145,6 +148,7 @@ const verifiedPlay = new VerifiedPlayController({
   prepareVisualThemeForRun,
   activatePendingVisualTheme,
   cancelPendingVisualTheme: () => { pendingVisualTheme = null; },
+  getVisualContextForRun: captureVisualContextForRun,
   installVerifiedGame,
   isCurrentGame: candidate => game === candidate,
   saveBest,
@@ -153,6 +157,7 @@ const verifiedPlay = new VerifiedPlayController({
 
 let game;
 let renderer;
+let replayViewer = null;
 let themeCatalog = null;
 let paused = false;
 let debug = false;
@@ -533,6 +538,24 @@ function currentThemeDayNight() {
   return effectiveDayNight(game?.background ?? 'bg_day', activeVisualTheme.variant);
 }
 
+function captureVisualContextForRun() {
+  if (!activeVisualTheme?.theme) return null;
+  return {
+    theme: activeVisualTheme.theme,
+    variant: currentThemeDayNight(),
+  };
+}
+
+function openLeaderboardReplay(row) {
+  if (!replayViewer) {
+    toast('Le lecteur de replay est encore en cours de chargement.');
+    return;
+  }
+
+  audio.unlock('replay-open');
+  void replayViewer.open(row);
+}
+
 function updateThemeDebugStatus() {
   const status = $('debug-theme-status');
   const variantRow = $('debug-variant-row');
@@ -648,7 +671,7 @@ function setProfileAtlasIcon() {
 }
 
 function setCloseAtlasIcons() {
-  for (const id of ['close-options-icon', 'close-profile-icon', 'close-leaderboard-icon']) {
+  for (const id of ['close-options-icon', 'close-profile-icon', 'close-leaderboard-icon', 'close-replay-icon']) {
     setAtlasIcon(id, 'button_close', CLOSE_ATLAS_SCALE);
   }
 }
@@ -1473,6 +1496,15 @@ async function boot() {
 
     themeCatalog = atlas.themes;
     renderer = new Renderer(canvas, atlas);
+    replayViewer = new ReplayViewer({
+      dialog: replayDialog,
+      canvas: $('replay-canvas'),
+      client: leaderboardClient,
+      atlas,
+      audio,
+      getElement: $,
+      toast,
+    });
     game = new Game({
       seed,
       best,

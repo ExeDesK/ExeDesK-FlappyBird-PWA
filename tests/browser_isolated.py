@@ -30,6 +30,7 @@ MODULE_ORDER = [
     'replay/verified-run-recorder.js',
     'themes.js',
     'atlas.js',
+    'replay/replay-viewer.js',
     'audio.js',
     'leaderboard.js',
     'api/http.js',
@@ -100,6 +101,10 @@ def build_embedded_page(site_root: Path) -> tuple[str, str]:
             script = script.replace(
                 'const accountUI = new AccountUI(',
                 'const accountUI = window.__accountUI = new AccountUI(',
+            )
+            script = script.replace(
+                'replayViewer = new ReplayViewer(',
+                'replayViewer = window.__replayViewer = new ReplayViewer(',
             )
 
         if name == 'atlas.js':
@@ -238,6 +243,49 @@ def main() -> None:
         assert abs((game_right - 10) - (menu_box['x'] + menu_box['width'])) < 0.75
         assert profile_box['x'] >= game_box['x']
         page.screenshot(path=str(output / 'menu.png'))
+
+        # Leaderboard replays run on their own canvas and deterministic 60 Hz
+        # simulation. Stub only the public RPC transport here so the browser
+        # harness exercises the real ReplayViewer, renderer and modal lifecycle.
+        page.evaluate("""
+          () => {
+            window.__replayViewer.client.fetchReplay = async () => ({
+              run_id: '11111111-1111-4111-8111-111111111111',
+              player_id: '22222222-2222-4222-8222-222222222222',
+              seed: 42,
+              physics_version: 'flappy13-physics-v1',
+              terminal_tick: 53,
+              taps: [0],
+              score: 0,
+              collision: 'ground',
+              theme: 'france',
+              variant: 'night',
+              resolved_at: '2026-09-24T12:00:00.000Z',
+            });
+            return window.__replayViewer.open({
+              run_id: '11111111-1111-4111-8111-111111111111',
+              player_id: '22222222-2222-4222-8222-222222222222',
+              display_name: 'Replay Bird',
+              score: 0,
+            });
+          }
+        """)
+        page.wait_for_selector('#replay-dialog', state='visible')
+        page.wait_for_function(
+            "document.querySelector('#replay-status').textContent.startsWith('TERMINÉ')",
+            timeout=5000,
+        )
+        assert page.text_content('#replay-player') == 'Replay Bird'
+        assert page.text_content('#replay-score') == '0'
+        assert 'FRANCE' in page.text_content('#replay-context')
+        assert 'NUIT' in page.text_content('#replay-context')
+        assert 'ALÉATOIRE' not in page.text_content('#replay-context')
+        assert not page.is_disabled('#replay-restart')
+        assert not page.is_hidden('#replay-canvas')
+        assert page.evaluate('flappy.audio.lastSound') == 'hit'
+        page.screenshot(path=str(output / 'leaderboard-replay.png'))
+        page.click('#close-replay')
+        page.wait_for_selector('#replay-dialog', state='hidden')
 
         # RATE is intentionally unavailable in the PWA for now. Releasing it
         # must keep the player on MENU, keep Options closed, and show a friendly

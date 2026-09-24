@@ -8,7 +8,7 @@ L'objectif n'est pas de produire un simple clone « inspiré de » Flappy Bird, 
 
 Le gameplay fonctionne entièrement côté client, sans framework, et peut être installé comme une application sur Windows, iPhone/iPad et Android. Les fonctions communautaires utilisent un backend Supabase facultatif : aucun compte n'est nécessaire pour jouer.
 
-> **État du projet : bêta — v0.2.7.5b**
+> **État du projet : bêta — v0.2.7.6b**
 
 - Statistiques joueur : carrière + fenêtres 10 / 25 / 50 calculées uniquement depuis les runs vérifiées.
 > Sur iPhone/iPad ProMotion, un statut dynamique dans les options Performance mesure la cadence rAF sur iOS : il confirme la haute fréquence lorsqu’elle est active, sinon il propose le réglage Safari et un tutoriel au timecode utile.
@@ -31,6 +31,7 @@ Le gameplay fonctionne entièrement côté client, sans framework, et peut être
 - Synchronisation du meilleur score entre appareils en conservant toujours la valeur la plus élevée.
 - Verified Runs : ticket/seed serveur, capture déterministe, file locale auto-réparante, soumission différée et relecture autoritaire avant validation ou rejet du score.
 - Classement global public dans une modale dédiée : consultation sans compte, uniquement des runs vérifiés et un seul meilleur score par joueur.
+- Chaque ligne du leaderboard propose désormais **VOIR** : le lecteur reconstruit le run vérifié depuis sa seed et ses taps autoritaires. Les nouvelles runs rejouent aussi le **même thème et la même variante jour/nuit** ; les anciennes runs sans contexte enregistré utilisent volontairement un contexte visuel aléatoire.
 - Contexte personnel authentifié dans le classement : rang global réel, record vérifié, nombre lifetime de runs vérifiées et date du record, y compris hors Top 100.
 - Statistiques lifetime autoritaires côté Supabase (`player_stats`) : parties vérifiées, score cumulé, record historique et causes de mort, sans aucune statistique envoyée par le client.
 - Rétention des replays vérifiés : **50 dernières parties + meilleur run historique** par joueur, afin de borner le stockage tout en conservant le record et une fenêtre récente exploitable pour les futures statistiques court terme.
@@ -91,6 +92,7 @@ Les notes détaillées sont disponibles dans :
 - [`docs/ACCOUNT-LINKING.md`](./docs/ACCOUNT-LINKING.md)
 - [`docs/VERIFIED-RUNS.md`](./docs/VERIFIED-RUNS.md)
 - [`docs/LEADERBOARD.md`](./docs/LEADERBOARD.md)
+- [`docs/REPLAYS.md`](./docs/REPLAYS.md)
 - [`docs/PLAYER-STATS.md`](./docs/PLAYER-STATS.md)
 - [`docs/RETENTION.md`](./docs/RETENTION.md)
 - [`docs/THEMES.md`](./docs/THEMES.md)
@@ -143,6 +145,7 @@ site/
 │   ├── pwa/
 │   │   └── update-manager.js       Cycle de mise à jour Service Worker
 │   ├── replay/
+│   │   ├── replay-viewer.js         Lecteur déterministe des records du leaderboard
 │   │   └── verified-run-recorder.js Capture déterministe des taps
 │   ├── session/
 │   │   ├── score-sync.js           Synchronisation du record
@@ -447,3 +450,5 @@ Depuis la v0.2.6b, chaque push et chaque pull request compare automatiquement le
 - Le bouton **RATE** affiche désormais un toast convivial indiquant que la notation n’est pas encore disponible, sans quitter l’écran du jeu.
 
 > Hotfix permissions : après `012_profile_customization.sql`, exécuter aussi `supabase/013_profile_permissions_hotfix.sql` sur une base déjà déployée en dev11 afin de rétablir les grants PostgREST nécessaires à la personnalisation du profil.
+
+> Replay leaderboard : pour `v0.2.7.6b`, exécuter ensuite `supabase/014_replay_viewing.sql`, redéployer l'Edge Function `run-submit`, puis seulement publier le frontend. `run-start` ne change pas.
