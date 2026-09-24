@@ -29,7 +29,7 @@ import {
 } from './themes.js';
 import { createCanonicalRunGame } from './verified-runs.js';
 
-const VERSION = '0.2.7.7b-hotfix3';
+const VERSION = '0.2.7.7b-hotfix4';
 const BEST_SCORE_KEY = 'flappy13-personal-best-v1';
 const SETTINGS_KEY = 'flappy13-settings-v1';
 const runtimeConfig = globalThis.FLAPPY_CONFIG && typeof globalThis.FLAPPY_CONFIG === 'object'

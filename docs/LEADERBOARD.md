@@ -1,4 +1,4 @@
-# Leaderboard - contrat v0.2.7.7b-hotfix3
+# Leaderboard - contrat v0.2.7.7b-hotfix4
 
 ## Objectif
 
@@ -33,15 +33,24 @@ Depuis `v0.2.7.6b`, `get_leaderboard_replay(target_run_id)` permet ensuite de r�
 
 Depuis `v0.2.7.7b-hotfix3`, `get_leaderboard()` et cette autorisation s'appuient sur la même source autoritaire `player_stats`. Le replay ne réexécute plus le RPC leaderboard : il lit directement les 100 premiers `best_run_id` via le même index couvrant. Le contrat public et l'ordre du classement restent inchangés.
 
-## Accès public
+## Accès public et actualisation authentifiée
 
-`get_leaderboard()` est exécutable par `anon` et `authenticated`. Le frontend l'appelle volontairement avec la publishable key, sans JWT utilisateur, ce qui garantit que le chemin de lecture fonctionne aussi pour un visiteur non connecté.
+`get_leaderboard()` reste exécutable par `anon` et `authenticated`. Le frontend l'utilise comme chemin de **lecture publique initiale** avec la publishable key, sans JWT utilisateur, afin que le classement reste visible sans compte.
+
+Depuis `v0.2.7.7b-hotfix4`, toute actualisation live après la lecture initiale — ainsi que toute actualisation forcée — utilise séparément `get_leaderboard_refresh(limit_count)`. Cette RPC exige un JWT utilisateur et est limitée côté PostgreSQL à **6 requêtes par fenêtre de 60 secondes et par joueur**. Le bouton `ACTUALISER` est donc désactivé sans session ; après une actualisation manuelle réussie, le client applique en plus un cooldown UX de 10 s. Le rate limit serveur reste l'autorité pour les appels directs.
 
 Un visiteur sans session voit la mention :
 
-> Se connecter pour apparaître sur le classement.
+> Connectez-vous pour visionner les replays et actualiser le classement.
 
-La consultation reste disponible. Pour apparaître, un joueur doit se connecter puis produire au moins un run vérifié.
+La consultation du Top 100 reste disponible. Un visiteur anonyme ne peut simplement pas forcer une nouvelle lecture avant l'expiration du cache de session local (60 s). Pour apparaître, un joueur doit se connecter puis produire au moins un run vérifié.
+
+
+## Limiteur de lecture serveur — hotfix4
+
+`supabase/016_authenticated_replay_rate_limits.sql` ajoute `public.read_rpc_rate_limits`, table serveur sans droits directs navigateur. Elle conserve au maximum deux compteurs par joueur (`leaderboard_refresh`, `leaderboard_replay`). `consume_read_rpc_rate_limit()` sérialise les requêtes concurrentes avec `pg_advisory_xact_lock`, puis incrémente une fenêtre fixe atomique. Une limite atteinte renvoie HTTP `429` avec `Retry-After`.
+
+Le replay autorise **10 payloads / 60 s / joueur** ; l'actualisation live du classement autorise **6 refreshes / 60 s / joueur**. Le rôle `service_role` est exempt pour les opérations serveur.
 
 ## Interface
 
@@ -49,9 +58,9 @@ Le bouton SCORES du menu Flappy Bird 1.3 reste le point d'entrée naturel. Depui
 
 Le Top 100 possède son propre scroll interne afin que le header, l'état de chargement, l'action `ACTUALISER`, la mention de connexion et la provenance des scores restent lisibles. La modale est responsive sur mobile et bloque les entrées/simulation de jeu tant qu'elle est ouverte.
 
-Le joueur courant est surligné lorsqu'il apparaît dans le Top 100. Un bouton `ACTUALISER` force une nouvelle lecture; sinon un classement chargé depuis moins d'une minute est réutilisé pendant la session de page.
+Le joueur courant est surligné lorsqu'il apparaît dans le Top 100. Pour un joueur connecté, le bouton `ACTUALISER` force une lecture via la RPC authentifiée/rate-limitée ; sinon un classement chargé depuis moins d'une minute est réutilisé pendant la session de page. Pour un visiteur anonyme, le bouton reste désactivé.
 
-Chaque ligne possède également un bouton **VOIR** lorsque son `run_id` est disponible. Il ouvre une modale Replay au-dessus du leaderboard et lance automatiquement la relecture déterministe. Le bouton est désactivé hors connexion.
+Chaque ligne possède également un bouton **VOIR** lorsque son `run_id` est disponible. Depuis `v0.2.7.7b-hotfix4`, ce bouton exige une session authentifiée en plus du réseau : le payload `seed` / taps n'est plus accessible au rôle `anon`.
 
 ## Hors connexion réseau
 

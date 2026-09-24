@@ -78,7 +78,7 @@ test('leaderboard payload is normalized and keeps one unique player per row', ()
   );
 });
 
-test('public leaderboard replay RPC exposes deterministic inputs without authentication', async () => {
+test('leaderboard replay RPC requires authentication and sends the player JWT', async () => {
   const restoreNavigator = installNavigator(true);
   const previousFetch = globalThis.fetch;
   let request = null;
@@ -104,12 +104,37 @@ test('public leaderboard replay RPC exposes deterministic inputs without authent
   };
 
   try {
-    const leaderboard = new LeaderboardClient(config);
+    const leaderboard = new LeaderboardClient({
+      ...config,
+      getAccessToken: async () => 'access-token',
+    });
     const replay = await leaderboard.fetchReplay(rows[0].run_id);
     assert.deepEqual(replay, payload[0]);
     assert.equal(request.url, 'https://project-ref.supabase.co/rest/v1/rpc/get_leaderboard_replay');
-    assert.equal('Authorization' in request.init.headers, false);
+    assert.equal(request.init.headers.Authorization, 'Bearer access-token');
     assert.deepEqual(JSON.parse(request.init.body), { target_run_id: rows[0].run_id });
+  } finally {
+    globalThis.fetch = previousFetch;
+    restoreNavigator();
+  }
+});
+
+test('leaderboard replay client refuses to request seed/taps without a session token', async () => {
+  const restoreNavigator = installNavigator(true);
+  const previousFetch = globalThis.fetch;
+  let called = false;
+  globalThis.fetch = async () => {
+    called = true;
+    throw new Error('fetch should not run');
+  };
+
+  try {
+    const leaderboard = new LeaderboardClient(config);
+    await assert.rejects(
+      () => leaderboard.fetchReplay(rows[0].run_id),
+      /connexion requise/i,
+    );
+    assert.equal(called, false);
   } finally {
     globalThis.fetch = previousFetch;
     restoreNavigator();
@@ -212,6 +237,72 @@ test('public leaderboard RPC works without an authenticated session', async () =
   }
 });
 
+test('authenticated leaderboard refresh uses the rate-limited RPC and player JWT', async () => {
+  const restoreNavigator = installNavigator(true);
+  const previousFetch = globalThis.fetch;
+  let request = null;
+  globalThis.fetch = async (input, init = {}) => {
+    request = { url: String(input), init };
+    return new Response(JSON.stringify(rows), {
+      status: 200,
+      headers: { 'Content-Type': 'application/json' },
+    });
+  };
+
+  try {
+    const leaderboard = new LeaderboardClient({
+      ...config,
+      getAccessToken: async () => 'refresh-token',
+    });
+    const result = await leaderboard.fetchLeaderboard({
+      limit: 100,
+      authenticatedRefresh: true,
+    });
+    assert.equal(result.length, 2);
+    assert.equal(request.url, 'https://project-ref.supabase.co/rest/v1/rpc/get_leaderboard_refresh');
+    assert.equal(request.init.headers.Authorization, 'Bearer refresh-token');
+  } finally {
+    globalThis.fetch = previousFetch;
+    restoreNavigator();
+  }
+});
+
+test('leaderboard client preserves server retry-after metadata for rate limits', async () => {
+  const restoreNavigator = installNavigator(true);
+  const previousFetch = globalThis.fetch;
+  globalThis.fetch = async () => new Response(JSON.stringify({
+    code: 'rate_limited',
+    message: 'Actualisation du classement limitée.',
+    details: { retry_after_seconds: 17 },
+  }), {
+    status: 429,
+    headers: { 'Content-Type': 'application/json', 'Retry-After': '17' },
+  });
+
+  try {
+    const leaderboard = new LeaderboardClient({
+      ...config,
+      getAccessToken: async () => 'refresh-token',
+    });
+    await assert.rejects(
+      async () => {
+        try {
+          await leaderboard.fetchLeaderboard({ authenticatedRefresh: true });
+        } catch (error) {
+          assert.equal(error.status, 429);
+          assert.equal(error.code, 'rate_limited');
+          assert.equal(error.retryAfterSeconds, 17);
+          throw error;
+        }
+      },
+      /limitée/i,
+    );
+  } finally {
+    globalThis.fetch = previousFetch;
+    restoreNavigator();
+  }
+});
+
 test('leaderboard SQL exposes only verified per-player best scores through a public RPC', async () => {
   const sql = await readFile(new URL('../supabase/004_leaderboard.sql', import.meta.url), 'utf8');
   assert.match(sql, /create or replace function public\.get_leaderboard/i);
@@ -260,6 +351,24 @@ test('leaderboard performance migration reads authoritative player stats and rep
   assert.match(sql, /grant execute on function public\.get_leaderboard_replay\(uuid\) to anon, authenticated, service_role/i);
 });
 
+test('replay security migration requires auth and rate-limits replay payloads and live refreshes', async () => {
+  const sql = await readFile(new URL('../supabase/016_authenticated_replay_rate_limits.sql', import.meta.url), 'utf8');
+  assert.match(sql, /create table if not exists public\.read_rpc_rate_limits/i);
+  assert.match(sql, /primary key \(player_id, bucket\)/i);
+  assert.match(sql, /pg_advisory_xact_lock/i);
+  assert.match(sql, /'leaderboard_refresh'[\s\S]*6[\s\S]*60/i);
+  assert.match(sql, /'leaderboard_replay'[\s\S]*10[\s\S]*60/i);
+  assert.match(sql, /create or replace function public\.get_leaderboard_refresh\(limit_count integer default 100\)/i);
+  assert.match(sql, /revoke all on function public\.get_leaderboard_refresh\(integer\) from public, anon/i);
+  assert.match(sql, /grant execute on function public\.get_leaderboard_refresh\(integer\) to authenticated, service_role/i);
+  assert.match(sql, /revoke all on function public\.get_leaderboard_replay\(uuid\) from public, anon/i);
+  assert.match(sql, /grant execute on function public\.get_leaderboard_replay\(uuid\) to authenticated, service_role/i);
+  assert.doesNotMatch(sql, /grant execute on function public\.get_leaderboard_replay\(uuid\) to anon/i);
+  assert.match(sql, /'status', 429/i);
+  assert.match(sql, /'Retry-After'/i);
+  assert.doesNotMatch(sql, /grant select on (table )?public\.(verified_runs|player_stats|read_rpc_rate_limits) to anon/i);
+});
+
 test('leaderboard UI is public, dedicated, explains sign-in, and the original scores action opens it', async () => {
   const html = await readFile(new URL('../site/index.html', import.meta.url), 'utf8');
   const main = await readFile(new URL('../site/src/main.js', import.meta.url), 'utf8');
@@ -267,14 +376,17 @@ test('leaderboard UI is public, dedicated, explains sign-in, and the original sc
   const css = await readFile(new URL('../site/style.css', import.meta.url), 'utf8');
   assert.match(html, /<dialog id="leaderboard-dialog"/);
   assert.match(html, /id="close-leaderboard"/);
-  assert.match(html, /Se connecter pour appara\u00eetre sur le classement\./);
+  assert.match(html, /Connectez-vous pour visionner les replays et actualiser le classement\./);
   assert.match(html, /UNIQUEMENT LES RUNS V\u00c9RIFI\u00c9S/);
   assert.match(html, /<dialog id="replay-dialog"/);
   assert.doesNotMatch(html, /id="leaderboard-card"/);
   assert.match(main, /type === 'local-scores'[\s\S]*openLeaderboard\(\{ force: true \}\)/);
   assert.match(main, /const leaderboardDialog = \$\('leaderboard-dialog'\)/);
   assert.match(main, /leaderboardDialog\.showModal\(\)/);
-  assert.match(leaderboardUi, /client\.fetchLeaderboard\(\{ limit: 100 \}\)/);
+  assert.match(leaderboardUi, /authenticatedRefresh/);
+  assert.match(leaderboardUi, /refresh\.disabled =[\s\S]*!authenticated/);
+  assert.match(leaderboardUi, /replay\.disabled =[\s\S]*!authenticated/);
+  assert.match(leaderboardUi, /MANUAL_REFRESH_COOLDOWN_MS = 10 \* 1000/);
   assert.match(leaderboardUi, /leaderboard-replay-button/);
   assert.match(main, /new ReplayViewer/);
   assert.match(leaderboardUi, /leaderboard-login-hint/);

@@ -2,6 +2,7 @@ import { leaderboardName } from '../leaderboard.js';
 import { applyGeneratedAvatarFallback } from './avatar-fallback.js';
 
 const DEFAULT_STALE_MS = 60 * 1000;
+const MANUAL_REFRESH_COOLDOWN_MS = 10 * 1000;
 
 function formatLeaderboardDate(value) {
   const date = new Date(value);
@@ -40,6 +41,8 @@ export class LeaderboardUI {
     this.state = 'idle';
     this.promise = null;
     this.loadedAt = 0;
+    this.manualRefreshCooldownUntil = 0;
+    this.manualRefreshTimer = null;
 
     this.context = null;
     this.contextState = 'idle';
@@ -253,10 +256,20 @@ export class LeaderboardUI {
     const refresh = this.$('refresh-leaderboard');
     const currentPlayerId = this.currentPlayerId(state);
 
-    this.$('leaderboard-login-hint').hidden = this.signedIn(state);
+    const authenticated = Boolean(this.auth.session && this.signedIn(state));
+    const refreshCoolingDown = Date.now() < this.manualRefreshCooldownUntil;
+
+    this.$('leaderboard-login-hint').hidden = authenticated;
     refresh.disabled = !this.auth.configured
+      || !authenticated
       || (typeof navigator !== 'undefined' && !navigator.onLine)
-      || this.state === 'loading';
+      || this.state === 'loading'
+      || refreshCoolingDown;
+    refresh.title = !authenticated
+      ? 'Connectez-vous pour actualiser le classement.'
+      : refreshCoolingDown
+        ? 'Actualisation disponible dans quelques secondes.'
+        : 'Actualiser le classement.';
     this.renderContext(state);
     this.renderPerformance(state);
 
@@ -329,8 +342,14 @@ export class LeaderboardUI {
       replay.type = 'button';
       replay.className = 'leaderboard-replay-button';
       replay.textContent = 'VOIR';
-      replay.disabled = !row.run_id || (typeof navigator !== 'undefined' && !navigator.onLine);
-      replay.title = row.run_id ? 'Visionner cette run' : 'Replay indisponible';
+      replay.disabled = !row.run_id
+        || !authenticated
+        || (typeof navigator !== 'undefined' && !navigator.onLine);
+      replay.title = !row.run_id
+        ? 'Replay indisponible'
+        : !authenticated
+          ? 'Connectez-vous pour visionner les replays.'
+          : 'Visionner cette run';
       replay.setAttribute('aria-label', `Visionner la run de ${leaderboardName(row)}`);
       replay.addEventListener('click', () => {
         if (row.run_id) this.onWatchReplay?.(row);
@@ -352,7 +371,15 @@ export class LeaderboardUI {
       return this.rows;
     }
 
-    if (!force && this.state === 'loaded' && Date.now() - this.loadedAt < this.staleMs) {
+    const authenticatedRefresh = Boolean(
+      this.auth.session && (force || this.state === 'loaded'),
+    );
+    const effectiveForce = Boolean(force && this.auth.session);
+
+    // Signed-out players keep the public read-only leaderboard, but cannot force
+    // a live refresh. Signed-in players use the authenticated/rate-limited RPC
+    // for every refresh after the initial public read.
+    if (!effectiveForce && this.state === 'loaded' && Date.now() - this.loadedAt < this.staleMs) {
       this.render();
       return this.rows;
     }
@@ -362,14 +389,37 @@ export class LeaderboardUI {
 
     this.promise = (async () => {
       try {
-        this.rows = await this.client.fetchLeaderboard({ limit: 100 });
+        this.rows = await this.client.fetchLeaderboard({
+          limit: 100,
+          authenticatedRefresh,
+        });
         this.state = 'loaded';
         this.loadedAt = Date.now();
+
+        if (notify && authenticatedRefresh) {
+          this.manualRefreshCooldownUntil = Date.now() + MANUAL_REFRESH_COOLDOWN_MS;
+          if (this.manualRefreshTimer !== null) clearTimeout(this.manualRefreshTimer);
+          this.manualRefreshTimer = setTimeout(() => {
+            this.manualRefreshTimer = null;
+            this.render();
+          }, MANUAL_REFRESH_COOLDOWN_MS + 50);
+        }
+
         return this.rows;
       } catch (error) {
-        this.state = 'error';
+        const rateLimited = error?.status === 429 || error?.code === 'rate_limited';
+        this.state = rateLimited && this.rows.length ? 'loaded' : 'error';
         console.warn('[Leaderboard] Chargement impossible.', error);
-        if (notify) this.toast?.('Impossible d’actualiser le classement.');
+        if (notify) {
+          if (rateLimited) {
+            const retry = Number(error?.retryAfterSeconds || 0);
+            this.toast?.(retry > 0
+              ? `Actualisation limitée. Réessayez dans ${retry} s.`
+              : 'Actualisation limitée. Réessayez dans quelques instants.');
+          } else {
+            this.toast?.('Impossible d’actualiser le classement.');
+          }
+        }
         return this.rows;
       } finally {
         this.promise = null;

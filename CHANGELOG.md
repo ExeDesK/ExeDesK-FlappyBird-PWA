@@ -1,3 +1,14 @@
+## v0.2.7.7b-hotfix4 - Authenticated replays & read rate limits
+
+- Réserve désormais `get_leaderboard_replay(target_run_id)` aux joueurs **authentifiés** : `anon` n'a plus le droit `EXECUTE`, et le frontend envoie obligatoirement le JWT Supabase avant de demander `seed` / `tap_ticks`.
+- Ajoute `supabase/016_authenticated_replay_rate_limits.sql` et une table serveur `read_rpc_rate_limits`, sans aucun droit direct pour `anon` / `authenticated`.
+- Limite le chargement des payloads replay à **10 requêtes / 60 s / joueur** avec compteur atomique protégé par advisory lock et réponse HTTP `429` + `Retry-After`.
+- Conserve le leaderboard principal publiquement lisible, mais sépare l'**actualisation live** dans `get_leaderboard_refresh()` : RPC authentifiée limitée à **6 requêtes / 60 s / joueur**.
+- Les visiteurs non connectés peuvent toujours ouvrir le classement public, mais ne peuvent plus forcer son rafraîchissement ni ouvrir un replay ; leur lecture publique est réutilisée pendant la fenêtre locale de 60 s.
+- Ajoute un cooldown UX de **10 s** sur le bouton `ACTUALISER` après une actualisation manuelle réussie ; le rate limit serveur reste l'autorité et protège aussi les appels directs.
+- Les erreurs `429` conservent `retry_after_seconds` / `Retry-After` côté client afin d'afficher un message explicite sans casser le classement déjà chargé.
+- Aucun changement de physique, Verified Runs, payload de run-submit ou Edge Function ; seule la migration `016` est requise après `015`.
+
 ## v0.2.7.7b-hotfix3 - Replay RPC performance
 
 - Optimise le chemin de lecture du classement : `get_leaderboard()` lit désormais les agrégats autoritaires `public.player_stats` au lieu de refaire un `DISTINCT ON` sur `verified_runs` à chaque rafraîchissement.

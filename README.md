@@ -8,7 +8,7 @@ L'objectif n'est pas de produire un simple clone « inspiré de » Flappy Bird, 
 
 Le gameplay fonctionne entièrement côté client, sans framework, et peut être installé comme une application sur Windows, iPhone/iPad et Android. Les fonctions communautaires utilisent un backend Supabase facultatif : aucun compte n'est nécessaire pour jouer.
 
-> **État du projet : bêta — v0.2.7.7b-hotfix3**
+> **État du projet : bêta — v0.2.7.7b-hotfix4**
 
 - Statistiques joueur : carrière + fenêtres 10 / 25 / 50 calculées uniquement depuis les runs vérifiées.
 > Sur iPhone/iPad ProMotion, un statut dynamique dans les options Performance mesure la cadence rAF sur iOS : il confirme la haute fréquence lorsqu’elle est active, sinon il propose le réglage Safari et un tutoriel au timecode utile.
@@ -31,7 +31,8 @@ Le gameplay fonctionne entièrement côté client, sans framework, et peut être
 - Synchronisation du meilleur score entre appareils en conservant toujours la valeur la plus élevée.
 - Verified Runs : ticket/seed serveur, capture déterministe, file locale auto-réparante, soumission différée et relecture autoritaire avant validation ou rejet du score.
 - Classement global public dans une modale dédiée : consultation sans compte, uniquement des runs vérifiés et un seul meilleur score par joueur. Le Top 100 est lu depuis l’agrégat serveur autoritaire `player_stats`, indexé pour éviter de redédupliquer les runs à chaque rafraîchissement.
-- Chaque ligne du leaderboard propose **VOIR** : le lecteur reconstruit le run vérifié depuis sa seed et ses taps autoritaires. Les nouvelles runs rejouent aussi le **même thème et la même variante jour/nuit** ; les anciennes runs sans contexte enregistré utilisent volontairement un contexte visuel aléatoire. Le lecteur propose lecture/pause, restart, vitesses **×1 / ×1,5 / ×2 / ×5**, hitbox et une timeline draggable de 240 px dont le curseur est l'oiseau rouge original animé par le tick.
+- Pour les joueurs **connectés**, chaque ligne du leaderboard propose **VOIR** : le lecteur reconstruit le run vérifié depuis sa seed et ses taps autoritaires. Les nouvelles runs rejouent aussi le **même thème et la même variante jour/nuit** ; les anciennes runs sans contexte enregistré utilisent volontairement un contexte visuel aléatoire. Le lecteur propose lecture/pause, restart, vitesses **×1 / ×1,5 / ×2 / ×5**, hitbox et une timeline draggable de 240 px dont le curseur est l'oiseau rouge original animé par le tick. Les payloads replay sont limités à 10/minute/joueur.
+- Le classement reste **lisible publiquement** sans compte, mais son bouton `ACTUALISER` et les rafraîchissements live utilisent une RPC authentifiée limitée à 6/minute/joueur ; un cooldown UX de 10 s évite les clics répétés.
 - Contexte personnel authentifié dans le classement : rang global réel, record vérifié, nombre lifetime de runs vérifiées et date du record, y compris hors Top 100.
 - Statistiques lifetime autoritaires côté Supabase (`player_stats`) : parties vérifiées, score cumulé, record historique et causes de mort, sans aucune statistique envoyée par le client.
 - Rétention des replays vérifiés : **50 dernières parties + meilleur run historique** par joueur, afin de borner le stockage tout en conservant le record et une fenêtre récente exploitable pour les futures statistiques court terme.
@@ -451,4 +452,4 @@ Depuis la v0.2.6b, chaque push et chaque pull request compare automatiquement le
 
 > Hotfix permissions : après `012_profile_customization.sql`, exécuter aussi `supabase/013_profile_permissions_hotfix.sql` sur une base déjà déployée en dev11 afin de rétablir les grants PostgREST nécessaires à la personnalisation du profil.
 
-> Replay leaderboard : pour `v0.2.7.6b`, exécuter ensuite `supabase/014_replay_viewing.sql`, redéployer l'Edge Function `run-submit`, puis seulement publier le frontend. `run-start` ne change pas.
+> Replay leaderboard : après `supabase/014_replay_viewing.sql` et le redéploiement de `run-submit`, exécuter `supabase/015_replay_rpc_perf.sql`, puis `supabase/016_authenticated_replay_rate_limits.sql` avant de publier le frontend. `run-start` ne change pas.

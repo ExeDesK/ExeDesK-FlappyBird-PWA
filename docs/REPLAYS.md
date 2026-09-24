@@ -1,4 +1,4 @@
-# Replays leaderboard — v0.2.7.7b-hotfix3
+# Replays leaderboard — v0.2.7.7b-hotfix4
 
 ## Objectif
 
@@ -49,11 +49,13 @@ Le seek convertit la position de la timeline en nombre de ticks simulés. La rec
 
 Les hitbox sont un overlay de rendu seulement : 20×20 pour l'oiseau, 52×320 pour chaque demi-tuyau et ligne de sol à `y=400`. Elles ne participent pas à la simulation et ne modifient jamais le résultat vérifié.
 
-## Exposition publique
+## Accès authentifié du payload
 
 `get_leaderboard()` expose le `run_id` correspondant au record affiché.
 
-`get_leaderboard_replay(target_run_id)` est un RPC `security definer` public qui ne retourne le payload de replay que si le run demandé est encore le **record autoritaire d'un joueur présent dans le Top 100 public**. Depuis `v0.2.7.7b-hotfix3`, cette vérification ne rappelle plus `get_leaderboard(100)` : elle lit directement les agrégats autoritaires de `public.player_stats`, maintenus à chaque run vérifiée.
+`get_leaderboard_replay(target_run_id)` est un RPC `security definer` qui ne retourne le payload de replay que si le run demandé est encore le **record autoritaire d'un joueur présent dans le Top 100 public**. Depuis `v0.2.7.7b-hotfix3`, cette vérification ne rappelle plus `get_leaderboard(100)` : elle lit directement les agrégats autoritaires de `public.player_stats`, maintenus à chaque run vérifiée.
+
+Depuis `v0.2.7.7b-hotfix4`, le rôle `anon` n'a plus `EXECUTE` sur ce RPC. Le navigateur doit fournir le JWT Supabase du joueur connecté avant que le backend n'expose `seed`, `terminal_tick` et `tap_ticks`. Le bouton **VOIR** est désactivé pour les visiteurs sans session.
 
 La règle reste strictement la même :
 
@@ -62,13 +64,13 @@ La règle reste strictement la même :
 
 La migration `015_replay_rpc_perf.sql` ajoute un index couvrant partiel sur cette clé de classement. `get_leaderboard()` l'utilise lui-même pour ne lire que le Top demandé, et le RPC replay ne parcourt que les **100 premiers agrégats** avant de joindre le `run_id` demandé à `verified_runs`. Il n'y a donc plus de `DISTINCT ON` des runs au rafraîchissement du classement, ni de deuxième calcul du leaderboard à chaque clic sur **VOIR**.
 
-Aucun `SELECT` direct sur `public.verified_runs` ou `public.player_stats` n'est accordé aux rôles navigateur.
+Aucun `SELECT` direct sur `public.verified_runs`, `public.player_stats` ou `public.read_rpc_rate_limits` n'est accordé aux rôles navigateur. La migration `016_authenticated_replay_rate_limits.sql` limite en outre les payloads replay à **10 requêtes / 60 s / joueur**. Les compteurs sont mis à jour atomiquement et une limite atteinte renvoie `429` avec `Retry-After`.
 
 ## Déploiement Supabase
 
-Pour une base qui possède déjà `014_replay_viewing.sql`, `v0.2.7.7b-hotfix3` demande uniquement :
+Pour une base déjà à jour jusqu'à `015_replay_rpc_perf.sql`, `v0.2.7.7b-hotfix4` demande uniquement :
 
-1. exécuter `supabase/015_replay_rpc_perf.sql` ;
+1. exécuter `supabase/016_authenticated_replay_rate_limits.sql` ;
 2. déployer le frontend.
 
 Aucune Edge Function n'est à redéployer pour ce hotfix.
@@ -78,7 +80,8 @@ Pour une installation neuve qui n'aurait pas encore appliqué le backend du visi
 1. exécuter `supabase/014_replay_viewing.sql` ;
 2. redéployer l'Edge Function `run-submit` ;
 3. exécuter `supabase/015_replay_rpc_perf.sql` ;
-4. déployer ensuite le frontend.
+4. exécuter `supabase/016_authenticated_replay_rate_limits.sql` ;
+5. déployer ensuite le frontend.
 
 `run-start` reste inchangé.
 

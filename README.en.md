@@ -8,7 +8,7 @@ The goal is not to create another Flappy Bird-inspired clone, but to **reproduce
 
 Gameplay runs entirely client-side without a framework and can be installed as an application on Windows, iPhone/iPad and Android. Optional community features use Supabase; no account is required to play.
 
-> **Project status: beta — v0.2.7.7b-hotfix3**
+> **Project status: beta — v0.2.7.7b-hotfix4**
 
 - Player statistics: career + 10 / 25 / 50-run windows derived only from verified runs.
 > On ProMotion iPhone/iPad devices, the Performance options include guidance for the Safari setting that can remove the near-60 Hz page-rendering preference.
@@ -31,7 +31,8 @@ Gameplay runs entirely client-side without a framework and can be installed as a
 - Cross-device best-score sync that always keeps the highest value.
 - Verified Runs: server-issued ticket/seed, deterministic capture, self-healing local queue, deferred submission, and authoritative replay before a score is accepted or rejected.
 - Public global leaderboard in a dedicated modal: readable without an account, built only from verified runs, with one best score per player. The Top 100 read path uses the indexed, server-owned `player_stats` aggregate instead of re-deduplicating verified runs on every refresh.
-- Every leaderboard row has a **VIEW** replay action: the player reconstructs the verified run from its authoritative seed/taps. New runs also replay with the **same theme and day/night variant**; legacy runs without stored visual context intentionally use a random visual context. The viewer provides play/pause, restart, **1x / 1.5x / 2x / 5x** speeds, hitboxes and a fixed 240 px draggable timeline whose handle is the original red bird animated from replay ticks.
+- For **signed-in players**, every leaderboard row has a **VIEW** replay action: the player reconstructs the verified run from its authoritative seed/taps. New runs also replay with the **same theme and day/night variant**; legacy runs without stored visual context intentionally use a random visual context. The viewer provides play/pause, restart, **1x / 1.5x / 2x / 5x** speeds, hitboxes and a fixed 240 px draggable timeline whose handle is the original red bird animated from replay ticks. Replay payloads are limited to 10 requests/minute/player.
+- The leaderboard remains **publicly readable** without an account, while the `REFRESH` action and forced live refreshes use an authenticated RPC limited to 6 requests/minute/player, with a 10-second client cooldown for manual clicks.
 - Authenticated personal leaderboard context: true global rank, verified record, lifetime verified-run count and record date, even outside the Top 100.
 - Authoritative lifetime statistics in Supabase (`player_stats`): verified run count, cumulative score, historical record and death causes, with no player statistics sent by the client.
 - Verified replay retention: **50 most recently started runs + the historical best run** per player, bounding detailed storage while preserving the record and a useful recent window for short-term statistics.
@@ -450,4 +451,4 @@ Since v0.2.6b, every push and pull request automatically compares the PWA engine
 
 > Permissions hotfix: if `012_profile_customization.sql` was already applied on dev11, also run `supabase/013_profile_permissions_hotfix.sql` to restore the PostgREST grants required by profile customization.
 
-> Leaderboard replay: for `v0.2.7.6b`, then run `supabase/014_replay_viewing.sql`, redeploy the `run-submit` Edge Function, and only then publish the frontend. `run-start` is unchanged.
+> Leaderboard replay: after `supabase/014_replay_viewing.sql` and redeploying `run-submit`, run `supabase/015_replay_rpc_perf.sql` and then `supabase/016_authenticated_replay_rate_limits.sql` before publishing the frontend. `run-start` is unchanged.

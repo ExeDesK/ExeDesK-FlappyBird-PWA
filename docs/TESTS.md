@@ -1,9 +1,9 @@
-## v0.2.7.7b-hotfix3 — Replay RPC performance
+## v0.2.7.7b-hotfix4 — Authenticated replays & rate limits
 
-- `tests/leaderboard.test.mjs` vérifie que `015_replay_rpc_perf.sql` remplace le recalcul `get_leaderboard(100)` par un Top 100 sur `player_stats`.
-- Le test exige l'index partiel couvrant `best_score DESC, best_score_at ASC, player_id ASC INCLUDE (best_run_id)`.
-- Le RPC conserve les grants publics via fonction `security definer`, sans accorder de `SELECT` direct sur `verified_runs` ou `player_stats`.
-- Suite complète : `npm test` **204/204** + `python tests/browser_isolated.py` **OK / 0 erreur page** + `python tests/admin_browser_isolated.py` **OK / 0 erreur page** + `git diff --check` **OK**.
+- `tests/leaderboard.test.mjs` vérifie que `get_leaderboard_replay()` exige désormais un JWT, que le client refuse de demander seed/taps sans token et que le rôle `anon` perd le droit `EXECUTE` dans `016_authenticated_replay_rate_limits.sql`.
+- Le même fichier verrouille `get_leaderboard_refresh()` authentifié, les plafonds **10 replay/min** et **6 refresh/min**, l'advisory lock atomique et la propagation `429` / `Retry-After`.
+- Le leaderboard public sans session reste couvert séparément : la lecture initiale continue via `get_leaderboard()`, tandis que l'UI réserve `ACTUALISER` et **VOIR** aux sessions authentifiées.
+- Suite complète : `npm test` **208/208** + `python tests/browser_isolated.py` **OK / 0 erreur** + `python tests/admin_browser_isolated.py` **OK / 0 erreur**.
 
 ## v0.2.7.7b-hotfix2 — Replay Controls visual polish
 
@@ -97,11 +97,11 @@
 - Le cache PWA reste à **51 ressources runtime** : le changement backend n'ajoute aucun asset client, mais le build Service Worker est incrémenté pour publier la nouvelle version.
 - Suite complète : `npm test` (**152/152**) + `python tests/browser_isolated.py` (**OK, 0 erreur page**).
 
-# Rapport de tests - v0.2.7.7b-hotfix3
+# Rapport de tests - v0.2.7.7b-hotfix4
 
 ## Résultat
 
-- **204/204 tests Node passent** avec `npm test`.
+- **208/208 tests Node passent** avec `npm test`.
 - Le bundle concaténé utilisé par le smoke test passe le contrôle de syntaxe JavaScript.
 - Le smoke test Chromium isolé passe sans erreur page et couvre aussi le lecteur de replay réel sur une run déterministe connue (seed/taps, France nuit, score terminal et événement audio `hit`), la composition des modules ES, le catalogue dynamique, le thème Vietnam jour/nuit, le panneau diagnostic repliable, la modale Profil, les boutons utilitaires x1,75 et le module d’abandon de ticket Verified Run.
 - Le smoke test Admin Analytics dédié passe également sans erreur page avec Auth/RPC Supabase mockés et couvre les vues Overview, Joueurs, Rétention et Système.
@@ -132,7 +132,7 @@
 | GitHub Pages | Chemins relatifs vérifiés ; `version.json` reste network-only. |
 | Audio iOS | `interrupted` et `suspended` bloqués, timeout de `resume()`, hard recovery et impulsion silencieuse couverts par des tests dédiés. |
 | Verified Runs | Ticket serveur, capture différée, moteur Edge synchronisé, relecture autoritaire et résolution atomique `verified/rejected`. |
-| Leaderboard | RPC publique sans session, uniquement runs `verified`, meilleur score unique par joueur et absence de données replay exposées. |
+| Leaderboard | Lecture initiale publique, meilleur score unique par joueur, refresh live authentifié/rate-limité et payload replay authentifié/rate-limité. |
 | Player stats | Agrégats lifetime privés, backfill autoritaire, trigger `verified`, causes de mort et absence totale de stats dans la soumission client. |
 | Rétention | 50 runs vérifiées les plus récemment commencées + record historique, plus TTL `issued` 7 j / `rejected` 30 j, Cron horaire, cap de 10 tickets ouverts et rate limit 30/min sur `run-start`. |
 | Contexte personnel | RPC authentifiée basée sur `auth.uid()`, rang global hors Top 100, record/count/date vérifiés et état non classé. |

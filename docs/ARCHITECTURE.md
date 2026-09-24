@@ -69,7 +69,7 @@ Il **ne** contient plus : leaderboard, Verified Runs, soumission de replay ou RP
 
 ### `api/http.js`
 
-Helpers communs aux clients Supabase : validation de la configuration, headers et normalisation des erreurs HTTP.
+Helpers communs aux clients Supabase : validation de la configuration, headers et normalisation des erreurs HTTP. Depuis `v0.2.7.7b-hotfix4`, les erreurs conservent aussi `code`, `details` et `Retry-After` afin que les RPC rate-limitées puissent fournir un retour utilisateur précis.
 
 ### `api/best-score-client.js` — `BestScoreClient`
 
@@ -79,7 +79,9 @@ Ne fait qu'une chose : appeler atomiquement `sync_best_score` et retourner le me
 
 Transport des RPC de classement :
 
-- `get_leaderboard` public ;
+- `get_leaderboard` public pour la lecture initiale ;
+- `get_leaderboard_refresh` authentifié et rate-limité pour les actualisations live après la lecture initiale ;
+- `get_leaderboard_replay` authentifié et rate-limité pour les seed/taps ;
 - contexte personnel authentifié ;
 - statistiques de performance authentifiées.
 
@@ -104,7 +106,7 @@ Capture les taps effectifs par tick et construit la soumission canonique au tick
 
 ### `replay/replay-viewer.js` — `ReplayViewer`
 
-Lecteur visuel des runs leaderboard. Il reconstruit un `Game` canonique depuis la seed, rejoue les taps à 60 Hz, rend le résultat dans un canvas dédié et vérifie le score terminal. Il applique le contexte visuel enregistré lorsqu'il existe ; les runs legacy utilisent un thème + jour/nuit aléatoires. Le transport reste dans `LeaderboardClient.fetchReplay()`.
+Lecteur visuel des runs leaderboard. Il reconstruit un `Game` canonique depuis la seed, rejoue les taps à 60 Hz, rend le résultat dans un canvas dédié et vérifie le score terminal. Il applique le contexte visuel enregistré lorsqu'il existe ; les runs legacy utilisent un thème + jour/nuit aléatoires. Le transport reste dans `LeaderboardClient.fetchReplay()`, qui exige désormais un token Supabase avant tout accès au payload déterministe.
 
 ### `session/verified-run-abandon.js` — `VerifiedRunAbandoner`
 
@@ -132,7 +134,7 @@ Maintient l'état de synchronisation du record et décide quand appeler `BestSco
 
 ### `ui/leaderboard-ui.js` — `LeaderboardUI`
 
-Possède l'état d'affichage du classement : cache court, chargement, contexte personnel, statistiques et rendu de la modale. Les appels réseau restent dans `LeaderboardClient`.
+Possède l'état d'affichage du classement : cache court, chargement, contexte personnel, statistiques et rendu de la modale. Sans session, le Top 100 reste lisible mais **VOIR** / `ACTUALISER` sont désactivés. Avec session, les refresh forcés passent par le chemin authentifié/rate-limité. Les appels réseau restent dans `LeaderboardClient`.
 
 ### `ui/account.js` — `AccountUI`
 
@@ -199,7 +201,7 @@ Côté serveur, `010_admin_analytics.sql` étend les triggers autoritaires exist
 
 ## Hors ligne
 
-Les **57 ressources runtime du jeu** sont précachées par `site/sw.js` en `v0.2.7.7b-hotfix3`, dont le lecteur de replay et ses contrôles. Le dashboard `site/admin/` et ses modules restent volontairement **online-only** et ne sont pas ajoutés au précache : une indisponibilité de l'administration ne peut donc pas empêcher l'installation ou le fonctionnement hors ligne du gameplay.
+Les **57 ressources runtime du jeu** sont précachées par `site/sw.js` en `v0.2.7.7b-hotfix4`, dont le lecteur de replay et ses contrôles. Le dashboard `site/admin/` et ses modules restent volontairement **online-only** et ne sont pas ajoutés au précache : une indisponibilité de l'administration ne peut donc pas empêcher l'installation ou le fonctionnement hors ligne du gameplay.
 
 ## Évolution future
 

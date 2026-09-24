@@ -19,7 +19,10 @@ export class LeaderboardClient {
     return Boolean(this.url && this.publishableKey);
   }
 
-  async fetchLeaderboard({ limit = LEADERBOARD_MAX_ROWS } = {}) {
+  async fetchLeaderboard({
+    limit = LEADERBOARD_MAX_ROWS,
+    authenticatedRefresh = false,
+  } = {}) {
     if (!this.configured) {
       throw new Error('Leaderboard unavailable: Supabase is not configured.');
     }
@@ -34,10 +37,14 @@ export class LeaderboardClient {
       1,
       Math.min(Number(limit) || LEADERBOARD_MAX_ROWS, LEADERBOARD_MAX_ROWS),
     );
-    const response = await fetch(`${this.url}/rest/v1/rpc/get_leaderboard`, {
+    const accessToken = authenticatedRefresh
+      ? await this.#requiredAccessToken('Connexion requise pour actualiser le classement.')
+      : null;
+    const endpoint = authenticatedRefresh ? 'get_leaderboard_refresh' : 'get_leaderboard';
+    const response = await fetch(`${this.url}/rest/v1/rpc/${endpoint}`, {
       method: 'POST',
       headers: {
-        ...supabaseHeaders(this.publishableKey),
+        ...supabaseHeaders(this.publishableKey, accessToken),
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ limit_count: normalizedLimit }),
@@ -64,10 +71,11 @@ export class LeaderboardClient {
       throw error;
     }
 
+    const accessToken = await this.#requiredAccessToken('Connexion requise pour visionner les replays.');
     const response = await fetch(`${this.url}/rest/v1/rpc/get_leaderboard_replay`, {
       method: 'POST',
       headers: {
-        ...supabaseHeaders(this.publishableKey),
+        ...supabaseHeaders(this.publishableKey, accessToken),
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ target_run_id: runId }),

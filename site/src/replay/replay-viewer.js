@@ -292,11 +292,26 @@ export class ReplayViewer {
     } catch (error) {
       if (serial !== this.requestSerial || !this.dialog.open) return;
       console.warn('[Replay] Chargement impossible.', error);
-      this.$('replay-status').textContent = typeof navigator !== 'undefined' && !navigator.onLine
+
+      const offline = typeof navigator !== 'undefined' && !navigator.onLine;
+      const rateLimited = error?.status === 429 || error?.code === 'rate_limited';
+      const authRequired = error?.status === 401 || error?.status === 403
+        || /connexion requise|authentication_required/i.test(String(error?.message || ''));
+      const retry = Number(error?.retryAfterSeconds || 0);
+
+      const message = offline
         ? 'Replay indisponible hors connexion.'
-        : 'Impossible de charger ce replay.';
+        : authRequired
+          ? 'Connectez-vous pour visionner les replays.'
+          : rateLimited
+            ? (retry > 0
+              ? `Trop de replays ouverts. Réessayez dans ${retry} s.`
+              : 'Trop de replays ouverts. Réessayez dans quelques instants.')
+            : 'Impossible de charger ce replay.';
+
+      this.$('replay-status').textContent = message;
       this.$('replay-context').textContent = 'CONTEXTE INDISPONIBLE';
-      this.toast?.('Impossible de charger ce replay.', 5000);
+      this.toast?.(message, 5000);
     }
   }
 
