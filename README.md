@@ -8,7 +8,7 @@ L'objectif n'est pas de produire un simple clone « inspiré de » Flappy Bird, 
 
 Le gameplay fonctionne entièrement côté client, sans framework, et peut être installé comme une application sur Windows, iPhone/iPad et Android. Les fonctions communautaires utilisent un backend Supabase facultatif : aucun compte n'est nécessaire pour jouer.
 
-> **État du projet : bêta — v0.2.7.9b**
+> **État du projet : bêta — v0.2.8b**
 
 - Statistiques joueur : carrière + fenêtres 10 / 25 / 50 calculées uniquement depuis les runs vérifiées.
 > Sur iPhone/iPad ProMotion, un statut dynamique dans les options Performance mesure la cadence rAF sur iOS : il confirme la haute fréquence lorsqu’elle est active, sinon il propose le réglage Safari et un tutoriel au timecode utile.
@@ -30,7 +30,7 @@ Le gameplay fonctionne entièrement côté client, sans framework, et peut être
 - La stratégie de conservation des comptes et le linking multi-provider sont documentés dans [`docs/ACCOUNT-LINKING.md`](./docs/ACCOUNT-LINKING.md). La configuration Google Cloud/Supabase est détaillée dans [`docs/AUTH-GOOGLE.md`](./docs/AUTH-GOOGLE.md).
 - Synchronisation du meilleur score entre appareils en conservant toujours la valeur la plus élevée.
 - Verified Runs : ticket/seed serveur, capture déterministe, file locale auto-réparante, soumission différée et relecture autoritaire avant validation ou rejet du score.
-- Classement global public dans une modale dédiée : consultation sans compte, uniquement des runs vérifiés et un seul meilleur score par joueur. Le Top 100 est lu depuis l’agrégat serveur autoritaire `player_stats`, indexé pour éviter de redédupliquer les runs à chaque rafraîchissement.
+- Classement global public dans une modale dédiée : consultation sans compte, uniquement des runs vérifiés et un seul meilleur score par joueur. Le Top 100 est lu depuis l’agrégat serveur autoritaire `player_stats`, indexé pour éviter de redédupliquer les runs à chaque rafraîchissement. Depuis `v0.2.8b`, chaque ligne affiche aussi la **date et l’heure du record** ; le #1 affiche en plus sa **durée de détention continue du record mondial**, suivie côté serveur sans être remise à zéro lorsqu’il améliore son propre score.
 - Pour les joueurs **connectés**, chaque ligne du leaderboard propose **VOIR** : le lecteur reconstruit le run vérifié depuis sa seed et ses taps autoritaires. Les nouvelles runs rejouent aussi le **même thème et la même variante jour/nuit** ; les anciennes runs sans contexte enregistré utilisent volontairement un contexte visuel aléatoire. Le lecteur propose lecture/pause, restart, vitesses **×1 / ×1,5 / ×2 / ×5**, hitbox et une timeline draggable de 240 px dont le curseur est l'oiseau rouge original animé par le tick. Les payloads replay sont limités à 10/minute/joueur.
 - Le classement reste **lisible publiquement** sans compte, mais son bouton `ACTUALISER` et les rafraîchissements live utilisent une RPC authentifiée limitée à 6/minute/joueur ; un cooldown UX de 10 s évite les clics répétés.
 - Contexte personnel authentifié dans le classement : rang global réel, record vérifié, nombre lifetime de runs vérifiées et date du record, y compris hors Top 100.

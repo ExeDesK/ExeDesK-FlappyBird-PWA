@@ -4,14 +4,46 @@ import { applyGeneratedAvatarFallback } from './avatar-fallback.js';
 const DEFAULT_STALE_MS = 60 * 1000;
 const MANUAL_REFRESH_COOLDOWN_MS = 10 * 1000;
 
-function formatLeaderboardDate(value) {
+function formatLeaderboardDateTime(value) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return '';
-  return new Intl.DateTimeFormat('fr-FR', {
+  const day = new Intl.DateTimeFormat('fr-FR', {
     day: '2-digit',
     month: '2-digit',
     year: 'numeric',
   }).format(date);
+  const time = new Intl.DateTimeFormat('fr-FR', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  }).format(date);
+  return `${day} · ${time}`;
+}
+
+function formatRecordTenure(value, now = Date.now()) {
+  const startedAt = new Date(value).getTime();
+  const nowMs = now instanceof Date ? now.getTime() : Number(now);
+  if (!Number.isFinite(startedAt) || !Number.isFinite(nowMs)) return '';
+
+  const totalMinutes = Math.max(0, Math.floor((nowMs - startedAt) / 60000));
+  if (totalMinutes < 1) return 'moins d’1 min';
+  if (totalMinutes < 60) return `${totalMinutes} min`;
+
+  const totalHours = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  if (totalHours < 24) {
+    return `${totalHours} h${minutes ? ` ${minutes} min` : ''}`;
+  }
+
+  const totalDays = Math.floor(totalHours / 24);
+  const hours = totalHours % 24;
+  if (totalDays < 365) {
+    return `${totalDays} j${hours ? ` ${hours} h` : ''}`;
+  }
+
+  const years = Math.floor(totalDays / 365);
+  const days = totalDays % 365;
+  return `${years} an${years > 1 ? 's' : ''}${days ? ` ${days} j` : ''}`;
 }
 
 function formatStat(value, digits = 1) {
@@ -197,7 +229,7 @@ export class LeaderboardUI {
     status.textContent = typeof navigator === 'undefined' || navigator.onLine
       ? 'RUNS VÉRIFIÉS'
       : 'DERNIÈRE LECTURE';
-    recordDate.textContent = `Record · ${formatLeaderboardDate(this.context.best_score_at)}`;
+    recordDate.textContent = `Record · ${formatLeaderboardDateTime(this.context.best_score_at)}`;
   }
 
   renderPerformance(state = this.auth.snapshot()) {
@@ -332,6 +364,26 @@ export class LeaderboardUI {
         const username = document.createElement('span');
         username.textContent = `@${row.username}`;
         identity.append(username);
+      }
+
+      const recordMeta = document.createElement('span');
+      recordMeta.className = 'leaderboard-record-meta';
+      recordMeta.textContent = `Record · ${formatLeaderboardDateTime(row.achieved_at)}`;
+      recordMeta.title = `Record établi le ${formatLeaderboardDateTime(row.achieved_at)}`;
+      identity.append(recordMeta);
+
+      if (row.rank === 1) {
+        item.classList.add('is-record-holder');
+        const tenure = document.createElement('span');
+        tenure.className = 'leaderboard-record-tenure';
+        if (row.record_held_since) {
+          tenure.textContent = `DÉTENTION · ${formatRecordTenure(row.record_held_since)}`;
+          tenure.title = `Record mondial détenu depuis le ${formatLeaderboardDateTime(row.record_held_since)}`;
+        } else {
+          tenure.textContent = 'DÉTENTION · —';
+          tenure.title = 'Suivi de la détention indisponible.';
+        }
+        identity.append(tenure);
       }
 
       const score = document.createElement('strong');
@@ -559,4 +611,4 @@ export class LeaderboardUI {
   }
 }
 
-export { formatLeaderboardDate, formatStat };
+export { formatLeaderboardDateTime, formatRecordTenure, formatStat };

@@ -1,3 +1,12 @@
+## v0.2.8b - Leaderboard Record Details
+
+- Affiche pour chaque entrée du Top 100 la **date et l’heure locales** auxquelles le record personnel vérifié courant a été établi (`player_stats.best_score_at`).
+- Ajoute pour le #1 la **durée de détention continue du record mondial**. Un nouvel état serveur `leaderboard_record_state` conserve `held_since` tant que le même joueur reste premier, même s’il améliore ensuite son propre score.
+- Initialise prudemment le détenteur existant avec la date de son record courant : un éventuel temps de détention antérieur à la migration ne peut pas être reconstruit avec certitude après la rétention des anciennes runs. À partir de `019`, le suivi est exact.
+- La disparition du compte du leader déclenche aussi une resynchronisation : le nouveau #1 démarre alors sa détention au moment du changement effectif.
+- Étend `get_leaderboard()` et `get_leaderboard_refresh()` avec `record_held_since`, uniquement renseigné pour le #1 ; le Top 100 reste public en lecture initiale et l’actualisation authentifiée conserve son rate-limit 6/minute/joueur.
+- Aucun changement de physique, Verified Runs, replay payload, score ou tie-break du classement.
+
 ## v0.2.7.9b - Player Insights & Daily Operations
 
 - Rend les lignes de la table **Joueurs** cliquables et ajoute une fiche détaillée admin : profil public, UUID, dates de création/connexion, providers OAuth liés, rang, record, runs, score moyen, temps de jeu suivi, durée moyenne par run, jours actifs, rétention D0/D1/D7/D30, causes de mort et activité sur la période.

@@ -6,7 +6,7 @@ import { renderBarChart, renderLineChart } from './charts.js';
 import { DayInsightsView } from './day-view.js';
 import { PlayerDetailPanel } from './player-detail.js';
 
-const VERSION = '0.2.7.9b';
+const VERSION = '0.2.8b';
 const TICKS_PER_SECOND = 60;
 const DAY_MS = 86400000;
 const MAX_RANGE_DAYS = 3650;

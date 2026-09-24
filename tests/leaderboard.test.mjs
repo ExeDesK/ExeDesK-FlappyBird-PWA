@@ -16,7 +16,11 @@ import {
   replayStepFromRatio,
   resolveReplayVisualContext,
 } from '../site/src/replay/replay-viewer.js';
-import { LeaderboardUI } from '../site/src/ui/leaderboard-ui.js';
+import {
+  LeaderboardUI,
+  formatLeaderboardDateTime,
+  formatRecordTenure,
+} from '../site/src/ui/leaderboard-ui.js';
 
 class MemoryStorage {
   constructor() { this.values = new Map(); }
@@ -52,6 +56,7 @@ const rows = [
     avatar_url: 'https://cdn.example/avatar.png',
     score: 42,
     achieved_at: '2026-09-20T20:00:00.000Z',
+    record_held_since: '2026-09-20T18:30:00.000Z',
   },
   {
     rank: 2,
@@ -62,6 +67,7 @@ const rows = [
     avatar_url: null,
     score: 17,
     achieved_at: '2026-09-20T20:01:00.000Z',
+    record_held_since: null,
   },
 ];
 
@@ -70,12 +76,35 @@ test('leaderboard payload is normalized and keeps one unique player per row', ()
   assert.equal(parsed.length, 2);
   assert.equal(parsed[0].score, 42);
   assert.equal(parsed[0].run_id, rows[0].run_id);
+  assert.equal(parsed[0].record_held_since, rows[0].record_held_since);
   assert.equal(leaderboardName(parsed[0]), 'Bird Player');
   assert.equal(leaderboardName(parsed[1]), 'second');
   assert.throws(
     () => parseLeaderboardRows([rows[0], { ...rows[0], rank: 2 }]),
     /player/i,
   );
+});
+
+
+test('leaderboard record metadata validates #1 tenure and formats a readable duration', () => {
+  assert.throws(
+    () => parseLeaderboardRows([{ ...rows[1], record_held_since: rows[1].achieved_at }]),
+    /record-holder state/i,
+  );
+  assert.throws(
+    () => parseLeaderboardRows([{ ...rows[0], record_held_since: '2026-09-20T21:00:00.000Z' }]),
+    /record-holder state/i,
+  );
+
+  assert.equal(
+    formatRecordTenure('2026-09-20T20:00:00.000Z', Date.parse('2026-09-20T22:05:00.000Z')),
+    '2 h 5 min',
+  );
+  assert.equal(
+    formatRecordTenure('2026-09-20T20:00:00.000Z', Date.parse('2026-09-23T01:00:00.000Z')),
+    '2 j 5 h',
+  );
+  assert.match(formatLeaderboardDateTime(rows[0].achieved_at), /\d{2}\/\d{2}\/\d{4}.*\d{2}:\d{2}/);
 });
 
 test('leaderboard replay RPC requires authentication and sends the player JWT', async () => {
@@ -369,6 +398,25 @@ test('replay security migration requires auth and rate-limits replay payloads an
   assert.doesNotMatch(sql, /grant select on (table )?public\.(verified_runs|player_stats|read_rpc_rate_limits) to anon/i);
 });
 
+test('leaderboard record-details migration tracks uninterrupted #1 tenure without exposing the state table', async () => {
+  const sql = await readFile(new URL('../supabase/019_leaderboard_record_details.sql', import.meta.url), 'utf8');
+  assert.match(sql, /create table if not exists public\.leaderboard_record_state/i);
+  assert.match(sql, /held_since timestamptz not null/i);
+  assert.match(sql, /pg_advisory_xact_lock/i);
+  assert.match(sql, /if found and current_player_id = top_player_id[\s\S]*set run_id = top_run_id[\s\S]*score = top_score[\s\S]*updated_at = now\(\)/i);
+  const sameLeaderBlock = sql.match(/if found and current_player_id = top_player_id then([\s\S]*?)return;/i);
+  assert.ok(sameLeaderBlock);
+  assert.doesNotMatch(sameLeaderBlock[1], /held_since\s*=/i);
+  assert.match(sql, /after update of best_score, best_run_id, best_score_at on public\.player_stats/i);
+  assert.match(sql, /after delete on public\.player_stats/i);
+  assert.match(sql, /record_held_since timestamptz/i);
+  assert.match(sql, /when r\.rank = 1 and rs\.player_id = r\.player_id then rs\.held_since/i);
+  assert.match(sql, /drop function if exists public\.get_leaderboard_refresh\(integer\)/i);
+  assert.match(sql, /grant execute on function public\.get_leaderboard\(integer\) to anon, authenticated, service_role/i);
+  assert.match(sql, /grant execute on function public\.get_leaderboard_refresh\(integer\) to authenticated, service_role/i);
+  assert.doesNotMatch(sql, /grant select on (table )?public\.leaderboard_record_state to (anon|authenticated)/i);
+});
+
 test('leaderboard UI is public, dedicated, explains sign-in, and the original scores action opens it', async () => {
   const html = await readFile(new URL('../site/index.html', import.meta.url), 'utf8');
   const main = await readFile(new URL('../site/src/main.js', import.meta.url), 'utf8');
@@ -388,6 +436,10 @@ test('leaderboard UI is public, dedicated, explains sign-in, and the original sc
   assert.match(leaderboardUi, /replay\.disabled =[\s\S]*!authenticated/);
   assert.match(leaderboardUi, /MANUAL_REFRESH_COOLDOWN_MS = 10 \* 1000/);
   assert.match(leaderboardUi, /leaderboard-replay-button/);
+  assert.match(leaderboardUi, /leaderboard-record-meta/);
+  assert.match(leaderboardUi, /leaderboard-record-tenure/);
+  assert.match(leaderboardUi, /DÉTENTION/);
+  assert.match(leaderboardUi, /formatLeaderboardDateTime/);
   assert.match(main, /new ReplayViewer/);
   assert.match(leaderboardUi, /leaderboard-login-hint/);
   assert.match(css, /#leaderboard-dialog\[open\]/);

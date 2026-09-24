@@ -22,6 +22,9 @@ export function parseLeaderboardRows(payload, { maxRows = LEADERBOARD_MAX_ROWS }
     const rank = Number(raw?.rank);
     const score = Number(raw?.score);
     const achievedAt = typeof raw?.achieved_at === 'string' ? raw.achieved_at : '';
+    const recordHeldSince = raw?.record_held_since == null
+      ? null
+      : String(raw.record_held_since);
 
     if (!Number.isInteger(rank) || rank < 1) {
       throw new Error('Invalid leaderboard rank.');
@@ -35,6 +38,15 @@ export function parseLeaderboardRows(payload, { maxRows = LEADERBOARD_MAX_ROWS }
     if (!achievedAt || Number.isNaN(Date.parse(achievedAt))) {
       throw new Error('Invalid leaderboard timestamp.');
     }
+    if (recordHeldSince !== null) {
+      const heldSinceMs = Date.parse(recordHeldSince);
+      if (Number.isNaN(heldSinceMs)) {
+        throw new Error('Invalid leaderboard record-holder timestamp.');
+      }
+      if (rank !== 1 || heldSinceMs > Date.parse(achievedAt)) {
+        throw new Error('Invalid leaderboard record-holder state.');
+      }
+    }
 
     players.add(raw.player_id);
     rows.push({
@@ -46,6 +58,7 @@ export function parseLeaderboardRows(payload, { maxRows = LEADERBOARD_MAX_ROWS }
       avatar_url: optionalText(raw.avatar_url),
       score,
       achieved_at: achievedAt,
+      record_held_since: recordHeldSince,
     });
   }
 

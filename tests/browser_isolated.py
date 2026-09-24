@@ -103,6 +103,10 @@ def build_embedded_page(site_root: Path) -> tuple[str, str]:
                 'const accountUI = window.__accountUI = new AccountUI(',
             )
             script = script.replace(
+                'const leaderboardUI = new LeaderboardUI(',
+                'const leaderboardUI = window.__leaderboardUI = new LeaderboardUI(',
+            )
+            script = script.replace(
                 'replayViewer = new ReplayViewer(',
                 'replayViewer = window.__replayViewer = new ReplayViewer(',
             )
@@ -243,6 +247,51 @@ def main() -> None:
         assert abs((game_right - 10) - (menu_box['x'] + menu_box['width'])) < 0.75
         assert profile_box['x'] >= game_box['x']
         page.screenshot(path=str(output / 'menu.png'))
+
+        # Leaderboard rows expose the exact record date/time, and #1 also
+        # exposes the server-tracked continuous world-record tenure.
+        page.evaluate("""
+          () => {
+            window.__leaderboardUI.rows = [
+              {
+                rank: 1,
+                run_id: '11111111-1111-4111-8111-111111111111',
+                player_id: '22222222-2222-4222-8222-222222222222',
+                username: 'recordbird',
+                display_name: 'Record Bird',
+                avatar_url: null,
+                score: 52,
+                achieved_at: '2026-09-24T20:15:00.000Z',
+                record_held_since: '2026-09-24T18:00:00.000Z',
+              },
+              {
+                rank: 2,
+                run_id: '33333333-3333-4333-8333-333333333333',
+                player_id: '44444444-4444-4444-8444-444444444444',
+                username: 'runnerup',
+                display_name: 'Runner Up',
+                avatar_url: null,
+                score: 38,
+                achieved_at: '2026-09-24T19:45:00.000Z',
+                record_held_since: null,
+              },
+            ];
+            window.__leaderboardUI.state = 'loaded';
+            window.__leaderboardUI.loadedAt = Date.now();
+            window.__leaderboardUI.render();
+            document.querySelector('#leaderboard-dialog').showModal();
+          }
+        """)
+        page.wait_for_selector('#leaderboard-dialog', state='visible')
+        assert page.locator('.leaderboard-row').count() == 2
+        assert page.locator('.leaderboard-row.is-record-holder').count() == 1
+        assert page.locator('.leaderboard-record-meta').count() == 2
+        assert 'Record ·' in page.locator('.leaderboard-record-meta').first.text_content()
+        assert 'DÉTENTION ·' in page.locator('.leaderboard-record-tenure').text_content()
+        assert page.locator('.leaderboard-row').nth(1).locator('.leaderboard-record-tenure').count() == 0
+        page.screenshot(path=str(output / 'leaderboard-record-details.png'))
+        page.evaluate("document.querySelector('#leaderboard-dialog').close()")
+        page.wait_for_selector('#leaderboard-dialog', state='hidden')
 
         # Leaderboard replays run on their own canvas and deterministic 60 Hz
         # simulation. Stub only the public RPC transport here so the browser
