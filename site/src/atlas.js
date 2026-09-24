@@ -585,17 +585,18 @@ export class Renderer {
   drawDebug(debugState) {
     const context = this.ctx;
     const scale = this.renderScale;
-    const halfPixel = 0.5 / scale;
+    const strokeWidth = 2 / scale;
+    const inset = strokeWidth / 2;
 
     this.withGameClip(() => {
       this.gameIdentity();
-      context.lineWidth = 1 / scale;
+      context.lineWidth = strokeWidth;
       context.strokeStyle = '#ff286b';
       context.strokeRect(
-        debugState.bird.x + halfPixel,
-        debugState.bird.y + halfPixel,
-        20,
-        20,
+        debugState.bird.x + inset,
+        debugState.bird.y + inset,
+        20 - (inset * 2),
+        20 - (inset * 2),
       );
 
       context.strokeStyle = '#00e5ff';
@@ -603,24 +604,24 @@ export class Renderer {
       if (debugState.hidden <= 0) {
         for (const pipe of debugState.pipes) {
           context.strokeRect(
-            pipe.x + halfPixel,
-            pipe.y + halfPixel,
-            52,
-            320,
+            pipe.x + inset,
+            pipe.y + inset,
+            52 - (inset * 2),
+            320 - (inset * 2),
           );
           context.strokeRect(
-            pipe.x + halfPixel,
-            pipe.y - 416 + halfPixel,
-            52,
-            320,
+            pipe.x + inset,
+            pipe.y - 416 + inset,
+            52 - (inset * 2),
+            320 - (inset * 2),
           );
         }
       }
 
       context.strokeStyle = '#ffe600';
       context.beginPath();
-      context.moveTo(0, 400 + halfPixel);
-      context.lineTo(LOGICAL_WIDTH, 400 + halfPixel);
+      context.moveTo(0, 400 - inset);
+      context.lineTo(LOGICAL_WIDTH, 400 - inset);
       context.stroke();
     });
 

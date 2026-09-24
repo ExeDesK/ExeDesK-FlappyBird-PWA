@@ -1,4 +1,4 @@
-## v0.2.7.7b — Replay Controls
+## v0.2.7.7b-hotfix1 — Replay Controls
 
 - `tests/leaderboard.test.mjs` couvre les vitesses autorisées, la conversion ratio↔tick et l'animation cyclique du handle rouge `bird2_0..2`.
 - `tests/themes.test.mjs` verrouille le custom atlas **2038×514** et exige tous les sprites replay fournis.
@@ -90,7 +90,7 @@
 - Le cache PWA reste à **51 ressources runtime** : le changement backend n'ajoute aucun asset client, mais le build Service Worker est incrémenté pour publier la nouvelle version.
 - Suite complète : `npm test` (**152/152**) + `python tests/browser_isolated.py` (**OK, 0 erreur page**).
 
-# Rapport de tests - v0.2.7.7b
+# Rapport de tests - v0.2.7.7b-hotfix1
 
 ## Résultat
 

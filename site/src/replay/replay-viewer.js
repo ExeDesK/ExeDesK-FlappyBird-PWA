@@ -10,7 +10,7 @@ const STEP_MS = 1000 / 60;
 const MAX_FRAME_DELTA_MS = 250;
 const REPLAY_ATLAS_PRESS_MIN_MS = 70;
 const PROGRESS_WIDTH = 240;
-const HANDLE_SCALE = 0.5;
+const HANDLE_SCALE = 0.625;
 const HANDLE_FRAME_TICKS = 5;
 const HANDLE_FRAMES = Object.freeze(['bird2_0', 'bird2_1', 'bird2_2']);
 
