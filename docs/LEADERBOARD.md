@@ -1,4 +1,4 @@
-# Leaderboard - contrat v0.2.8b
+# Leaderboard - contrat v0.2.8b-hotfix1
 
 ## Objectif
 
@@ -30,7 +30,7 @@ record_held_since
 
 La liste principale ne publie toujours aucune seed, liste de taps, collision, empreinte de replay ou raison de rejet.
 
-Depuis `v0.2.8b`, `achieved_at` est affiché avec **date + heure** pour chaque ligne. Le champ `record_held_since` n’est renseigné que pour le rang #1 et provient de `public.leaderboard_record_state`, un singleton privé maintenu par trigger sur `player_stats`. Il représente le début de la détention **continue** du record mondial : si le même leader améliore son score, son `best_score_at` change mais `held_since` reste intact. Si le leader change, `held_since` repart au timestamp du changement.
+Depuis `v0.2.8b-hotfix1`, `achieved_at` est affiché avec **date + heure** pour chaque ligne. Le champ `record_held_since` n’est renseigné que pour le rang #1 et provient de `public.leaderboard_record_state`, un singleton privé maintenu par trigger sur `player_stats`. Il représente le début de la détention **continue** du record mondial : si le même leader améliore son score, son `best_score_at` change mais `held_since` reste intact. Si le leader change, `held_since` repart au timestamp du changement.
 
 La migration `019_leaderboard_record_details.sql` initialise l’état existant au `best_score_at` courant du #1. Ce choix est volontairement conservateur : après la rétention historique, on ne peut pas prouver qu’un joueur actuellement premier ne détenait pas déjà le record avant d’améliorer son score actuel. Le compteur est exact à partir de l’installation de `019`.
 
@@ -116,3 +116,13 @@ Cette séparation ne change aucun contrat SQL/RPC.
 ## Identité publique personnalisable
 
 Le leaderboard continue de lire `profiles.display_name` et `profiles.avatar_url`. En `v0.2.7.5b`, le pseudo reste indépendant des providers liés et l'avatar peut provenir de Discord, Google ou du fallback généré localement lorsqu'aucune URL n'est disponible. Après une sauvegarde de profil, la ligne du joueur déjà chargée est mise à jour immédiatement et le cache mémoire est invalidé ; la prochaine lecture distante reprend les valeurs de `profiles`. Cette personnalisation ne modifie ni le rang, ni l'UUID du joueur, ni les runs vérifiées.
+
+## Résilience du suivi de détention (`020`)
+
+Le suivi `leaderboard_record_state` est une donnée dérivée d'affichage. Depuis
+`v0.2.8b-hotfix1`, son trigger est **best-effort** : une erreur de synchronisation
+de la détention ne peut plus annuler la transition autoritaire d'une Verified Run
+ni la mise à jour de `player_stats`. Le trigger UPDATE ne s'exécute que lorsqu'un
+champ de record personnel (`best_score`, `best_run_id`, `best_score_at`) change
+réellement, afin qu'une run ordinaire n'entre pas dans la section critique du
+record mondial.

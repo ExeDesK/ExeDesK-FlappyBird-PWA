@@ -417,6 +417,16 @@ test('leaderboard record-details migration tracks uninterrupted #1 tenure withou
   assert.doesNotMatch(sql, /grant select on (table )?public\.leaderboard_record_state to (anon|authenticated)/i);
 });
 
+test('record-tenure hotfix cannot roll back verified runs and skips non-record player_stats updates', async () => {
+  const sql = await readFile(new URL('../supabase/020_record_tenure_resilience.sql', import.meta.url), 'utf8');
+  assert.match(sql, /create or replace function public\.capture_leaderboard_record_state_from_stats\(\)/i);
+  assert.match(sql, /exception when others[\s\S]*raise warning/i);
+  assert.match(sql, /after update of best_score, best_run_id, best_score_at on public\.player_stats/i);
+  assert.match(sql, /when \(\s*old\.best_score is distinct from new\.best_score[\s\S]*old\.best_run_id is distinct from new\.best_run_id[\s\S]*old\.best_score_at is distinct from new\.best_score_at/i);
+  assert.match(sql, /pg_advisory_xact_lock\(208, 1\)/i);
+  assert.match(sql, /deploy-time repair skipped/i);
+});
+
 test('leaderboard UI is public, dedicated, explains sign-in, and the original scores action opens it', async () => {
   const html = await readFile(new URL('../site/index.html', import.meta.url), 'utf8');
   const main = await readFile(new URL('../site/src/main.js', import.meta.url), 'utf8');

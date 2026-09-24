@@ -1,10 +1,10 @@
-## v0.2.8b — Leaderboard Record Details
+## v0.2.8b-hotfix1 — Leaderboard Record Details
 
 - Le parseur du leaderboard valide `record_held_since` uniquement pour le rang #1 et refuse une détention postérieure au timestamp du record courant.
 - Les helpers UI couvrent le format date+heure et les durées de détention en minutes, heures et jours.
 - `019_leaderboard_record_details.sql` est verrouillé par tests : état singleton privé, advisory lock, maintien de `held_since` lors d’une amélioration du même leader, resynchronisation sur changement/suppression du leader, nouveau contrat RPC et absence de `SELECT` navigateur direct sur l’état serveur.
 - Le smoke Chromium rend réellement deux lignes de classement, vérifie les timestamps de record, le badge de détention uniquement sur #1 et conserve la couverture replay/gameplay.
-- Validation : `npm test` **221/221**, `python tests/browser_isolated.py` **OK / 0 erreur**, `python tests/admin_browser_isolated.py` **OK / 0 erreur**, `git diff --check` **OK**.
+- Validation : `npm test` **223/223**, `python tests/browser_isolated.py` **OK / 0 erreur**, `python tests/admin_browser_isolated.py` **OK / 0 erreur**, `git diff --check` **OK**.
 
 ## v0.2.7.9b — Player Insights & Daily Operations
 

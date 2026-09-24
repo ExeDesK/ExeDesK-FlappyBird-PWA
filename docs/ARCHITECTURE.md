@@ -134,7 +134,7 @@ Maintient l'état de synchronisation du record et décide quand appeler `BestSco
 
 ### `ui/leaderboard-ui.js` — `LeaderboardUI`
 
-Possède l'état d'affichage du classement : cache court, chargement, contexte personnel, statistiques et rendu de la modale. Depuis `v0.2.8b`, chaque ligne affiche aussi `achieved_at` avec date+heure et le rang #1 affiche `record_held_since`, alimenté par l’état serveur privé `leaderboard_record_state`. Sans session, le Top 100 reste lisible mais **VOIR** / `ACTUALISER` sont désactivés. Avec session, les refresh forcés passent par le chemin authentifié/rate-limité. Les appels réseau restent dans `LeaderboardClient`.
+Possède l'état d'affichage du classement : cache court, chargement, contexte personnel, statistiques et rendu de la modale. Depuis `v0.2.8b-hotfix1`, chaque ligne affiche aussi `achieved_at` avec date+heure et le rang #1 affiche `record_held_since`, alimenté par l’état serveur privé `leaderboard_record_state`. Sans session, le Top 100 reste lisible mais **VOIR** / `ACTUALISER` sont désactivés. Avec session, les refresh forcés passent par le chemin authentifié/rate-limité. Les appels réseau restent dans `LeaderboardClient`.
 
 ### `ui/account.js` — `AccountUI`
 
@@ -203,7 +203,7 @@ Côté serveur, `010_admin_analytics.sql` étend les triggers autoritaires exist
 
 ## Hors ligne
 
-Les **57 ressources runtime du jeu** sont précachées par `site/sw.js` en `v0.2.8b`, dont le lecteur de replay et ses contrôles. Le dashboard `site/admin/` et ses modules restent volontairement **online-only** et ne sont pas ajoutés au précache : une indisponibilité de l'administration ne peut donc pas empêcher l'installation ou le fonctionnement hors ligne du gameplay.
+Les **57 ressources runtime du jeu** sont précachées par `site/sw.js` en `v0.2.8b-hotfix1`, dont le lecteur de replay et ses contrôles. Le dashboard `site/admin/` et ses modules restent volontairement **online-only** et ne sont pas ajoutés au précache : une indisponibilité de l'administration ne peut donc pas empêcher l'installation ou le fonctionnement hors ligne du gameplay.
 
 ## Évolution future
 
@@ -218,3 +218,13 @@ La stratégie complète de conservation de l'UUID joueur, de compatibilité avec
 `auth/provider-profile.js` normalise les métadonnées publiques renvoyées par les identités OAuth (pseudo provider, avatar, date de liaison) sans les confondre avec l'UUID canonique du joueur. `api/profile-client.js` possède la lecture/écriture de `public.profiles`, dont le pseudo public et le provider d'avatar sélectionné. `AuthClient` orchestre seulement la session et délègue ces opérations au client de profil. Après un unlink, il force une resynchronisation `/auth/v1/user` afin de réconcilier les providers réellement présents.
 
 `ui/account.js` expose le linking/unlink avec confirmation et protège le dernier provider Discord/Google. `ui/avatar-fallback.js` fournit un avatar généré déterministe lorsque les providers ne donnent aucune image. Le leaderboard applique immédiatement le profil à sa ligne déjà chargée puis invalide son cache ; Admin Analytics continue de lire `profiles.display_name` et `profiles.avatar_url` directement. Aucun changement de clé étrangère ni de modèle d'ownership n'est nécessaire.
+
+### Isolement du bookkeeping leaderboard
+
+`leaderboard_record_state` est volontairement hors du chemin critique de
+validation : `020_record_tenure_resilience.sql` encapsule sa synchronisation dans
+un trigger best-effort. Une panne de ce bookkeeping peut rendre temporairement la
+durée de détention obsolète, mais ne doit jamais empêcher `run-submit` de résoudre
+une run vérifiée. Les soumissions différées remontent en outre leur vraie classe
+d'erreur au frontend (offline, auth, 429, 5xx) au lieu d'être toutes présentées
+comme une perte d'Internet.

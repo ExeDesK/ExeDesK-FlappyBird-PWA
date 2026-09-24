@@ -163,12 +163,14 @@ test('error toasts use the top layer and routine success chatter stays silent', 
   const html = read('site/index.html');
   const main = read('site/src/main.js');
   const verifiedPlay = read('site/src/session/verified-play.js');
+  const verifiedSubmit = read('site/src/session/verified-run-submit.js');
   const toastUi = read('site/src/ui/toast.js');
   const appSources = `${main}\n${verifiedPlay}`;
 
   assert.match(html, /id="toast"[^>]*popover="manual"/);
   assert.match(toastUi, /node\.showPopover\(\)/);
-  assert.match(verifiedPlay, /Pas d’internet · envoi reporté/);
+  assert.match(verifiedSubmit, /Pas d’internet · envoi reporté/);
+  assert.match(verifiedSubmit, /Serveur de vérification indisponible/);
   assert.doesNotMatch(appSources, /Tout est prêt · vous pouvez jouer même hors connexion/);
   assert.doesNotMatch(appSources, /Partie classée prête · touchez pour commencer/);
   assert.doesNotMatch(appSources, /Run terminé · vérification serveur/);
@@ -249,7 +251,7 @@ test('application domains stay split across focused ES modules', () => {
   assert.match(bestScoreApi, /sync_best_score/);
   assert.match(verifiedPlay, /import \{ VerifiedRunRecorder \} from '\.\.\/replay\/verified-run-recorder\.js'/);
   assert.match(verifiedPlay, /import \{ VerifiedRunQueue \} from '\.\/verified-run-queue\.js'/);
-  assert.match(verifiedPlay, /import \{ VerifiedRunSubmitter \} from '\.\/verified-run-submit\.js'/);
+  assert.match(verifiedPlay, /import \{ VerifiedRunSubmitter, verifiedRunDeferredNotice \} from '\.\/verified-run-submit\.js'/);
   assert.match(verifiedPlay, /import \{ GameTransitionController \} from '\.\.\/ui\/game-transition\.js'/);
   assert.match(verifiedPlay, /import \{ UnrankedWarningDialog \} from '\.\.\/ui\/unranked-warning\.js'/);
   assert.match(verifiedQueue, /class VerifiedRunQueue/);

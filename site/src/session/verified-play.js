@@ -4,7 +4,7 @@ import { UnrankedWarningDialog } from '../ui/unranked-warning.js';
 import { isPlayRelease, verifiedRunStartMode } from '../verified-run-client.js';
 import { VerifiedRunAbandoner } from './verified-run-abandon.js';
 import { VerifiedRunQueue } from './verified-run-queue.js';
-import { VerifiedRunSubmitter } from './verified-run-submit.js';
+import { VerifiedRunSubmitter, verifiedRunDeferredNotice } from './verified-run-submit.js';
 
 export class VerifiedPlayController {
   constructor({
@@ -150,7 +150,8 @@ export class VerifiedPlayController {
       if (navigator.onLine && this.auth.session) {
         void this.flush({ reason: 'run-finished', notify: true });
       } else {
-        this.toast?.('Pas d’internet · envoi reporté. Le run reste conservé sur cet appareil.', 6000);
+        const notice = verifiedRunDeferredNotice({}, { online: navigator.onLine, hasSession: Boolean(this.auth.session) });
+        this.toast?.(notice.message, notice.duration);
       }
     } catch (error) {
       this.lastRun = {
@@ -175,16 +176,9 @@ export class VerifiedPlayController {
       .flushForPlayer(playerId, { reason })
       .then(result => {
         this.#applyFlushResult(result, notify);
-        return {
-          verified: result.verified,
-          rejected: result.rejected,
-          discarded: result.discarded,
-          deferred: result.deferred,
-        };
+        return { verified: result.verified, rejected: result.rejected, discarded: result.discarded, deferred: result.deferred };
       })
-      .finally(() => {
-        this.flushPromise = null;
-      });
+      .finally(() => { this.flushPromise = null; });
 
     return this.flushPromise;
   }
@@ -223,7 +217,11 @@ export class VerifiedPlayController {
     } else if (result.discarded > 0) {
       this.toast?.('Une ancienne soumission incompatible a été retirée.', 6000);
     } else if (result.deferred) {
-      this.toast?.('Pas d’internet · envoi reporté. Le run reste conservé sur cet appareil.', 6000);
+      const notice = verifiedRunDeferredNotice(result.deferredError, {
+        online: typeof navigator === 'undefined' || navigator.onLine,
+        hasSession: Boolean(this.auth.session),
+      });
+      this.toast?.(notice.message, notice.duration);
     }
   }
 

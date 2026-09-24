@@ -1,11 +1,16 @@
-## v0.2.8b - Leaderboard Record Details
+## v0.2.8b-hotfix1 - Leaderboard Record Details
 
+- Corrige un faux diagnostic client : une erreur transitoire de `run-submit` (ex. HTTP 500) n'est plus affichée comme **« Pas d’internet »**. Le toast distingue désormais hors-ligne, session expirée, rate-limit et indisponibilité serveur tout en conservant la run dans la file locale.
+- Ajoute `020_record_tenure_resilience.sql` : le suivi cosmétique de détention du #1 devient **best-effort** et ne peut plus faire échouer/rollback une transition Verified Run ou `player_stats`.
+- Le trigger de détention ne s'exécute désormais sur UPDATE que si `best_score`, `best_run_id` ou `best_score_at` changent réellement ; les runs ordinaires qui n'améliorent pas le record personnel ne prennent plus le verrou global.
+- Remplace la clé advisory dérivée par une clé fixe simple pour le minuscule état singleton et ajoute une réparation best-effort au déploiement.
 - Affiche pour chaque entrée du Top 100 la **date et l’heure locales** auxquelles le record personnel vérifié courant a été établi (`player_stats.best_score_at`).
 - Ajoute pour le #1 la **durée de détention continue du record mondial**. Un nouvel état serveur `leaderboard_record_state` conserve `held_since` tant que le même joueur reste premier, même s’il améliore ensuite son propre score.
 - Initialise prudemment le détenteur existant avec la date de son record courant : un éventuel temps de détention antérieur à la migration ne peut pas être reconstruit avec certitude après la rétention des anciennes runs. À partir de `019`, le suivi est exact.
 - La disparition du compte du leader déclenche aussi une resynchronisation : le nouveau #1 démarre alors sa détention au moment du changement effectif.
 - Étend `get_leaderboard()` et `get_leaderboard_refresh()` avec `record_held_since`, uniquement renseigné pour le #1 ; le Top 100 reste public en lecture initiale et l’actualisation authentifiée conserve son rate-limit 6/minute/joueur.
 - Aucun changement de physique, Verified Runs, replay payload, score ou tie-break du classement.
+- Validation hotfix : `npm test` **223/223**, smoke Chromium jeu/Admin **OK**, `git diff --check` **OK**.
 
 ## v0.2.7.9b - Player Insights & Daily Operations
 
