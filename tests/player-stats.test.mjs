@@ -54,3 +54,12 @@ test('browser roles cannot read or write player_stats directly', async () => {
   assert.doesNotMatch(sql, /grant (select|insert|update|delete).*player_stats.*\b(anon|authenticated)\b/i);
   assert.match(sql, /revoke all on function public\.capture_verified_run_player_stats\(\) from public, anon, authenticated/i);
 });
+
+test('player_stats preserves the deterministic best-run tie-break used by the leaderboard', async () => {
+  const sql = await migration();
+
+  assert.match(sql, /order by[\s\S]*v\.player_id,[\s\S]*v\.verified_score desc,[\s\S]*v\.resolved_at asc,[\s\S]*v\.run_id asc/i);
+  assert.match(sql, /excluded\.best_score > ps\.best_score/i);
+  assert.match(sql, /excluded\.best_score = ps\.best_score[\s\S]*excluded\.best_score_at < ps\.best_score_at/i);
+  assert.match(sql, /excluded\.best_score_at = ps\.best_score_at[\s\S]*excluded\.best_run_id < ps\.best_run_id/i);
+});

@@ -235,6 +235,31 @@ test('replay migration stores visual context and exposes only current leaderboar
   assert.doesNotMatch(sql, /grant select on (table )?public\.verified_runs/i);
 });
 
+test('leaderboard performance migration reads authoritative player stats and replay no longer recalculates leaderboard', async () => {
+  const sql = await readFile(new URL('../supabase/015_replay_rpc_perf.sql', import.meta.url), 'utf8');
+  assert.match(sql, /create index if not exists player_stats_public_leaderboard_rank_idx/i);
+  assert.match(sql, /best_score desc[\s\S]*best_score_at asc[\s\S]*player_id asc/i);
+  assert.match(sql, /include \(best_run_id\)/i);
+  assert.match(sql, /where best_run_id is not null[\s\S]*best_score_at is not null/i);
+
+  assert.match(sql, /create or replace function public\.get_leaderboard\(limit_count integer default 100\)/i);
+  assert.match(sql, /with top_players as/i);
+  assert.match(sql, /from public\.player_stats as ps/i);
+  assert.match(sql, /limit greatest\(1, least\(coalesce\(limit_count, 100\), 100\)\)/i);
+  assert.match(sql, /left join public\.profiles as p on p\.id = tp\.player_id/i);
+  assert.doesNotMatch(sql, /distinct on \(vr\.player_id\)/i);
+
+  assert.match(sql, /create or replace function public\.get_leaderboard_replay\(target_run_id uuid\)/i);
+  assert.match(sql, /security definer/i);
+  assert.match(sql, /with public_top_100 as/i);
+  assert.match(sql, /limit 100/i);
+  assert.match(sql, /join public_top_100 as leaderboard[\s\S]*leaderboard\.best_run_id = vr\.run_id/i);
+  assert.doesNotMatch(sql, /from\s+public\.get_leaderboard/i);
+  assert.doesNotMatch(sql, /grant select on (table )?public\.(verified_runs|player_stats)/i);
+  assert.match(sql, /grant execute on function public\.get_leaderboard\(integer\) to anon, authenticated, service_role/i);
+  assert.match(sql, /grant execute on function public\.get_leaderboard_replay\(uuid\) to anon, authenticated, service_role/i);
+});
+
 test('leaderboard UI is public, dedicated, explains sign-in, and the original scores action opens it', async () => {
   const html = await readFile(new URL('../site/index.html', import.meta.url), 'utf8');
   const main = await readFile(new URL('../site/src/main.js', import.meta.url), 'utf8');

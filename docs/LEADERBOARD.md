@@ -1,20 +1,18 @@
-# Leaderboard - contrat v0.2.7.7b-hotfix2
+# Leaderboard - contrat v0.2.7.7b-hotfix3
 
 ## Objectif
 
-Le classement global est consultable par tous les visiteurs, avec ou sans session authentifiée. Il ne fait jamais confiance au record local ou au champ historique `profiles.best_score` : sa seule source d'autorité est `public.verified_runs`.
+Le classement global est consultable par tous les visiteurs, avec ou sans session authentifiée. Il ne fait jamais confiance au record local ni au champ historique `profiles.best_score`. Depuis `v0.2.7.7b-hotfix3`, son chemin de lecture utilise `public.player_stats`, agrégat serveur privé dérivé exclusivement des transitions `verified` de `public.verified_runs`.
 
 ## Source de données
 
-La migration `supabase/004_leaderboard.sql` crée `public.get_leaderboard(limit_count integer)`. La fonction :
+La migration historique `supabase/004_leaderboard.sql` construisait le Top 100 directement depuis `verified_runs`. `supabase/015_replay_rpc_perf.sql` remplace ce chemin de lecture sans modifier le contrat RPC :
 
-1. sélectionne uniquement les lignes `status = 'verified'`;
-2. conserve pour chaque `player_id` le plus grand `verified_score`;
-3. en cas de plusieurs runs au même meilleur score, conserve le plus ancien `resolved_at`;
-4. joint uniquement les champs publics du profil (`username`, `display_name`, `avatar_url`);
-5. classe les joueurs par score décroissant puis date d'accomplissement croissante;
-6. expose le `run_id` du meilleur run afin de pouvoir demander son replay ;
-7. limite la réponse à 100 joueurs.
+1. `player_stats` contient déjà pour chaque joueur `best_score`, `best_run_id` et `best_score_at`, mis à jour uniquement par les triggers autoritaires de runs vérifiées ;
+2. un index couvrant partiel ordonne directement ces agrégats par `best_score DESC`, `best_score_at ASC`, `player_id ASC` ;
+3. `get_leaderboard()` lit uniquement les `limit_count` premiers agrégats (100 maximum), puis joint les champs publics du profil (`username`, `display_name`, `avatar_url`) ;
+4. le `run_id` exposé est `player_stats.best_run_id`, choisi avec le tie-break déterministe score/date/run_id lors de l'agrégation ;
+5. aucun payload de replay n'est exposé dans la liste.
 
 La table `verified_runs` reste sans privilège direct pour `anon` et `authenticated`. La fonction `security definer` n'expose que :
 
@@ -32,6 +30,8 @@ achieved_at
 La liste principale ne publie toujours aucune seed, liste de taps, collision, empreinte de replay ou raison de rejet.
 
 Depuis `v0.2.7.6b`, `get_leaderboard_replay(target_run_id)` permet ensuite de récupérer les seules entrées nécessaires au visionnage du record affiché. Le RPC refuse implicitement tout run qui n'est plus le meilleur run vérifié de son joueur et n'accorde aucun `SELECT` direct sur `verified_runs`. Voir [`REPLAYS.md`](./REPLAYS.md).
+
+Depuis `v0.2.7.7b-hotfix3`, `get_leaderboard()` et cette autorisation s'appuient sur la même source autoritaire `player_stats`. Le replay ne réexécute plus le RPC leaderboard : il lit directement les 100 premiers `best_run_id` via le même index couvrant. Le contrat public et l'ordre du classement restent inchangés.
 
 ## Accès public
 
@@ -60,7 +60,7 @@ La PWA reste jouable hors connexion, mais le classement global est une donnée c
 
 ## Statistiques lifetime autoritaires
 
-Depuis `v0.2.7.3b-dev3`, `supabase/005_player_stats.sql` maintient une mémoire longue par joueur dans `public.player_stats`. Cette table ne remplace pas la source du Top 100 : `get_leaderboard()` continue de lire les meilleurs `verified_runs`. Depuis `dev4`, le meilleur run reste explicitement conservé par la rétention, ce qui maintient le classement exact tout en bornant l'historique détaillé.
+Depuis `v0.2.7.3b-dev3`, `supabase/005_player_stats.sql` maintient une mémoire longue par joueur dans `public.player_stats`. Depuis `v0.2.7.7b-hotfix3`, cette table sert aussi de chemin de lecture du Top 100 ; elle reste dérivée exclusivement des runs vérifiées et n'est jamais writable par le navigateur. Depuis `dev4`, le meilleur run reste explicitement conservé par la rétention, ce qui maintient le classement exact tout en bornant l'historique détaillé.
 
 Le navigateur n'envoie aucune statistique. `run-submit` ne reçoit que les entrées du replay ; après relecture autoritaire, la transition de la ligne `verified_runs` vers `verified` déclenche PostgreSQL, qui agrège lui-même le score et la collision recalculés. `player_stats` reste inaccessible directement à `anon` et `authenticated`.
 

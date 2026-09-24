@@ -1,3 +1,13 @@
+## v0.2.7.7b-hotfix3 - Replay RPC performance
+
+- Optimise le chemin de lecture du classement : `get_leaderboard()` lit désormais les agrégats autoritaires `public.player_stats` au lieu de refaire un `DISTINCT ON` sur `verified_runs` à chaque rafraîchissement.
+- Optimise `get_leaderboard_replay(target_run_id)` : le RPC ne rappelle plus `get_leaderboard(100)` à chaque ouverture de replay et vérifie directement le Top 100 autoritaire.
+- Réutilise `public.player_stats.best_run_id / best_score / best_score_at`, agrégats maintenus par trigger avec la même règle de record déterministe que le classement historique.
+- Ajoute l'index couvrant partiel `player_stats_public_leaderboard_rank_idx` pour lire directement les 100 premiers records selon `best_score DESC, best_score_at ASC, player_id ASC`.
+- La vérification publique reste identique : seul le meilleur run d'un joueur actuellement présent dans le Top 100 peut être demandé ; aucun `SELECT` direct sur `verified_runs` ou `player_stats` n'est accordé au navigateur.
+- Aucun changement de payload, frontend, physique, Verified Runs ou Edge Function ; migration Supabase uniquement (`015_replay_rpc_perf.sql`).
+- Validation : `npm test` **204/204**, smoke Chromium gameplay **OK / 0 erreur**, smoke Admin **OK / 0 erreur**, `git diff --check` **OK**.
+
 ## v0.2.7.7b-hotfix2 - Replay Controls visual polish
 
 - Ajoute les contrôles du lecteur de replay : **lecture/pause**, **recommencer**, vitesses **×1 / ×1,5 / ×2 / ×5**, et affichage/masquage des **hitbox**.

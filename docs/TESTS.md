@@ -1,4 +1,11 @@
-## v0.2.7.7b-hotfix2 — Replay Controls
+## v0.2.7.7b-hotfix3 — Replay RPC performance
+
+- `tests/leaderboard.test.mjs` vérifie que `015_replay_rpc_perf.sql` remplace le recalcul `get_leaderboard(100)` par un Top 100 sur `player_stats`.
+- Le test exige l'index partiel couvrant `best_score DESC, best_score_at ASC, player_id ASC INCLUDE (best_run_id)`.
+- Le RPC conserve les grants publics via fonction `security definer`, sans accorder de `SELECT` direct sur `verified_runs` ou `player_stats`.
+- Suite complète : `npm test` **204/204** + `python tests/browser_isolated.py` **OK / 0 erreur page** + `python tests/admin_browser_isolated.py` **OK / 0 erreur page** + `git diff --check` **OK**.
+
+## v0.2.7.7b-hotfix2 — Replay Controls visual polish
 
 - `tests/leaderboard.test.mjs` couvre les vitesses autorisées, la conversion ratio↔tick et l'animation cyclique du handle rouge `bird2_0..2`.
 - `tests/themes.test.mjs` verrouille le custom atlas **2038×514** et exige tous les sprites replay fournis.
@@ -90,11 +97,11 @@
 - Le cache PWA reste à **51 ressources runtime** : le changement backend n'ajoute aucun asset client, mais le build Service Worker est incrémenté pour publier la nouvelle version.
 - Suite complète : `npm test` (**152/152**) + `python tests/browser_isolated.py` (**OK, 0 erreur page**).
 
-# Rapport de tests - v0.2.7.7b-hotfix2
+# Rapport de tests - v0.2.7.7b-hotfix3
 
 ## Résultat
 
-- **202/202 tests Node passent** avec `npm test`.
+- **204/204 tests Node passent** avec `npm test`.
 - Le bundle concaténé utilisé par le smoke test passe le contrôle de syntaxe JavaScript.
 - Le smoke test Chromium isolé passe sans erreur page et couvre aussi le lecteur de replay réel sur une run déterministe connue (seed/taps, France nuit, score terminal et événement audio `hit`), la composition des modules ES, le catalogue dynamique, le thème Vietnam jour/nuit, le panneau diagnostic repliable, la modale Profil, les boutons utilitaires x1,75 et le module d’abandon de ticket Verified Run.
 - Le smoke test Admin Analytics dédié passe également sans erreur page avec Auth/RPC Supabase mockés et couvre les vues Overview, Joueurs, Rétention et Système.

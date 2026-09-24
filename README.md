@@ -8,7 +8,7 @@ L'objectif n'est pas de produire un simple clone « inspiré de » Flappy Bird, 
 
 Le gameplay fonctionne entièrement côté client, sans framework, et peut être installé comme une application sur Windows, iPhone/iPad et Android. Les fonctions communautaires utilisent un backend Supabase facultatif : aucun compte n'est nécessaire pour jouer.
 
-> **État du projet : bêta — v0.2.7.7b-hotfix2**
+> **État du projet : bêta — v0.2.7.7b-hotfix3**
 
 - Statistiques joueur : carrière + fenêtres 10 / 25 / 50 calculées uniquement depuis les runs vérifiées.
 > Sur iPhone/iPad ProMotion, un statut dynamique dans les options Performance mesure la cadence rAF sur iOS : il confirme la haute fréquence lorsqu’elle est active, sinon il propose le réglage Safari et un tutoriel au timecode utile.
@@ -30,7 +30,7 @@ Le gameplay fonctionne entièrement côté client, sans framework, et peut être
 - La stratégie de conservation des comptes et le linking multi-provider sont documentés dans [`docs/ACCOUNT-LINKING.md`](./docs/ACCOUNT-LINKING.md). La configuration Google Cloud/Supabase est détaillée dans [`docs/AUTH-GOOGLE.md`](./docs/AUTH-GOOGLE.md).
 - Synchronisation du meilleur score entre appareils en conservant toujours la valeur la plus élevée.
 - Verified Runs : ticket/seed serveur, capture déterministe, file locale auto-réparante, soumission différée et relecture autoritaire avant validation ou rejet du score.
-- Classement global public dans une modale dédiée : consultation sans compte, uniquement des runs vérifiés et un seul meilleur score par joueur.
+- Classement global public dans une modale dédiée : consultation sans compte, uniquement des runs vérifiés et un seul meilleur score par joueur. Le Top 100 est lu depuis l’agrégat serveur autoritaire `player_stats`, indexé pour éviter de redédupliquer les runs à chaque rafraîchissement.
 - Chaque ligne du leaderboard propose **VOIR** : le lecteur reconstruit le run vérifié depuis sa seed et ses taps autoritaires. Les nouvelles runs rejouent aussi le **même thème et la même variante jour/nuit** ; les anciennes runs sans contexte enregistré utilisent volontairement un contexte visuel aléatoire. Le lecteur propose lecture/pause, restart, vitesses **×1 / ×1,5 / ×2 / ×5**, hitbox et une timeline draggable de 240 px dont le curseur est l'oiseau rouge original animé par le tick.
 - Contexte personnel authentifié dans le classement : rang global réel, record vérifié, nombre lifetime de runs vérifiées et date du record, y compris hors Top 100.
 - Statistiques lifetime autoritaires côté Supabase (`player_stats`) : parties vérifiées, score cumulé, record historique et causes de mort, sans aucune statistique envoyée par le client.
