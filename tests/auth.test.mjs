@@ -639,3 +639,203 @@ test('VerifiedRunClient preserves run-start throttling metadata for the UI fallb
     browser.restore();
   }
 });
+
+test('an existing Google profile can link Discord without changing its canonical user id', async () => {
+  const browser = installBrowser();
+  const previousFetch = globalThis.fetch;
+  const storage = new MemoryStorage();
+  let request = null;
+  globalThis.fetch = async (input, init = {}) => {
+    request = { url: String(input), init };
+    return new Response(JSON.stringify({
+      url: 'https://discord.com/oauth2/authorize?client_id=test',
+    }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+  };
+
+  try {
+    const auth = new AuthClient({ ...config, storage });
+    auth.session = { accessToken: 'access', refreshToken: 'refresh', tokenType: 'bearer', expiresAt: Date.now() + 3600000 };
+    auth.user = {
+      id: 'existing-google-user',
+      app_metadata: { provider: 'google', providers: ['google'] },
+      identities: [{ identity_id: 'identity-google', provider: 'google' }],
+    };
+    auth.profile = { id: 'existing-google-user', username: 'googlebird', display_name: 'Google Bird', best_score: 33 };
+
+    await auth.linkIdentity('discord');
+
+    const url = new URL(request.url);
+    assert.equal(url.pathname, '/auth/v1/user/identities/authorize');
+    assert.equal(url.searchParams.get('provider'), 'discord');
+    assert.equal(request.init.headers.Authorization, 'Bearer access');
+    assert.equal(auth.user.id, 'existing-google-user');
+    assert.equal(auth.profile.id, 'existing-google-user');
+    assert.equal(JSON.parse(storage.getItem(AUTH_LINK_INTENT_KEY)).provider, 'discord');
+  } finally {
+    globalThis.fetch = previousFetch;
+    browser.restore();
+  }
+});
+
+test('unlinking one of two providers refreshes identities and reconciles the selected avatar', async () => {
+  const browser = installBrowser();
+  const previousFetch = globalThis.fetch;
+  const storage = new MemoryStorage();
+  const requests = [];
+  globalThis.fetch = async (input, init = {}) => {
+    const url = String(input);
+    requests.push({ url, init });
+    if (init.method === 'DELETE' && url.endsWith('/auth/v1/user/identities/identity-google')) {
+      return new Response('{}', { status: 200, headers: { 'Content-Type': 'application/json' } });
+    }
+    if (url.endsWith('/auth/v1/user')) {
+      return new Response(JSON.stringify({
+        id: 'linked-user',
+        app_metadata: { provider: 'discord', providers: ['discord'] },
+        user_metadata: { global_name: 'Bird', avatar_url: 'https://cdn.example/discord-current.png' },
+        identities: [{
+          identity_id: 'identity-discord', provider: 'discord',
+          identity_data: { global_name: 'Bird', avatar_url: 'https://cdn.example/discord.png' },
+        }],
+      }), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    }
+    if (url.includes('/rest/v1/profiles?') && (!init.method || init.method === 'GET')) {
+      return new Response(JSON.stringify([{
+        id: 'linked-user', username: 'bird', display_name: 'Bird',
+        avatar_url: 'https://cdn.example/google.png', avatar_provider: 'google', best_score: 42,
+      }]), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    }
+    if (url.includes('/rest/v1/profiles?') && init.method === 'PATCH') {
+      assert.deepEqual(JSON.parse(init.body), {
+        avatar_provider: 'discord',
+        avatar_url: 'https://cdn.example/discord.png',
+      });
+      return new Response(JSON.stringify([{
+        id: 'linked-user', username: 'bird', display_name: 'Bird',
+        avatar_url: 'https://cdn.example/discord.png', avatar_provider: 'discord', best_score: 42,
+      }]), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    }
+    throw new Error(`Unexpected fetch: ${url}`);
+  };
+
+  try {
+    const auth = new AuthClient({ ...config, storage });
+    auth.session = { accessToken: 'access', refreshToken: 'refresh', tokenType: 'bearer', expiresAt: Date.now() + 3600000 };
+    auth.user = {
+      id: 'linked-user',
+      identities: [
+        { identity_id: 'identity-discord', provider: 'discord' },
+        { identity_id: 'identity-google', provider: 'google' },
+      ],
+    };
+    auth.profile = { id: 'linked-user', avatar_provider: 'google', avatar_url: 'https://cdn.example/google.png' };
+
+    const state = await auth.unlinkIdentity('identity-google');
+    assert.deepEqual(state.identities.map(identity => identity.provider), ['discord']);
+    assert.equal(state.profile.avatar_provider, 'discord');
+    assert.equal(state.profile.avatar_url, 'https://cdn.example/discord.png');
+    assert.ok(requests.some(request => request.init.method === 'DELETE'));
+  } finally {
+    globalThis.fetch = previousFetch;
+    browser.restore();
+  }
+});
+
+test('offline startup preserves both linked providers and the cached customized profile', async () => {
+  const browser = installBrowser({ online: false });
+  try {
+    const storage = new MemoryStorage();
+    storage.setItem('flappy13-auth-v1', JSON.stringify({
+      session: { accessToken: 'access', refreshToken: 'refresh', tokenType: 'bearer', expiresAt: Date.now() + 3600000 },
+      user: {
+        id: 'linked-offline-user',
+        app_metadata: { provider: 'discord', providers: ['discord', 'google'] },
+        identities: [
+          { identity_id: 'identity-discord', provider: 'discord' },
+          { identity_id: 'identity-google', provider: 'google' },
+        ],
+      },
+      profile: {
+        id: 'linked-offline-user', username: 'bird', display_name: 'Offline Bird',
+        avatar_provider: 'google', avatar_url: 'https://cdn.example/google.png', best_score: 88,
+      },
+    }));
+
+    const auth = new AuthClient({ ...config, storage });
+    const state = await auth.init();
+    assert.equal(state.status, 'offline');
+    assert.deepEqual(state.identities.map(identity => identity.provider), ['discord', 'google']);
+    assert.equal(state.profile.display_name, 'Offline Bird');
+    assert.equal(state.profile.best_score, 88);
+  } finally {
+    browser.restore();
+  }
+});
+
+test('logout then login can use either Discord or Google provider', async () => {
+  for (const provider of ['discord', 'google']) {
+    const browser = installBrowser();
+    const previousFetch = globalThis.fetch;
+    globalThis.fetch = async () => new Response('{}', { status: 200, headers: { 'Content-Type': 'application/json' } });
+    try {
+      const auth = new AuthClient({ ...config, storage: new MemoryStorage() });
+      auth.session = { accessToken: 'access', refreshToken: 'refresh', tokenType: 'bearer', expiresAt: Date.now() + 3600000 };
+      auth.user = { id: `user-${provider}` };
+      auth.profile = { id: `user-${provider}` };
+      await auth.signOut();
+      assert.equal(auth.snapshot().status, 'signed_out');
+
+      auth.signInWithProvider(provider);
+      const url = new URL(browser.assigned);
+      assert.equal(url.searchParams.get('provider'), provider);
+    } finally {
+      globalThis.fetch = previousFetch;
+      browser.restore();
+    }
+  }
+});
+
+test('profile preference updates are persisted immediately for the next offline startup', async () => {
+  const browser = installBrowser();
+  const previousFetch = globalThis.fetch;
+  const storage = new MemoryStorage();
+  globalThis.fetch = async (input, init = {}) => {
+    const url = String(input);
+    if (url.includes('/rest/v1/profiles?') && init.method === 'PATCH') {
+      assert.deepEqual(JSON.parse(init.body), { display_name: 'Cached Bird' });
+      return new Response(JSON.stringify([{
+        id: 'cached-user', username: 'bird', display_name: 'Cached Bird',
+        avatar_url: null, avatar_provider: null, best_score: 12,
+      }]), { status: 200, headers: { 'Content-Type': 'application/json' } });
+    }
+    throw new Error(`Unexpected fetch: ${url}`);
+  };
+
+  try {
+    const auth = new AuthClient({ ...config, storage });
+    auth.session = { accessToken: 'access', refreshToken: 'refresh', tokenType: 'bearer', expiresAt: Date.now() + 3600000 };
+    auth.user = {
+      id: 'cached-user',
+      app_metadata: { provider: 'discord', providers: ['discord', 'google'] },
+      identities: [
+        { identity_id: 'identity-discord', provider: 'discord' },
+        { identity_id: 'identity-google', provider: 'google' },
+      ],
+    };
+    auth.profile = { id: 'cached-user', username: 'bird', display_name: 'Old Bird', best_score: 12 };
+
+    await auth.updateProfilePreferences({ displayName: 'Cached Bird' });
+    const cached = JSON.parse(storage.getItem('flappy13-auth-v1'));
+    assert.equal(cached.profile.display_name, 'Cached Bird');
+    assert.equal(cached.user.id, 'cached-user');
+
+    Object.defineProperty(globalThis, 'navigator', { configurable: true, value: { onLine: false } });
+    const offlineAuth = new AuthClient({ ...config, storage });
+    const state = await offlineAuth.init();
+    assert.equal(state.status, 'offline');
+    assert.equal(state.profile.display_name, 'Cached Bird');
+  } finally {
+    globalThis.fetch = previousFetch;
+    browser.restore();
+  }
+});

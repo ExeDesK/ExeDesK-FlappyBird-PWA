@@ -131,10 +131,7 @@ export class ProfileClient {
     if (!profile?.avatar_provider) return profile;
 
     const avatarProvider = resolvedAvatarProvider(user, profile);
-    if (!avatarProvider) return profile;
-
-    const avatarUrl = providerAvatarUrl(user, avatarProvider);
-    if (!avatarUrl) return profile;
+    const avatarUrl = avatarProvider ? providerAvatarUrl(user, avatarProvider) : null;
 
     if (profile.avatar_provider === avatarProvider && profile.avatar_url === avatarUrl) {
       return profile;

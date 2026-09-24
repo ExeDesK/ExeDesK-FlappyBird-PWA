@@ -8,7 +8,7 @@ L'objectif n'est pas de produire un simple clone « inspiré de » Flappy Bird, 
 
 Le gameplay fonctionne entièrement côté client, sans framework, et peut être installé comme une application sur Windows, iPhone/iPad et Android. Les fonctions communautaires utilisent un backend Supabase facultatif : aucun compte n'est nécessaire pour jouer.
 
-> **État du projet : bêta — v0.2.7.4b-dev11-hotfix1**
+> **État du projet : bêta — v0.2.7.5b**
 
 - Statistiques joueur : carrière + fenêtres 10 / 25 / 50 calculées uniquement depuis les runs vérifiées.
 > Sur iPhone/iPad ProMotion, un statut dynamique dans les options Performance mesure la cadence rAF sur iOS : il confirme la haute fréquence lorsqu’elle est active, sinon il propose le réglage Safari et un tutoriel au timecode utile.
@@ -25,8 +25,8 @@ Le gameplay fonctionne entièrement côté client, sans framework, et peut être
 - Installation PWA sur Windows, iOS/iPadOS et Android.
 - Sauvegarde locale du meilleur score.
 - Connexion facultative via **Discord ou Google** avec Supabase Auth et profil joueur cross-platform.
-- Une modale **Profil** dédiée regroupe toute l'authentification utilisateur : connexion Discord/Google, avatar, identité, état de synchronisation, meilleur score, déconnexion et section **Connexions**. Un joueur connecté peut lier le provider manquant au **même `auth.users.id`**, sans déplacer son profil, son record, ses runs ou ses statistiques.
-- Le joueur peut personnaliser son **pseudo public** (initialisé depuis le premier compte connecté) et choisir sa **photo de profil** parmi les avatars Discord / Google disponibles. Le choix est enregistré dans `profiles` et réutilisé par le classement et l'Admin Analytics.
+- Une modale **Profil** dédiée regroupe toute l'authentification utilisateur : connexion Discord/Google, avatar, identité, état de synchronisation, meilleur score, déconnexion et section **Connexions**. Un joueur connecté peut lier le provider manquant au **même `auth.users.id`**, ou délier l'un des deux après confirmation ; le dernier moyen de connexion Discord/Google est toujours protégé.
+- Le joueur peut personnaliser son **pseudo public non unique** (initialisé depuis le premier compte connecté) et choisir sa **photo de profil** parmi les avatars Discord / Google disponibles. Sans photo provider, un avatar généré déterministe est utilisé. Le profil est enregistré dans `profiles`, répercuté immédiatement dans le leaderboard chargé, lu directement par l'Admin Analytics et conservé dans le cache d'authentification hors ligne.
 - La stratégie de conservation des comptes et le linking multi-provider sont documentés dans [`docs/ACCOUNT-LINKING.md`](./docs/ACCOUNT-LINKING.md). La configuration Google Cloud/Supabase est détaillée dans [`docs/AUTH-GOOGLE.md`](./docs/AUTH-GOOGLE.md).
 - Synchronisation du meilleur score entre appareils en conservant toujours la valeur la plus élevée.
 - Verified Runs : ticket/seed serveur, capture déterministe, file locale auto-réparante, soumission différée et relecture autoritaire avant validation ou rejet du score.
@@ -151,7 +151,8 @@ site/
 │   │   ├── verified-run-queue.js   File locale / réparation / ownership
 │   │   └── verified-run-submit.js  Politique FIFO / retry / discard
 │   ├── ui/
-│   │   ├── account.js              Rendu du compte
+│   │   ├── account.js              Rendu du compte / linking / unlink
+│   │   ├── avatar-fallback.js      Avatar généré déterministe sans provider
 │   │   ├── game-transition.js      Fade natif du lancement
 │   │   ├── leaderboard-ui.js       Modale et état du classement
 │   │   ├── unranked-warning.js     Dialogue fallback non classé

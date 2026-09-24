@@ -25,6 +25,7 @@ MODULE_ORDER = [
     'api/profile-client.js',
     'auth/identity-linking.js',
     'auth.js',
+    'ui/avatar-fallback.js',
     'admin/analytics-client.js',
     'admin/charts.js',
     'admin/dashboard.js',

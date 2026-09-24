@@ -5,6 +5,7 @@ const PROVIDER_SCOPES = Object.freeze({
   discord: 'identify email',
   google: 'openid email profile',
 });
+const MANAGED_LOGIN_PROVIDERS = Object.freeze(['discord', 'google']);
 
 function safeJsonParse(value) {
   try {
@@ -266,11 +267,13 @@ export class IdentityLinkingController {
     }
 
     const identities = this.identities();
-    if (identities.length < 2) {
+    const managedIdentities = identities.filter(identity => MANAGED_LOGIN_PROVIDERS.includes(identity.provider));
+    const identity = identities.find(item => item.identity_id === identityId);
+
+    if (identity && MANAGED_LOGIN_PROVIDERS.includes(identity.provider) && managedIdentities.length < 2) {
       throw new Error('Le dernier moyen de connexion ne peut pas être délié.');
     }
 
-    const identity = identities.find(item => item.identity_id === identityId);
     if (!identity?.identity_id) {
       throw new Error('Identité liée introuvable.');
     }

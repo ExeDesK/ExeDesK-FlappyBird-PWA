@@ -272,3 +272,16 @@ test('diagnostic theme selector is catalog-driven, dark-native and split into co
   assert.match(css, /#diagnostic \{[\s\S]*color-scheme: dark;/);
   assert.doesNotMatch(css, /\.debug-theme-controls select\s*\{/);
 });
+
+test('profile UI exposes explicit unlink confirmation while protecting the last login provider', () => {
+  const account = readFileSync(new URL('../site/src/ui/account.js', import.meta.url), 'utf8');
+  const html = readFileSync(new URL('../site/index.html', import.meta.url), 'utf8');
+  assert.match(account, /DÉLIER/);
+  assert.match(account, /CONFIRMER/);
+  assert.match(account, /ANNULER/);
+  assert.match(account, /DERNIER ACCÈS/);
+  assert.match(account, /linkedCount > 1/);
+  assert.match(html, /identity-management-status/);
+  const main = readFileSync(new URL('../site/src/main.js', import.meta.url), 'utf8');
+  assert.match(main, /auth\.sync\(\{ reason: 'profile-open' \}\)/);
+});

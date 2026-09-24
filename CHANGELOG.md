@@ -1,3 +1,16 @@
+## v0.2.7.5b - Accounts & Profiles
+
+- Finalise la gestion des identités Discord/Google dans Profil : chaque provider lié affiche **LIÉ**, le dernier moyen de connexion est marqué **DERNIER ACCÈS**, et `DÉLIER` n'est proposé que lorsqu'un second login Discord/Google reste disponible.
+- Ajoute une confirmation inline **CONFIRMER / ANNULER** avant toute déliaison, avec messages explicites sur la conservation du profil, du record et de l'historique. La couche Auth conserve un second garde-fou contre la suppression du dernier provider utilisable.
+- Après un unlink, relit systématiquement l'utilisateur autoritaire Supabase puis réconcilie le profil : si la source d'avatar a disparu/révoquée, l'avatar bascule vers l'autre provider disponible ou repasse à un fallback généré sans URL distante.
+- Ajoute `ui/avatar-fallback.js` : avatar de secours déterministe, sans requête réseau, partagé entre Profil, Leaderboard et Admin Analytics lorsqu'aucune photo Discord/Google n'est disponible.
+- Les mises à jour de pseudo/avatar se propagent immédiatement à une ligne de leaderboard déjà chargée, invalident son cache mémoire et restent persistées dans `flappy13-auth-v1` pour le prochain démarrage hors ligne. Admin Analytics continue de lire `public.profiles` directement à chaque RPC.
+- Les pseudos restent volontairement **non uniques** ; aucune contrainte SQL `UNIQUE` n'est ajoutée.
+- Étend les tests aux parcours Discord → Google, Google → Discord, Google-only, ancien compte Discord, logout/login avec chaque provider, compte lié hors ligne, unlink, disparition d'un provider, fallback d'avatar, propagation leaderboard/Admin/cache offline et protection de la confirmation UI.
+- Le Service Worker précache désormais **56 ressources runtime**.
+- Aucun changement SQL, Edge Function, physique, Verified Runs, score, UUID joueur ou ownership.
+- Validation : `npm test` **193/193**, smoke tests Chromium gameplay et Admin **OK**.
+
 ## v0.2.7.4b-dev11-hotfix1 - Profile Data API permissions
 
 - Corrige l'erreur PostgREST `42501 / permission denied for table profiles` lors de l'enregistrement du pseudo ou de la photo de profil.

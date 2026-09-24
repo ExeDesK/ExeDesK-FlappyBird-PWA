@@ -1,4 +1,5 @@
 import { leaderboardName } from '../leaderboard.js';
+import { applyGeneratedAvatarFallback } from './avatar-fallback.js';
 
 const DEFAULT_STALE_MS = 60 * 1000;
 
@@ -73,6 +74,28 @@ export class LeaderboardUI {
     this.loadedAt = 0;
     this.contextLoadedAt = 0;
     this.performanceLoadedAt = 0;
+  }
+
+  applyProfile(profile) {
+    if (!profile?.id) return false;
+
+    let changed = false;
+    this.rows = this.rows.map(row => {
+      if (row.player_id !== profile.id) return row;
+      changed = true;
+      return {
+        ...row,
+        username: profile.username ?? row.username,
+        display_name: profile.display_name ?? row.display_name,
+        avatar_url: profile.avatar_url ?? null,
+      };
+    });
+
+    // The local row is updated immediately while the next load still rechecks
+    // the public Supabase view, avoiding a stale minute-long leaderboard cache.
+    this.loadedAt = 0;
+    if (changed) this.render();
+    return changed;
   }
 
   onAuthChange(state = this.auth.snapshot()) {
@@ -260,7 +283,7 @@ export class LeaderboardUI {
       avatarWrap.className = 'leaderboard-avatar-wrap';
       const fallback = document.createElement('span');
       fallback.className = 'leaderboard-avatar-fallback';
-      fallback.textContent = leaderboardName(row).slice(0, 1).toUpperCase() || '?';
+      applyGeneratedAvatarFallback(fallback, leaderboardName(row));
       avatarWrap.append(fallback);
 
       if (row.avatar_url) {

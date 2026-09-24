@@ -177,7 +177,8 @@ tbody tr:last-child td { border-bottom: 0; }
 tbody tr:hover { background: rgba(255,255,255,.025); }
 .player-cell { display: flex; align-items: center; gap: 10px; min-width: 190px; }
 .player-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; background: #252d3a; }
-.player-avatar-fallback { display: grid; place-items: center; font-weight: 800; color: var(--muted); }
+.player-avatar-fallback { display: grid; place-items: center; font-weight: 800; }
+.player-avatar-fallback.generated-avatar { background: hsl(var(--avatar-hue, 220) 46% 48%); color: #fff; }
 .player-name { display: grid; gap: 2px; }
 .player-name strong { max-width: 230px; overflow: hidden; text-overflow: ellipsis; }
 .player-name small { color: var(--muted); }

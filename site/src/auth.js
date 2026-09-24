@@ -248,14 +248,14 @@ export class AuthClient {
     const body = await this.identityLinking.unlink(identityId);
     if (body?.user) {
       this.user = body.user;
-    } else if (body?.id) {
+    } else if (body?.id && Array.isArray(body?.identities)) {
       this.user = body;
-    } else {
-      await this.sync({ reason: 'identity-unlink' });
-      return this.snapshot();
     }
-    this._save();
-    this._emit();
+
+    // Always fetch the authoritative Auth user after an unlink. This catches
+    // provider removal/revocation and lets ProfileClient reconcile an avatar
+    // that came from the identity that just disappeared.
+    await this.sync({ reason: 'identity-unlink' });
     return this.snapshot();
   }
 

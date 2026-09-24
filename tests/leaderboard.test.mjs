@@ -5,6 +5,7 @@ import { readFile } from 'node:fs/promises';
 import { AuthClient } from '../site/src/auth.js';
 import { LeaderboardClient } from '../site/src/api/leaderboard-client.js';
 import { leaderboardName, parseLeaderboardRows } from '../site/src/leaderboard.js';
+import { LeaderboardUI } from '../site/src/ui/leaderboard-ui.js';
 
 class MemoryStorage {
   constructor() { this.values = new Map(); }
@@ -238,4 +239,25 @@ test('leaderboard modal contains a dedicated personal context card for signed-in
   assert.match(leaderboardUi, /this\.context\.global_rank/);
   assert.match(css, /\.leaderboard-player-card/);
   assert.match(css, /\.leaderboard-player-metrics/);
+});
+
+
+test('profile customization propagates immediately into an already loaded leaderboard row', () => {
+  const auth = { snapshot: () => ({ status: 'signed_in', user: { id: rows[0].player_id } }) };
+  const ui = new LeaderboardUI({ auth, client: null, dialog: null, getElement: () => null });
+  ui.rows = structuredClone(rows);
+  ui.loadedAt = Date.now();
+  ui.render = () => {};
+
+  const changed = ui.applyProfile({
+    id: rows[0].player_id,
+    username: 'birdplayer',
+    display_name: 'Nouveau Pseudo',
+    avatar_url: null,
+  });
+
+  assert.equal(changed, true);
+  assert.equal(ui.rows[0].display_name, 'Nouveau Pseudo');
+  assert.equal(ui.rows[0].avatar_url, null);
+  assert.equal(ui.loadedAt, 0, 'next remote leaderboard read must not reuse the stale minute cache');
 });

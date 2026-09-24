@@ -1,8 +1,10 @@
+import { applyGeneratedAvatarFallback } from '../ui/avatar-fallback.js';
+
 import { AuthClient } from '../auth.js';
 import { AnalyticsClient } from './analytics-client.js';
 import { renderBarChart, renderLineChart } from './charts.js';
 
-const VERSION = '0.2.7.4b-dev11-hotfix1';
+const VERSION = '0.2.7.5b';
 const TICKS_PER_SECOND = 60;
 
 const config = globalThis.FLAPPY_CONFIG || {};
@@ -224,7 +226,7 @@ function createPlayerCell(row) {
   } else {
     avatar = document.createElement('div');
     avatar.className = 'player-avatar player-avatar-fallback';
-    avatar.textContent = playerLabel(row).slice(0, 1).toUpperCase();
+    applyGeneratedAvatarFallback(avatar, playerLabel(row));
   }
 
   const name = document.createElement('span');

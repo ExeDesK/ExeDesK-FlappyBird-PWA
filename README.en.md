@@ -8,7 +8,7 @@ The goal is not to create another Flappy Bird-inspired clone, but to **reproduce
 
 Gameplay runs entirely client-side without a framework and can be installed as an application on Windows, iPhone/iPad and Android. Optional community features use Supabase; no account is required to play.
 
-> **Project status: beta — v0.2.7.4b-dev11-hotfix1**
+> **Project status: beta — v0.2.7.5b**
 
 - Player statistics: career + 10 / 25 / 50-run windows derived only from verified runs.
 > On ProMotion iPhone/iPad devices, the Performance options include guidance for the Safari setting that can remove the near-60 Hz page-rendering preference.
@@ -25,8 +25,8 @@ Gameplay runs entirely client-side without a framework and can be installed as a
 - Installable PWA on Windows, iOS/iPadOS and Android.
 - Local high-score persistence.
 - Optional Discord or Google sign-in through Supabase Auth with a cross-platform player profile.
-- A dedicated **Profile** modal owns the complete user-authentication surface: Discord/Google sign-in, avatar, identity, sync status, best score, sign-out and a **Connections** view. Signed-in players can link the missing provider to the same `auth.users.id`, preserving the existing game profile, record, runs and statistics.
-- Players can customize their **public nickname** (initially taken from the first connected account) and choose their **profile picture** from the available Discord / Google avatars. The selection is stored in `profiles` and reused by the leaderboard and Admin Analytics.
+- A dedicated **Profile** modal owns the complete user-authentication surface: Discord/Google sign-in, avatar, identity, sync status, best score, sign-out and a **Connections** view. Signed-in players can link the missing provider to the same `auth.users.id`, or unlink either provider after an explicit confirmation; the last Discord/Google login method is always protected.
+- Players can customize their **non-unique public nickname** (initially taken from the first connected account) and choose their **profile picture** from the available Discord / Google avatars. If neither provider exposes a picture, a deterministic generated avatar is used. Profile changes immediately update an already-loaded leaderboard row, are read live by Admin Analytics and remain available through the offline auth cache.
 - Existing-account preservation and the future multi-provider flow are documented in [`docs/ACCOUNT-LINKING.md`](./docs/ACCOUNT-LINKING.md).
 - Cross-device best-score sync that always keeps the highest value.
 - Verified Runs: server-issued ticket/seed, deterministic capture, self-healing local queue, deferred submission, and authoritative replay before a score is accepted or rejected.

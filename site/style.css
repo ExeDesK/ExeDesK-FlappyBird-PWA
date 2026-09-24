@@ -812,8 +812,19 @@ body {
 }
 
 .leaderboard-avatar-fallback {
-  color: var(--flappy-brown-dark);
-  font-size: 11px;
+  display: grid;
+  place-items: center;
+  width: 100%;
+  height: 100%;
+  font-size: 9px;
+}
+
+.generated-avatar {
+  background: hsl(var(--avatar-hue, 42) 46% 48%);
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  text-shadow: 1px 1px 0 rgba(0, 0, 0, 0.24);
 }
 
 .leaderboard-identity {
@@ -1251,8 +1262,7 @@ noscript {
 .account-avatar-fallback {
   display: grid;
   place-items: center;
-  color: var(--flappy-brown-dark);
-  font-size: 20px;
+  font-size: 16px;
 }
 
 .account-identity {
@@ -1419,6 +1429,44 @@ noscript {
   margin: 0;
 }
 
+.profile-avatar-generated-preview {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 6px;
+  border: 2px solid #b39555;
+  background: #eadca9;
+  box-shadow: inset 0 -2px 0 #c9b66f;
+}
+
+.profile-avatar-generated {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 auto;
+  border: 2px solid var(--flappy-brown-dark);
+  font-size: 9px;
+}
+
+.profile-avatar-generated-copy {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.profile-avatar-generated-copy strong {
+  color: var(--flappy-brown-dark);
+  font-size: 8px;
+}
+
+.profile-avatar-generated-copy small {
+  color: #806438;
+  font-size: 6px;
+  line-height: 1.35;
+}
+
 .account-linked-identities {
   margin-top: 10px;
 }
@@ -1457,15 +1505,51 @@ noscript {
   font-size: 8px;
 }
 
-#profile-dialog .identity-link-action {
+.linked-identity-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 5px;
+}
+
+.linked-identity-protected {
+  color: #806438;
+  font-size: 6px;
+  white-space: nowrap;
+}
+
+#profile-dialog .identity-link-action,
+#profile-dialog .identity-unlink-action,
+#profile-dialog .identity-unlink-confirm,
+#profile-dialog .identity-unlink-cancel {
   min-width: 62px;
   padding: 5px 7px;
   border-width: 2px;
+  font-size: 8px;
+}
+
+#profile-dialog .identity-link-action {
   box-shadow:
     inset 0 2px 0 #ffeaa0,
     inset 0 -2px 0 var(--flappy-yellow-dark),
     2px 2px 0 #6f4b22;
-  font-size: 8px;
+}
+
+#profile-dialog .identity-unlink-action,
+#profile-dialog .identity-unlink-cancel {
+  background: #d7c89b;
+  color: var(--flappy-brown-dark);
+}
+
+#profile-dialog .identity-unlink-confirm {
+  background: #d95f55;
+  color: #fff;
+}
+
+.identity-management-status {
+  min-height: 2.7em;
+  margin: 7px 1px 0;
+  line-height: 1.35;
 }
 
 .linked-identity-row.is-unlinked {

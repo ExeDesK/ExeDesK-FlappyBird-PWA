@@ -28,7 +28,7 @@ import {
 } from './themes.js';
 import { createCanonicalRunGame } from './verified-runs.js';
 
-const VERSION = '0.2.7.4b-dev11-hotfix1';
+const VERSION = '0.2.7.5b';
 const BEST_SCORE_KEY = 'flappy13-personal-best-v1';
 const SETTINGS_KEY = 'flappy13-settings-v1';
 const runtimeConfig = globalThis.FLAPPY_CONFIG && typeof globalThis.FLAPPY_CONFIG === 'object'
@@ -94,13 +94,30 @@ async function linkAccountProvider(provider) {
     throw error;
   }
 }
-
+async function unlinkAccountProvider(provider, identityId) {
+  try {
+    const state = await auth.unlinkIdentity(identityId);
+    leaderboardUI.applyProfile(state.profile);
+    return state;
+  } catch (error) {
+    const label = providerLabel(provider);
+    const message = String(error?.message || error || 'erreur Auth');
+    if (/dernier moyen de connexion/i.test(message)) throw new Error(`Impossible de délier ${label} : ajoute d’abord un second moyen de connexion.`);
+    if (/manual.*link|linking.*disabled/i.test(message)) throw new Error('La gestion des identités doit être activée dans Supabase Auth.');
+    throw new Error(`Impossible de délier ${label} : ${message}`);
+  }
+}
 const accountUI = new AccountUI({
   auth,
   getBest: () => best,
   getScoreSyncState: () => scoreSync.snapshot(),
   getElement: $,
   onLinkProvider: linkAccountProvider,
+  onUnlinkProvider: unlinkAccountProvider,
+  onProfileUpdated: async state => {
+    leaderboardUI.applyProfile(state.profile);
+    if (leaderboardDialog.open && navigator.onLine) await leaderboardUI.load({ force: true });
+  },
 });
 const scoreSync = new ScoreSyncController({
   auth,
@@ -763,7 +780,7 @@ function openProfile() {
   audio.note('PROFILE_OPEN');
   audio.unlock('profile-open');
   accountUI.render(auth.snapshot());
-
+  if (navigator.onLine && auth.snapshot().user) void auth.sync({ reason: 'profile-open' });
   if (!profileDialog.open) {
     profileDialog.showModal();
   }

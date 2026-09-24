@@ -1,5 +1,6 @@
 import { PROFILE_DISPLAY_NAME_MAX } from '../api/profile-client.js';
 import { availableAvatarProviders, resolvedAvatarProvider } from '../auth/provider-profile.js';
+import { applyGeneratedAvatarFallback } from './avatar-fallback.js';
 
 const PROVIDER_LABELS = Object.freeze({
   discord: 'Discord',
@@ -49,14 +50,34 @@ function linkedProviderCount(identities = []) {
   return SUPPORTED_PROVIDER_ORDER.filter(provider => map.has(provider)).length;
 }
 
+function renderIdentityActionButton(text, className, ariaLabel, disabled, onClick) {
+  const action = document.createElement('button');
+  action.type = 'button';
+  action.className = className;
+  action.textContent = text;
+  action.disabled = disabled;
+  action.setAttribute('aria-label', ariaLabel);
+  action.addEventListener('click', event => {
+    event.preventDefault();
+    if (!action.disabled) onClick?.(action);
+  });
+  return action;
+}
+
 function renderLinkedIdentities(container, identities = [], {
   online = true,
   disabled = false,
+  unlinkCandidate = null,
+  busyProvider = null,
   onLinkProvider = null,
+  onRequestUnlink = null,
+  onConfirmUnlink = null,
+  onCancelUnlink = null,
 } = {}) {
   if (!container) return;
 
   const byProvider = normalizedIdentityMap(identities);
+  const linkedCount = linkedProviderCount(identities);
   const providerOrder = [
     ...SUPPORTED_PROVIDER_ORDER,
     ...[...byProvider.keys()].filter(provider => !SUPPORTED_PROVIDER_ORDER.includes(provider)),
@@ -74,31 +95,71 @@ function renderLinkedIdentities(container, identities = [], {
     provider.textContent = providerLabel(providerName).toUpperCase();
 
     if (identity) {
+      const actions = document.createElement('span');
+      actions.className = 'linked-identity-actions';
+
       const status = document.createElement('strong');
       status.className = 'linked-identity-status';
       status.textContent = 'LIÉ';
-      row.append(provider, status);
-    } else if (SUPPORTED_PROVIDER_ORDER.includes(providerName)) {
-      const action = document.createElement('button');
-      action.type = 'button';
-      action.className = 'identity-link-action';
-      action.dataset.linkProvider = providerName;
-      action.textContent = 'LIER';
-      action.disabled = disabled || !online || typeof onLinkProvider !== 'function';
-      action.setAttribute('aria-label', `Lier ${providerLabel(providerName)} au profil`);
-      action.addEventListener('click', async () => {
-        if (action.disabled) return;
-        action.disabled = true;
-        action.textContent = 'LIAISON…';
-        try {
-          await onLinkProvider(providerName);
-        } catch {
-          if (action.isConnected) {
-            action.disabled = disabled || !online;
-            action.textContent = 'LIER';
-          }
+      actions.append(status);
+
+      if (SUPPORTED_PROVIDER_ORDER.includes(providerName)) {
+        const isBusy = busyProvider === providerName;
+        const canUnlink = linkedCount > 1 && Boolean(identity.identity_id) && online;
+
+        if (unlinkCandidate === providerName && canUnlink) {
+          const confirm = renderIdentityActionButton(
+            isBusy ? 'DÉLIAISON…' : 'CONFIRMER',
+            'identity-unlink-confirm',
+            `Confirmer la déliaison de ${providerLabel(providerName)}`,
+            disabled || isBusy,
+            () => onConfirmUnlink?.(providerName, identity.identity_id),
+          );
+          const cancel = renderIdentityActionButton(
+            'ANNULER',
+            'identity-unlink-cancel',
+            `Annuler la déliaison de ${providerLabel(providerName)}`,
+            disabled || isBusy,
+            () => onCancelUnlink?.(),
+          );
+          actions.append(confirm, cancel);
+        } else if (linkedCount > 1 && identity.identity_id) {
+          const unlink = renderIdentityActionButton(
+            'DÉLIER',
+            'identity-unlink-action',
+            `Délier ${providerLabel(providerName)} du profil`,
+            disabled || !online || Boolean(busyProvider),
+            () => onRequestUnlink?.(providerName),
+          );
+          actions.append(unlink);
+        } else {
+          const protectedStatus = document.createElement('small');
+          protectedStatus.className = 'linked-identity-protected';
+          protectedStatus.textContent = linkedCount <= 1 ? 'DERNIER ACCÈS' : 'SYNCHRO REQUISE';
+          actions.append(protectedStatus);
         }
-      });
+      }
+
+      row.append(provider, actions);
+    } else if (SUPPORTED_PROVIDER_ORDER.includes(providerName)) {
+      const action = renderIdentityActionButton(
+        'LIER',
+        'identity-link-action',
+        `Lier ${providerLabel(providerName)} au profil`,
+        disabled || !online || Boolean(busyProvider) || typeof onLinkProvider !== 'function',
+        async button => {
+          button.disabled = true;
+          button.textContent = 'LIAISON…';
+          try {
+            await onLinkProvider(providerName);
+          } catch {
+            if (button.isConnected) {
+              button.disabled = disabled || !online;
+              button.textContent = 'LIER';
+            }
+          }
+        },
+      );
       row.append(provider, action);
     } else {
       row.append(provider);
@@ -119,10 +180,22 @@ function renderAvatarChoices(container, state, preferredProvider = null) {
 
   container.replaceChildren();
   if (!choices.length) {
-    const empty = document.createElement('p');
-    empty.className = 'hint profile-avatar-empty';
-    empty.textContent = 'Aucune photo de profil fournie par les comptes liés.';
-    container.append(empty);
+    const preview = document.createElement('div');
+    preview.className = 'profile-avatar-generated-preview';
+
+    const avatar = document.createElement('span');
+    avatar.className = 'profile-avatar-generated';
+    applyGeneratedAvatarFallback(avatar, accountDisplayName(state));
+
+    const text = document.createElement('span');
+    text.className = 'profile-avatar-generated-copy';
+    const title = document.createElement('strong');
+    title.textContent = 'AVATAR GÉNÉRÉ';
+    const hint = document.createElement('small');
+    hint.textContent = 'Aucune photo fournie par Discord ou Google.';
+    text.append(title, hint);
+    preview.append(avatar, text);
+    container.append(preview);
     return null;
   }
 
@@ -158,18 +231,32 @@ function renderAvatarChoices(container, state, preferredProvider = null) {
 }
 
 export class AccountUI {
-  constructor({ auth, getBest, getScoreSyncState, getElement, onLinkProvider } = {}) {
+  constructor({
+    auth,
+    getBest,
+    getScoreSyncState,
+    getElement,
+    onLinkProvider,
+    onUnlinkProvider,
+    onProfileUpdated,
+  } = {}) {
     this.auth = auth;
     this.getBest = getBest;
     this.getScoreSyncState = getScoreSyncState;
     this.$ = getElement || (id => document.getElementById(id));
     this.onLinkProvider = onLinkProvider;
+    this.onUnlinkProvider = onUnlinkProvider;
+    this.onProfileUpdated = onProfileUpdated;
     this.customizationDirty = false;
     this.avatarSignature = null;
+    this.unlinkCandidate = null;
+    this.busyProvider = null;
+    this.identityNotice = null;
 
     this.$('account-avatar')?.addEventListener('error', () => {
       this.$('account-avatar').hidden = true;
       this.$('account-avatar-fallback').hidden = false;
+      applyGeneratedAvatarFallback(this.$('account-avatar-fallback'), accountDisplayName(this.auth.snapshot()));
     });
 
     this.$('profile-display-name')?.addEventListener('input', () => {
@@ -208,6 +295,7 @@ export class AccountUI {
     const signature = JSON.stringify({
       selected: state.profile?.avatar_provider || null,
       choices: available.map(item => [item.provider, item.avatar_url]),
+      generated: available.length ? null : accountDisplayName(state),
     });
 
     if (input && !this.customizationDirty) {
@@ -251,11 +339,49 @@ export class AccountUI {
       });
       this.customizationDirty = false;
       this.avatarSignature = null;
+      await this.onProfileUpdated?.(state);
       this.render(state);
-      if (status) status.textContent = 'Profil mis à jour.';
+      if (status) status.textContent = 'Profil mis à jour partout.';
     } catch (error) {
       if (status) status.textContent = String(error?.message || error || 'Mise à jour impossible.');
       save.disabled = false;
+    }
+  }
+
+  requestUnlink(provider) {
+    this.unlinkCandidate = provider;
+    this.identityNotice = `Délier ${providerLabel(provider)} ? Tu ne pourras plus utiliser ce fournisseur pour te connecter à ce profil. Ton pseudo, ton record et ton historique seront conservés.`;
+    this.render();
+  }
+
+  cancelUnlink() {
+    this.unlinkCandidate = null;
+    this.identityNotice = null;
+    this.render();
+  }
+
+  async confirmUnlink(provider, identityId) {
+    if (this.busyProvider) return;
+    this.busyProvider = provider;
+    this.identityNotice = `Déliaison de ${providerLabel(provider)}…`;
+    this.render();
+
+    try {
+      const state = await this.onUnlinkProvider?.(provider, identityId);
+      this.unlinkCandidate = null;
+      this.avatarSignature = null;
+      const remaining = (state?.identities || [])
+        .map(identity => String(identity?.provider || '').toLowerCase())
+        .filter(name => SUPPORTED_PROVIDER_ORDER.includes(name));
+      const remainingLabel = remaining.map(providerLabel).join(' et ');
+      this.identityNotice = `${providerLabel(provider)} a été délié. ${remainingLabel || 'Le moyen de connexion restant'} conserve l’accès au même profil.`;
+      this.render(state || this.auth.snapshot());
+    } catch (error) {
+      this.identityNotice = String(error?.message || error || 'Déliaison impossible.');
+      this.render();
+    } finally {
+      this.busyProvider = null;
+      this.render();
     }
   }
 
@@ -269,6 +395,11 @@ export class AccountUI {
     const logout = this.$('discord-logout');
     const linkedSection = this.$('account-linked-identities');
     const linkedList = this.$('linked-identities-list');
+    const linkedCount = linkedProviderCount(state.identities || []);
+
+    if (this.unlinkCandidate && !(state.identities || []).some(identity => identity?.provider === this.unlinkCandidate)) {
+      this.unlinkCandidate = null;
+    }
 
     if (this.$('account-signed-out')) this.$('account-signed-out').hidden = signed;
     if (this.$('account-signed-in')) this.$('account-signed-in').hidden = !signed;
@@ -279,16 +410,32 @@ export class AccountUI {
     }
     if (logout) {
       logout.hidden = !signed;
-      logout.disabled = state.status === 'loading';
+      logout.disabled = state.status === 'loading' || Boolean(this.busyProvider);
     }
     if (linkedSection) linkedSection.hidden = !signed;
     if (linkedList) {
       renderLinkedIdentities(linkedList, signed ? state.identities || [] : [], {
         online,
         disabled: state.status === 'loading',
+        unlinkCandidate: this.unlinkCandidate,
+        busyProvider: this.busyProvider,
         onLinkProvider: this.onLinkProvider,
+        onRequestUnlink: provider => this.requestUnlink(provider),
+        onConfirmUnlink: (provider, identityId) => void this.confirmUnlink(provider, identityId),
+        onCancelUnlink: () => this.cancelUnlink(),
       });
     }
+
+    const identityStatus = this.$('identity-management-status');
+    if (identityStatus) {
+      identityStatus.textContent = this.identityNotice
+        || (!online
+          ? 'La gestion des connexions nécessite Internet.'
+          : linkedCount <= 1
+            ? 'Ajoute un second moyen de connexion avant de pouvoir délier celui-ci.'
+            : 'Délier un fournisseur ne supprime ni le profil, ni le record, ni l’historique.');
+    }
+
     this.renderCustomization(state, { signed, online });
     if (this.$('profile-best-score')) this.$('profile-best-score').textContent = String(this.getBest());
 
@@ -299,10 +446,7 @@ export class AccountUI {
         : signed
           ? state.status === 'offline'
             ? 'Profil disponible hors connexion.'
-            : (() => {
-                const count = linkedProviderCount(state.identities || []);
-                return `${count || 1} moyen${count > 1 ? 's' : ''} de connexion lié${count > 1 ? 's' : ''} au profil.`;
-              })()
+            : `${linkedCount || 1} moyen${linkedCount > 1 ? 's' : ''} de connexion lié${linkedCount > 1 ? 's' : ''} au profil.`
           : online
             ? 'Méthodes disponibles : Discord et Google.'
             : 'Hors connexion · la connexion au profil sera disponible au retour du réseau.';
@@ -336,7 +480,7 @@ export class AccountUI {
       image.removeAttribute('src');
       image.hidden = true;
       fallback.hidden = false;
-      fallback.textContent = accountDisplayName(state).slice(0, 1).toUpperCase() || '?';
+      applyGeneratedAvatarFallback(fallback, accountDisplayName(state));
     }
 
     const best = this.getBest();
@@ -354,4 +498,13 @@ export class AccountUI {
   }
 }
 
-export { accountAvatar, accountDisplayName, accountUsername, linkedProviderCount, providerLabel, renderAvatarChoices, renderLinkedIdentities, SUPPORTED_PROVIDER_ORDER };
+export {
+  accountAvatar,
+  accountDisplayName,
+  accountUsername,
+  linkedProviderCount,
+  providerLabel,
+  renderAvatarChoices,
+  renderLinkedIdentities,
+  SUPPORTED_PROVIDER_ORDER
+};

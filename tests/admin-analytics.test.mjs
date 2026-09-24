@@ -111,3 +111,11 @@ test('admin dashboard uses the existing OAuth session with authenticated RPCs an
   assert.doesNotMatch(html, /https:\/\/cdn\.|chart\.js/i);
   assert.match(css, /color-scheme:\s*dark/i);
 });
+
+test('admin player rows read the live profile identity instead of a duplicated profile snapshot', () => {
+  const block = functionBlock('admin_analytics_players', 'admin_analytics_retention');
+  assert.match(block, /left join public\.profiles as p on p\.id = r\.player_id/i);
+  assert.match(block, /p\.display_name/i);
+  assert.match(block, /p\.avatar_url/i);
+  assert.doesNotMatch(block, /cached_display_name|cached_avatar_url/i);
+});

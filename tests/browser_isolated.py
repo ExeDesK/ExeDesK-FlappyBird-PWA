@@ -49,6 +49,7 @@ MODULE_ORDER = [
     'ui/game-transition.js',
     'ui/unranked-warning.js',
     'session/verified-play.js',
+    'ui/avatar-fallback.js',
     'ui/account.js',
     'ui/leaderboard-ui.js',
     'ui/toast.js',

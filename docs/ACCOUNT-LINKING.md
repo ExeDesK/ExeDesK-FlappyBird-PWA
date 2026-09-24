@@ -1,6 +1,6 @@
 # Account linking
 
-## État actuel — v0.2.7.4b-dev11-hotfix1
+## État actuel — v0.2.7.5b
 
 Discord et Google sont maintenant tous les deux exposés dans la modale **Profil**. Le joueur peut :
 
@@ -77,7 +77,7 @@ Connecté avec Discord seulement :
 
 ```text
 CONNEXIONS
-DISCORD    LIÉ
+DISCORD    LIÉ · DERNIER ACCÈS
 GOOGLE     [ LIER ]
 ```
 
@@ -86,18 +86,37 @@ Connecté avec Google seulement :
 ```text
 CONNEXIONS
 DISCORD    [ LIER ]
-GOOGLE     LIÉ
+GOOGLE     LIÉ · DERNIER ACCÈS
 ```
 
 Connecté avec les deux :
 
 ```text
 CONNEXIONS
-DISCORD    LIÉ
-GOOGLE     LIÉ
+DISCORD    LIÉ · [ DÉLIER ]
+GOOGLE     LIÉ · [ DÉLIER ]
 ```
 
-Le unlink reste pris en charge par la couche Auth mais **aucun bouton DÉLIER n'est encore exposé dans l'interface**. Cela évite les suppressions accidentelles pendant cette première intégration Google.
+`DÉLIER` ne supprime jamais directement une identité : l'action ouvre une confirmation inline **CONFIRMER / ANNULER** avec un message rappelant que le provider ne pourra plus servir à se connecter, tandis que le pseudo, le record et l'historique restent attachés au même `auth.users.id`. Le dernier moyen de connexion géré par l'application (Discord ou Google) n'expose pas `DÉLIER` et la couche Auth possède le même garde-fou. Cette vérification ignore d'éventuelles identités Supabase non utilisables dans l'UI, afin qu'une identité `email` cachée ne permette pas de supprimer le dernier login Discord/Google.
+
+La gestion des connexions est désactivée hors ligne. Le profil déjà mis en cache reste consultable et le jeu reste jouable normalement.
+
+## Provider supprimé ou révoqué extérieurement
+
+Après une déliaison, `AuthClient` relit systématiquement l'utilisateur autoritaire via `/auth/v1/user` au lieu de se fier uniquement à la réponse du `DELETE`. L'ouverture de la modale Profil déclenche également une resynchronisation Auth lorsqu'une session est active et que le réseau est disponible, afin de détecter une identité supprimée ailleurs sans imposer un rechargement de page. Si le provider choisi comme source d'avatar n'est plus présent dans `user.identities` :
+
+- l'avatar bascule vers l'autre provider encore lié lorsqu'il fournit une image ;
+- sinon `avatar_provider` et `avatar_url` sont remis à `NULL` et l'interface utilise l'avatar généré déterministe.
+
+Une révocation effectuée uniquement chez Google ou Discord n'est visible par la PWA que lorsque Supabase Auth reflète cette disparition/invalidation dans l'utilisateur ou la session. La PWA ne tente pas d'interroger directement les APIs privées des providers.
+
+## Propagation du profil
+
+- **Leaderboard** : la ligne déjà chargée du joueur est modifiée immédiatement et le cache mémoire est invalidé pour forcer une relecture distante au prochain chargement.
+- **Admin Analytics** : `admin_analytics_players()` joint directement `public.profiles` à chaque RPC ; aucun snapshot de pseudo/avatar n'est dupliqué.
+- **Offline** : après un `PATCH` de profil réussi, `AuthClient` réécrit immédiatement `flappy13-auth-v1`, ce qui conserve le nouveau pseudo/avatar au prochain démarrage hors connexion.
+
+Les pseudos restent **volontairement non uniques** : aucune contrainte `UNIQUE` n'est ajoutée sur `profiles.username` ou `profiles.display_name`.
 
 ## Architecture frontend
 

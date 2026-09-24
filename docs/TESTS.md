@@ -1,3 +1,12 @@
+## v0.2.7.5b — Accounts & Profiles
+
+- `tests/auth.test.mjs` couvre les deux sens de linking Discord/Google, les comptes Google-first et Discord historiques, la reconnexion via chaque provider, le mode offline avec identités liées, le unlink et la persistance immédiate du profil dans le cache offline.
+- `tests/profile-customization.test.mjs` couvre la disparition/révocation du provider sélectionné, le fallback vers l'autre avatar, l'avatar généré et l'absence volontaire de contrainte d'unicité sur le pseudo.
+- `tests/leaderboard.test.mjs` verrouille la propagation immédiate d'un profil modifié dans une ligne déjà chargée et l'invalidation du cache. `tests/admin-analytics.test.mjs` verrouille la jointure live sur `public.profiles`.
+- `tests/ci.test.mjs` exige les contrôles **DÉLIER / CONFIRMER / ANNULER / DERNIER ACCÈS** et le message de gestion des identités.
+- Le cache PWA contient désormais **56 ressources runtime**, dont `ui/avatar-fallback.js`.
+- Suite complète : `npm test` **193/193** + `python tests/browser_isolated.py` **OK** + `python tests/admin_browser_isolated.py` **OK**.
+
 ## v0.2.7.4b-dev11-hotfix1 — Profile Data API permissions
 
 - `tests/profile-customization.test.mjs` verrouille les grants PostgREST sur `username`, `display_name`, `avatar_url` et `avatar_provider` tout en interdisant toujours l’écriture directe de `best_score`.
@@ -65,15 +74,15 @@
 - Le cache PWA reste à **51 ressources runtime** : le changement backend n'ajoute aucun asset client, mais le build Service Worker est incrémenté pour publier la nouvelle version.
 - Suite complète : `npm test` (**152/152**) + `python tests/browser_isolated.py` (**OK, 0 erreur page**).
 
-# Rapport de tests - v0.2.7.4b-dev11-hotfix1
+# Rapport de tests - v0.2.7.5b
 
 ## Résultat
 
-- **181/181 tests Node passent** avec `npm test`.
+- **193/193 tests Node passent** avec `npm test`.
 - Le bundle concaténé utilisé par le smoke test passe le contrôle de syntaxe JavaScript.
 - Le smoke test Chromium isolé passe sans erreur page et couvre aussi la composition des nouveaux modules ES, le catalogue dynamique, le thème Vietnam jour/nuit, le panneau diagnostic repliable, la modale Profil, les boutons utilitaires x1,75 et le module d’abandon de ticket Verified Run.
 - Le smoke test Admin Analytics dédié passe également sans erreur page avec Auth/RPC Supabase mockés et couvre les vues Overview, Joueurs, Rétention et Système.
-- Le cache PWA contient **55 ressources** et refuse de se déclarer complet si une ressource de précache manque.
+- Le cache PWA contient **56 ressources** et refuse de se déclarer complet si une ressource de précache manque.
 - `version.json` reste volontairement hors du cache du Service Worker afin de servir de sonde réseau réelle pour la mise à jour.
 - Les liens et ressources du site utilisent des chemins relatifs compatibles avec un projet GitHub Pages publié sous `/<repository>/`.
 

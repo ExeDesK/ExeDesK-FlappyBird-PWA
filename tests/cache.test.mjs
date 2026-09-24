@@ -187,13 +187,13 @@ function harness(scope = 'https://example.invalid/lab/flappy/') {
   };
 }
 
-test('All 55 runtime resources are cached together, including sounds, icons, theme assets and modular controllers', async () => {
+test('All 56 runtime resources are cached together, including sounds, icons, theme assets and modular controllers', async () => {
   const h = harness();
   await h.event('install');
 
   const result = await h.verify();
   assert.equal(result.complete, true);
-  assert.equal(result.count, 55);
+  assert.equal(result.count, 56);
   assert.equal(h.skipped, false);
 
   await h.event('activate');
@@ -296,7 +296,7 @@ test('Waiting workers expose their build number to the page', async () => {
     }],
   });
 
-  assert.equal(result.build, '0.2.7.4b-dev11-hotfix1');
+  assert.equal(result.build, '0.2.7.5b');
 });
 
 test('Activation of a waiting update requires an explicit message', async () => {

@@ -205,8 +205,8 @@ Les prochaines fonctionnalités importantes (multijoueur, replay leaderboard, co
 
 La stratégie complète de conservation de l'UUID joueur, de compatibilité avec les comptes Discord existants et de future liaison d'un second provider est décrite dans [`ACCOUNT-LINKING.md`](./ACCOUNT-LINKING.md).
 
-### Personnalisation de profil — v0.2.7.4b-dev11-hotfix1
+### Accounts & Profiles — v0.2.7.5b
 
-`auth/provider-profile.js` normalise les métadonnées publiques renvoyées par les identités OAuth (pseudo provider, avatar, date de liaison) sans les confondre avec l'UUID canonique du joueur. `api/profile-client.js` possède la lecture/écriture de `public.profiles`, dont le pseudo public et le provider d'avatar sélectionné. `AuthClient` orchestre seulement la session et délègue ces opérations au client de profil.
+`auth/provider-profile.js` normalise les métadonnées publiques renvoyées par les identités OAuth (pseudo provider, avatar, date de liaison) sans les confondre avec l'UUID canonique du joueur. `api/profile-client.js` possède la lecture/écriture de `public.profiles`, dont le pseudo public et le provider d'avatar sélectionné. `AuthClient` orchestre seulement la session et délègue ces opérations au client de profil. Après un unlink, il force une resynchronisation `/auth/v1/user` afin de réconcilier les providers réellement présents.
 
-Le leaderboard et Admin Analytics continuent de consommer `profiles.display_name` et `profiles.avatar_url`; aucun changement de clé étrangère ni de modèle d'ownership n'est nécessaire.
+`ui/account.js` expose le linking/unlink avec confirmation et protège le dernier provider Discord/Google. `ui/avatar-fallback.js` fournit un avatar généré déterministe lorsque les providers ne donnent aucune image. Le leaderboard applique immédiatement le profil à sa ligne déjà chargée puis invalide son cache ; Admin Analytics continue de lire `profiles.display_name` et `profiles.avatar_url` directement. Aucun changement de clé étrangère ni de modèle d'ownership n'est nécessaire.

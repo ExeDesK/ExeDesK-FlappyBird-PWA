@@ -8,6 +8,7 @@ import {
   providerAvatarUrl,
   resolvedAvatarProvider,
 } from '../site/src/auth/provider-profile.js';
+import { avatarHue, avatarInitials } from '../site/src/ui/avatar-fallback.js';
 import {
   PROFILE_DISPLAY_NAME_MAX,
   ProfileClient,
@@ -184,4 +185,83 @@ test('profile permissions hotfix reasserts Data API grants and owner-only RLS', 
   assert.match(sql, /grant update \(username, display_name, avatar_url, avatar_provider\)[\s\S]*to authenticated/i);
   assert.match(sql, /create policy "Users can update their own profile"[\s\S]*for update[\s\S]*auth\.uid\(\)[\s\S]*= id/i);
   assert.doesNotMatch(sql, /grant update[\s\S]*best_score/i);
+});
+
+test('a revoked selected provider falls back to the remaining provider avatar', async () => {
+  const previousFetch = globalThis.fetch;
+  let patchBody = null;
+  const discordOnlyUser = {
+    id: 'user-1',
+    app_metadata: { provider: 'discord', providers: ['discord'] },
+    identities: [{
+      provider: 'discord',
+      identity_data: { global_name: 'First Bird', avatar_url: 'https://cdn.example/discord.png' },
+    }],
+  };
+  globalThis.fetch = async (_input, init = {}) => {
+    patchBody = JSON.parse(init.body);
+    return new Response(JSON.stringify([{
+      id: 'user-1', display_name: 'First Bird', avatar_provider: 'discord',
+      avatar_url: 'https://cdn.example/discord.png', best_score: 42,
+    }]), { status: 200, headers: { 'Content-Type': 'application/json' } });
+  };
+
+  try {
+    const client = new ProfileClient({ url: 'https://project-ref.supabase.co', publishableKey: 'publishable' });
+    const profile = await client.refreshSelectedAvatar('token', discordOnlyUser, {
+      id: 'user-1', avatar_provider: 'google', avatar_url: 'https://cdn.example/google.png',
+    });
+    assert.deepEqual(patchBody, {
+      avatar_provider: 'discord',
+      avatar_url: 'https://cdn.example/discord.png',
+    });
+    assert.equal(profile.avatar_provider, 'discord');
+  } finally {
+    globalThis.fetch = previousFetch;
+  }
+});
+
+test('a revoked provider with no remaining provider picture clears stale public avatar data', async () => {
+  const previousFetch = globalThis.fetch;
+  let patchBody = null;
+  const noAvatarUser = {
+    id: 'user-1',
+    app_metadata: { provider: 'discord', providers: ['discord'] },
+    identities: [{ provider: 'discord', identity_data: { global_name: 'No Picture Bird' } }],
+  };
+  globalThis.fetch = async (_input, init = {}) => {
+    patchBody = JSON.parse(init.body);
+    return new Response(JSON.stringify([{
+      id: 'user-1', display_name: 'No Picture Bird', avatar_provider: null, avatar_url: null, best_score: 0,
+    }]), { status: 200, headers: { 'Content-Type': 'application/json' } });
+  };
+
+  try {
+    const client = new ProfileClient({ url: 'https://project-ref.supabase.co', publishableKey: 'publishable' });
+    await client.refreshSelectedAvatar('token', noAvatarUser, {
+      id: 'user-1', avatar_provider: 'google', avatar_url: 'https://cdn.example/google.png',
+    });
+    assert.deepEqual(patchBody, { avatar_provider: null, avatar_url: null });
+  } finally {
+    globalThis.fetch = previousFetch;
+  }
+});
+
+test('profile display names remain intentionally non-unique', async () => {
+  const sqlFiles = [
+    '../supabase/001_profiles.sql',
+    '../supabase/012_profile_customization.sql',
+    '../supabase/013_profile_permissions_hotfix.sql',
+  ];
+  const sql = (await Promise.all(sqlFiles.map(file => readFile(new URL(file, import.meta.url), 'utf8')))).join('\n');
+  assert.doesNotMatch(sql, /unique\s*\(\s*(?:username|display_name)\s*\)/i);
+  assert.doesNotMatch(sql, /create\s+unique\s+index[\s\S]{0,120}(?:username|display_name)/i);
+});
+
+
+test('generated avatar fallback is deterministic and readable without a provider picture', () => {
+  assert.equal(avatarInitials('Dylan Samson'), 'DS');
+  assert.equal(avatarInitials('Flappy'), 'FL');
+  assert.equal(avatarHue('Dylan Samson'), avatarHue('Dylan Samson'));
+  assert.ok(avatarHue('Dylan Samson') >= 0 && avatarHue('Dylan Samson') < 360);
 });
