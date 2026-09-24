@@ -1,4 +1,4 @@
-# Admin Analytics — v0.2.7.8b
+# Admin Analytics — v0.2.7.9b
 
 Le projet possède un dashboard d'administration séparé du jeu, publié sous `site/admin/` et accessible sur GitHub Pages via le chemin `/admin/` du dépôt.
 
@@ -20,7 +20,7 @@ require_analytics_admin()
 RPC admin_analytics_*
 ```
 
-Les tables Analytics sont privées : `anon` et `authenticated` n'ont aucun droit de lecture direct sur `analytics_admins`, `analytics_meta`, `player_activity_daily` ou `run_metrics_daily`.
+Les tables Analytics sont privées : `anon` et `authenticated` n'ont aucun droit de lecture direct sur `analytics_admins`, `analytics_meta`, `player_activity_daily`, `run_metrics_daily`, `player_activity_hourly` ou `run_metrics_hourly`.
 
 Le navigateur utilise uniquement le **publishable key** déjà utilisé par le jeu et son JWT utilisateur. Aucun `service_role` ou secret serveur n'est livré dans `site/`.
 
@@ -90,6 +90,18 @@ Le temps de jeu est calculé à partir du `terminal_tick` autoritaire :
 temps vérifié = tracked_play_ticks / 60
 ```
 
+
+### Suivi horaire — `018_admin_player_daily_insights.sql`
+
+`018` ajoute deux agrégats privés destinés à la vue **Journée** :
+
+- `player_activity_hourly` : joueurs actifs, runs vérifiées, ticks joués, scores et causes de mort par joueur / heure UTC ;
+- `run_metrics_hourly` : `run-start`, tickets émis, vérifications, rejets, expirations, purges et événements de protection par heure UTC.
+
+Ces agrégats sont alimentés par les mêmes chemins autoritaires que leurs équivalents quotidiens : une run n'alimente le gameplay horaire qu'après vérification serveur, et les métriques de lifecycle sont incrémentées par les fonctions PostgreSQL serveur.
+
+Le début du suivi horaire est mémorisé dans `analytics_meta.hourly_tracking_started_at`. **Aucun backfill horaire n'est tenté** : les anciennes runs détaillées peuvent déjà avoir été supprimées par la rétention 50 + record, donc reconstruire des pics historiques produirait des données trompeuses.
+
 ## Limite historique volontaire
 
 La collecte quotidienne et le temps de jeu commencent **à la première application de `010_admin_analytics.sql`**.
@@ -140,7 +152,7 @@ Le même intervalle pilote :
 
 ## RPC privées
 
-Les anciennes RPC à fenêtre (`admin_analytics_overview(window_days)`, etc.) restent présentes pour compatibilité. Le dashboard `v0.2.7.8b` utilise les RPC explicites ajoutées par `017_admin_analytics_ranges.sql`.
+Les anciennes RPC à fenêtre (`admin_analytics_overview(window_days)`, etc.) restent présentes pour compatibilité. Le dashboard `v0.2.7.9b` utilise les RPC explicites ajoutées par `017_admin_analytics_ranges.sql`.
 
 ### `admin_analytics_overview_range(date_from, date_to)`
 
@@ -214,6 +226,34 @@ Un joueur est considéré actif un jour donné s'il possède au moins une run au
 
 Les cohortes trop jeunes affichent D1/D7/D30 comme non mûrs plutôt que comme `0 %`.
 
+
+### `admin_analytics_player_detail(target_player_id, date_from, date_to)`
+
+La fiche ouverte en cliquant sur un joueur regroupe, sans exposer de secret :
+
+- profil public et UUID canonique ;
+- providers OAuth liés issus de `auth.identities` (Discord / Google, dates de liaison et dernière connexion, libellé public provider si disponible) ;
+- statistiques lifetime : rang global, runs, score moyen, record, temps vérifié suivi, jours actifs et causes de mort ;
+- statistiques strictement limitées à la plage `Du → Au` : runs, score moyen / record, temps de jeu, durée moyenne d'une run, jours actifs, première / dernière run ;
+- rétention D0 / D1 / D7 / D30 du joueur ;
+- activité quotidienne de la plage ;
+- états `issued` / `rejected` encore présents ;
+- jusqu'à 20 runs récentes encore conservées par la politique de rétention.
+
+La RPC **ne renvoie jamais** de token OAuth, email provider, seed, taps ou payload permettant de rejouer arbitrairement les runs. La liste des runs est explicitement une fenêtre d'inspection des lignes encore retenues, pas un historique lifetime exhaustif.
+
+### Vue Journée — RPC `018`
+
+Trois RPC admin-only alimentent l'onglet **Journée** :
+
+- `admin_analytics_day_overview(target_date)` : totaux journaliers autoritaires et dates de début de suivi ;
+- `admin_analytics_day_hourly(target_date)` : exactement 24 buckets UTC combinant gameplay, lifecycle serveur et créations de profils ;
+- `admin_analytics_day_recent_runs(target_date, limit_count)` : échantillon des runs du jour encore conservées pour inspection.
+
+La vue Journée peut donc afficher pour une date précise : joueurs actifs / nouveaux comptes, runs, temps de jeu, score, émission / vérification / rejet, événements de protection, pics horaires, causes de mort horaires, Top joueurs et runs récentes retenues.
+
+Pour une journée antérieure au début du suivi horaire, le dashboard conserve les **totaux quotidiens historiques** disponibles mais n'invente aucun pic par heure. Le premier jour de `018` peut naturellement n'avoir qu'une journée horaire partielle.
+
 ## Interface
 
 Le dashboard est volontairement distinct du pixel-art du jeu : interface sombre d'administration, responsive, sans framework et sans CDN.
@@ -250,7 +290,11 @@ Gameplay
 
 ### Joueurs
 
-Table filtrée par période avec recherche, tri, activité, score, temps de jeu et contexte lifetime.
+Table filtrée par période avec recherche, tri, activité, score, temps de jeu et contexte lifetime. Chaque ligne est cliquable et ouvre une fiche joueur détaillée avec comptes liés, statistiques lifetime / période, temps de jeu suivi, activité, rétention, causes de mort et runs récentes encore conservées.
+
+### Journée
+
+Vue opérationnelle indépendante de la plage globale : **Aujourd'hui**, **Hier**, date précise et navigation jour précédent / suivant. Elle expose les KPI du jour, quatre courbes horaires, les pics d'utilisation, la distribution horaire des collisions, le Top joueurs du jour et les runs retenues disponibles pour inspection.
 
 ### Rétention
 
@@ -281,14 +325,15 @@ Pour une installation neuve :
 
 1. exécuter `supabase/010_admin_analytics.sql` ;
 2. appliquer les migrations suivantes dans l'ordre jusqu'à `017_admin_analytics_ranges.sql` ;
-3. ajouter au moins un UUID dans `public.analytics_admins` ;
-4. pousser `site/` sur GitHub Pages ;
-5. ouvrir `/admin/` et se connecter avec le compte autorisé.
+3. appliquer `supabase/018_admin_player_daily_insights.sql` ;
+4. ajouter au moins un UUID dans `public.analytics_admins` ;
+5. pousser `site/` sur GitHub Pages ;
+6. ouvrir `/admin/` et se connecter avec le compte autorisé.
 
-Pour une base déjà à jour en `v0.2.7.7b-hotfix4`, seule la migration suivante est nouvelle :
+Pour une base déjà à jour en `v0.2.7.8b`, seule la migration suivante est nouvelle :
 
 ```text
-supabase/017_admin_analytics_ranges.sql
+supabase/018_admin_player_daily_insights.sql
 ```
 
 Aucune Edge Function n'a besoin d'être redéployée.

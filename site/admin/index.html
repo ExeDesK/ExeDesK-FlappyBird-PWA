@@ -42,6 +42,7 @@
       <div class="toolbar card">
         <nav class="tabs" aria-label="Sections Analytics">
           <button class="tab active" data-section="overview" type="button">Vue d'ensemble</button>
+          <button class="tab" data-section="day" type="button">Journée</button>
           <button class="tab" data-section="players" type="button">Joueurs</button>
           <button class="tab" data-section="retention" type="button">Rétention</button>
           <button class="tab" data-section="system" type="button">Système</button>
@@ -182,6 +183,103 @@
         </div>
       </section>
 
+      <section id="section-day" class="dashboard-section" hidden>
+        <article class="card day-toolbar">
+          <div>
+            <p class="eyebrow">JOURNÉE · UTC</p>
+            <h2 id="day-title">Aujourd'hui</h2>
+            <p id="day-tracking-note" class="muted compact">Le détail horaire charge…</p>
+          </div>
+          <div class="day-controls" aria-label="Navigation par journée">
+            <button id="day-prev" class="button secondary" type="button" aria-label="Jour précédent">←</button>
+            <button id="day-today" class="button secondary" type="button">Aujourd'hui</button>
+            <button id="day-yesterday" class="button secondary" type="button">Hier</button>
+            <label>
+              Date
+              <input id="day-date" type="date" required>
+            </label>
+            <button id="day-next" class="button secondary" type="button" aria-label="Jour suivant">→</button>
+          </div>
+        </article>
+
+        <div class="kpi-grid kpi-grid-wide day-kpis">
+          <article class="kpi-card card"><span>Joueurs actifs</span><strong id="day-active">—</strong><small id="day-active-split">— nouveaux · — revenants</small></article>
+          <article class="kpi-card card"><span>Nouveaux comptes</span><strong id="day-new-players">—</strong><small id="day-acquisition">— actifs le jour même</small></article>
+          <article class="kpi-card card"><span>Runs vérifiées</span><strong id="day-runs">—</strong><small id="day-runs-per-player">— / joueur actif</small></article>
+          <article class="kpi-card card"><span>Temps de jeu</span><strong id="day-playtime">—</strong><small id="day-playtime-per-player">— / joueur actif</small></article>
+          <article class="kpi-card card"><span>Score moyen</span><strong id="day-average-score">—</strong><small id="day-best-score">record —</small></article>
+          <article class="kpi-card card"><span>run-start</span><strong id="day-starts">—</strong><small id="day-issue-rate">— tickets émis</small></article>
+          <article class="kpi-card card"><span>Vérification</span><strong id="day-verification-rate">—</strong><small id="day-verification-detail">— émises · — rejetées</small></article>
+          <article class="kpi-card card"><span>Protections</span><strong id="day-protection-events">—</strong><small id="day-protection-detail">rate limit / pending cap</small></article>
+        </div>
+
+        <div class="chart-grid">
+          <article class="card chart-card">
+            <div class="card-heading"><div><p class="eyebrow">PIC D'UTILISATION</p><h2>Joueurs actifs / heure</h2></div><div class="legend"><span class="dot primary"></span> Actifs <span class="dot secondary"></span> Nouveaux comptes</div></div>
+            <div id="day-active-chart" class="chart"></div>
+          </article>
+          <article class="card chart-card">
+            <div class="card-heading"><div><p class="eyebrow">ACTIVITÉ</p><h2>Runs / tickets par heure</h2></div><div class="legend"><span class="dot primary"></span> Vérifiées <span class="dot secondary"></span> Émises</div></div>
+            <div id="day-runs-chart" class="chart"></div>
+          </article>
+          <article class="card chart-card">
+            <div class="card-heading"><div><p class="eyebrow">ENGAGEMENT</p><h2>Temps de jeu / heure</h2></div></div>
+            <div id="day-playtime-chart" class="chart"></div>
+          </article>
+          <article class="card chart-card">
+            <div class="card-heading"><div><p class="eyebrow">PERFORMANCE</p><h2>Score moyen / record horaire</h2></div><div class="legend"><span class="dot primary"></span> Moyenne <span class="dot secondary"></span> Record</div></div>
+            <div id="day-score-chart" class="chart"></div>
+          </article>
+        </div>
+
+        <div class="split-grid">
+          <article class="card">
+            <div class="card-heading"><div><p class="eyebrow">PICS</p><h2>Moments forts de la journée</h2></div></div>
+            <dl class="metrics-list">
+              <div><dt>Pic joueurs actifs</dt><dd id="day-peak-active">—</dd></div>
+              <div><dt>Pic runs</dt><dd id="day-peak-runs">—</dd></div>
+              <div><dt>Pic temps de jeu</dt><dd id="day-peak-playtime">—</dd></div>
+              <div><dt>Pic run-start</dt><dd id="day-peak-starts">—</dd></div>
+              <div><dt>Première run</dt><dd id="day-first-run">—</dd></div>
+              <div><dt>Dernière run</dt><dd id="day-last-run">—</dd></div>
+            </dl>
+          </article>
+          <article class="card">
+            <div class="card-heading"><div><p class="eyebrow">COLLISIONS · HORAIRE</p><h2>Causes de mort observées</h2></div></div>
+            <p class="muted compact">Disponible depuis l'activation du suivi horaire. Les totaux journaliers historiques restent disponibles même avant cette date.</p>
+            <div class="distribution">
+              <div><span>Pipe haut</span><strong id="day-death-top">—</strong><progress id="day-death-top-progress" max="100" value="0"></progress></div>
+              <div><span>Pipe bas</span><strong id="day-death-bottom">—</strong><progress id="day-death-bottom-progress" max="100" value="0"></progress></div>
+              <div><span>Sol</span><strong id="day-death-ground">—</strong><progress id="day-death-ground-progress" max="100" value="0"></progress></div>
+            </div>
+          </article>
+        </div>
+
+        <div class="split-grid day-tables">
+          <article class="card">
+            <div class="card-heading"><div><p class="eyebrow">TOP JOURNÉE</p><h2>Joueurs les plus actifs</h2></div></div>
+            <div class="table-wrap">
+              <table class="day-players-table">
+                <thead><tr><th>Joueur</th><th>Runs</th><th>Record</th><th>Temps</th></tr></thead>
+                <tbody id="day-players-body"></tbody>
+              </table>
+            </div>
+            <p id="day-players-empty" class="empty" hidden>Aucun joueur actif ce jour.</p>
+          </article>
+          <article class="card">
+            <div class="card-heading"><div><p class="eyebrow">INSPECTION</p><h2>Dernières runs encore retenues</h2></div></div>
+            <p class="muted compact">Liste d'inspection uniquement : la rétention 50 + record peut avoir supprimé des runs anciennes. Les KPI ci-dessus restent autoritaires.</p>
+            <div class="table-wrap">
+              <table class="day-runs-table">
+                <thead><tr><th>Heure</th><th>Joueur</th><th>Score</th><th>Mort</th></tr></thead>
+                <tbody id="day-runs-body"></tbody>
+              </table>
+            </div>
+            <p id="day-runs-empty" class="empty" hidden>Aucune run retenue pour cette journée.</p>
+          </article>
+        </div>
+      </section>
+
       <section id="section-players" class="dashboard-section" hidden>
         <article class="card">
           <div class="card-heading players-heading">
@@ -294,5 +392,90 @@
       </section>
     </section>
   </main>
+
+  <dialog id="player-detail-dialog" class="player-detail-dialog">
+    <div class="player-detail-shell">
+      <header class="player-detail-header">
+        <div id="player-detail-avatar" class="player-detail-avatar"></div>
+        <div class="player-detail-title">
+          <p class="eyebrow">FICHE JOUEUR</p>
+          <h2 id="player-detail-name">Joueur</h2>
+          <p id="player-detail-subtitle" class="muted">—</p>
+        </div>
+        <button id="player-detail-close" class="button secondary" type="button">Fermer</button>
+      </header>
+      <p id="player-detail-status" class="status-line" role="status"></p>
+      <div id="player-detail-content" hidden>
+        <div class="player-detail-summary-grid">
+          <article class="card player-detail-card">
+            <p class="eyebrow">COMPTE</p>
+            <dl class="metrics-list">
+              <div><dt>UUID</dt><dd id="pd-id">—</dd></div>
+              <div><dt>Créé</dt><dd id="pd-created">—</dd></div>
+              <div><dt>Dernière connexion</dt><dd id="pd-last-signin">—</dd></div>
+              <div><dt>Avatar public</dt><dd id="pd-avatar-provider">—</dd></div>
+            </dl>
+          </article>
+          <article class="card player-detail-card">
+            <p class="eyebrow">IDENTITÉS LIÉES</p>
+            <div id="pd-identities" class="identity-list"></div>
+          </article>
+          <article class="card player-detail-card">
+            <p class="eyebrow">LIFETIME</p>
+            <dl class="metrics-list">
+              <div><dt>Rang global</dt><dd id="pd-rank">—</dd></div>
+              <div><dt>Runs vérifiées</dt><dd id="pd-lifetime-runs">—</dd></div>
+              <div><dt>Record</dt><dd id="pd-lifetime-best">—</dd></div>
+              <div><dt>Score moyen</dt><dd id="pd-lifetime-average">—</dd></div>
+              <div><dt>Temps suivi</dt><dd id="pd-lifetime-playtime">—</dd></div>
+              <div><dt>Durée moyenne / run suivie</dt><dd id="pd-lifetime-run-time">—</dd></div>
+              <div><dt>Jours actifs suivis</dt><dd id="pd-lifetime-active-days">—</dd></div>
+            </dl>
+          </article>
+          <article class="card player-detail-card">
+            <p class="eyebrow">PÉRIODE SÉLECTIONNÉE</p>
+            <dl class="metrics-list">
+              <div><dt>Runs</dt><dd id="pd-period-runs">—</dd></div>
+              <div><dt>Record</dt><dd id="pd-period-best">—</dd></div>
+              <div><dt>Score moyen</dt><dd id="pd-period-average">—</dd></div>
+              <div><dt>Temps de jeu</dt><dd id="pd-period-playtime">—</dd></div>
+              <div><dt>Durée moyenne / run</dt><dd id="pd-period-run-time">—</dd></div>
+              <div><dt>Jours actifs</dt><dd id="pd-period-active-days">—</dd></div>
+              <div><dt>Moyenne / jour actif</dt><dd id="pd-period-day-time">—</dd></div>
+            </dl>
+          </article>
+        </div>
+
+        <div class="split-grid player-detail-secondary">
+          <article class="card player-detail-card">
+            <div class="card-heading"><div><p class="eyebrow">ACTIVITÉ</p><h2>Activité sur la période</h2></div></div>
+            <div id="pd-activity-chart" class="chart"></div>
+          </article>
+          <article class="card player-detail-card">
+            <div class="card-heading"><div><p class="eyebrow">RÉTENTION</p><h2>Jours-clés</h2></div></div>
+            <div id="pd-retention" class="retention-badges"></div>
+            <div class="card-heading compact-heading"><div><p class="eyebrow">MORTS LIFETIME</p></div></div>
+            <div class="distribution compact-distribution">
+              <div><span>Pipe haut</span><strong id="pd-death-top">—</strong></div>
+              <div><span>Pipe bas</span><strong id="pd-death-bottom">—</strong></div>
+              <div><span>Sol</span><strong id="pd-death-ground">—</strong></div>
+            </div>
+          </article>
+        </div>
+
+        <article class="card player-detail-card">
+          <div class="card-heading"><div><p class="eyebrow">RUNS RETENUES</p><h2>Historique récent disponible</h2></div><span id="pd-pending" class="range-badge">—</span></div>
+          <p class="muted compact">Cette liste reflète uniquement les runs encore conservées après la politique 50 + record. Les compteurs lifetime et le temps suivi restent autoritaires.</p>
+          <div class="table-wrap">
+            <table class="player-runs-table">
+              <thead><tr><th>Date</th><th>État</th><th>Score</th><th>Durée</th><th>Mort</th><th>Contexte</th></tr></thead>
+              <tbody id="pd-runs-body"></tbody>
+            </table>
+          </div>
+          <p id="pd-runs-empty" class="empty" hidden>Aucune run détaillée retenue.</p>
+        </article>
+      </div>
+    </div>
+  </dialog>
 </body>
 </html>

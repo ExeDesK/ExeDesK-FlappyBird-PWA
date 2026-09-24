@@ -295,3 +295,85 @@ tbody tr:hover { background: rgba(255,255,255,.025); }
   .period-range-form { grid-template-columns: 1fr; }
   .range-arrow { display: none; }
 }
+
+/* v0.2.7.9b - player drill-down and dedicated day operations view -------- */
+.day-toolbar {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 12px;
+  padding: 16px 18px;
+}
+.day-toolbar h2 { margin: 2px 0 4px; }
+.day-controls { display: flex; align-items: end; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.day-controls input { min-width: 152px; }
+.day-kpis { margin-bottom: 12px; }
+.day-tables > .card { padding: 18px; min-width: 0; }
+.day-players-table, .day-runs-table { min-width: 560px; }
+.table-player-button {
+  border: 0;
+  padding: 0;
+  background: transparent;
+  color: var(--text);
+  font: inherit;
+  font-weight: 750;
+  cursor: pointer;
+  text-align: left;
+}
+.table-player-button:hover, .table-player-button:focus-visible { color: var(--accent-2); outline: none; }
+.player-row { cursor: pointer; }
+.player-row:focus-visible { outline: 2px solid var(--accent-2); outline-offset: -2px; }
+.player-row:hover .player-name strong, .player-row:focus-visible .player-name strong { color: var(--accent-2); }
+
+.player-detail-dialog {
+  width: min(1180px, calc(100vw - 28px));
+  max-height: min(92dvh, 980px);
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: var(--bg);
+  color: var(--text);
+  box-shadow: 0 30px 90px rgba(0,0,0,.65);
+}
+.player-detail-dialog::backdrop { background: rgba(0,0,0,.72); backdrop-filter: blur(3px); }
+.player-detail-shell { padding: 18px; overflow: auto; max-height: inherit; }
+.player-detail-header { display: grid; grid-template-columns: auto minmax(0,1fr) auto; align-items: center; gap: 14px; margin-bottom: 8px; }
+.player-detail-title h2 { margin: 1px 0 4px; font-size: clamp(1.35rem, 3vw, 2rem); }
+.player-detail-title p { margin: 0; overflow-wrap: anywhere; }
+.player-detail-avatar { width: 64px; height: 64px; border-radius: 50%; overflow: hidden; background: #252d3a; }
+.player-detail-avatar img, .player-detail-avatar-fallback { width: 100%; height: 100%; object-fit: cover; }
+.player-detail-avatar-fallback { display: grid; place-items: center; font-size: 1.25rem; font-weight: 850; }
+.player-detail-summary-grid { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 12px; margin-bottom: 12px; }
+.player-detail-card { padding: 16px; min-width: 0; }
+.player-detail-card .metrics-list > div { align-items: start; }
+.player-detail-card .metrics-list dd { text-align: right; overflow-wrap: anywhere; }
+.player-detail-secondary { align-items: stretch; }
+.identity-list { display: grid; gap: 8px; }
+.identity-item { display: grid; gap: 3px; padding: 10px; border: 1px solid var(--border); border-radius: 10px; background: #0d1119; }
+.identity-item strong { color: var(--accent-2); }
+.identity-item span, .identity-item small { color: var(--muted); overflow-wrap: anywhere; }
+.retention-badges { display: grid; grid-template-columns: repeat(4,minmax(0,1fr)); gap: 8px; }
+.retention-badge { display: grid; gap: 4px; place-items: center; padding: 12px 8px; border: 1px solid var(--border); border-radius: 10px; background: #0d1119; }
+.retention-badge.active strong { color: var(--success, #65d18a); }
+.retention-badge.inactive strong { color: var(--danger); }
+.retention-badge.pending { color: var(--muted); }
+.compact-heading { margin-top: 18px; margin-bottom: 4px; }
+.compact-distribution { gap: 8px; }
+.player-runs-table { min-width: 820px; }
+
+@media (max-width: 1120px) {
+  .player-detail-summary-grid { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}
+@media (max-width: 780px) {
+  .day-toolbar { align-items: stretch; flex-direction: column; }
+  .day-controls { justify-content: stretch; }
+  .day-controls label { flex: 1 1 100%; }
+  .day-controls input { width: 100%; min-width: 0; }
+  .player-detail-dialog { width: calc(100vw - 14px); max-height: 94dvh; }
+  .player-detail-shell { padding: 12px; }
+  .player-detail-header { grid-template-columns: auto 1fr; }
+  .player-detail-header > .button { grid-column: 1 / -1; width: 100%; }
+  .player-detail-summary-grid { grid-template-columns: 1fr; }
+  .retention-badges { grid-template-columns: repeat(2,minmax(0,1fr)); }
+}

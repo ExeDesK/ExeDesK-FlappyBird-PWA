@@ -28,6 +28,8 @@ MODULE_ORDER = [
     'ui/avatar-fallback.js',
     'admin/analytics-client.js',
     'admin/charts.js',
+    'admin/day-view.js',
+    'admin/player-detail.js',
     'admin/dashboard.js',
 ]
 
@@ -93,6 +95,68 @@ def build_page(site: Path) -> tuple[str, str]:
         'd7_active': 0, 'd30_active': 0, 'd0_pct': 66.7, 'd1_pct': None,
         'd7_pct': None, 'd30_pct': None,
     }]
+    player_detail = {
+        'selected_from': '2026-09-21', 'selected_to': '2026-09-23',
+        'profile': {
+            'player_id': user['id'], 'username': 'admin', 'display_name': 'Admin',
+            'avatar_url': None, 'avatar_provider': 'discord',
+            'created_at': '2026-09-20T08:00:00Z', 'last_sign_in_at': '2026-09-24T19:00:00Z',
+            'profile_updated_at': '2026-09-23T08:00:00Z',
+        },
+        'identities': [
+            {'provider': 'discord', 'provider_label': 'AdminBird', 'linked_at': '2026-09-20T08:00:00Z', 'last_sign_in_at': '2026-09-24T19:00:00Z'},
+            {'provider': 'google', 'provider_label': 'Admin Google', 'linked_at': '2026-09-22T08:00:00Z', 'last_sign_in_at': '2026-09-24T18:00:00Z'},
+        ],
+        'lifetime': {
+            'global_rank': 1, 'verified_runs': 420, 'total_score': 2268, 'average_score': 5.4,
+            'best_score': 42, 'best_run_id': 'run-best', 'best_score_at': '2026-09-23T10:00:00Z',
+            'first_verified_run_at': '2026-09-20T09:00:00Z', 'last_verified_run_at': '2026-09-24T20:00:00Z',
+            'tracked_play_ticks': 216000, 'tracked_verified_runs': 300, 'tracked_active_days': 5,
+            'average_run_ticks_tracked': 720, 'deaths_pipe_top': 120, 'deaths_pipe_bottom': 160, 'deaths_ground': 140,
+        },
+        'period': {
+            'verified_runs': 123, 'total_score': 750, 'average_score': 6.1, 'best_score': 42,
+            'play_ticks': 108000, 'average_run_ticks': 878, 'active_days': 3,
+            'average_play_ticks_per_active_day': 36000,
+            'first_run_at': '2026-09-21T11:00:00Z', 'last_run_at': '2026-09-23T11:00:00Z',
+        },
+        'retention': {'d0': True, 'd1': True, 'd7': None, 'd30': None},
+        'pending': {'issued': 2, 'rejected': 1},
+        'activity': daily,
+        'recent_runs': [
+            {'run_id': 'run-1', 'status': 'verified', 'score': 42, 'collision': 'ground', 'terminal_tick': 720,
+             'issued_at': '2026-09-23T10:00:00Z', 'resolved_at': '2026-09-23T10:01:00Z', 'theme': 'france', 'variant': 'night'}
+        ],
+    }
+    day_overview = [{
+        'selected_date': '2026-09-24', 'tracking_started_at': '2026-09-20T12:00:00Z',
+        'hourly_tracking_started_at': '2026-09-24T18:00:00Z', 'active_players': 5, 'new_players': 2,
+        'new_active_players': 1, 'returning_players': 4, 'verified_runs': 48, 'play_ticks': 43200,
+        'score_sum': 300, 'best_score': 36, 'average_score': 6.25, 'run_start_requests': 60,
+        'issued_runs': 56, 'rejected_runs': 2, 'expired_issued_runs': 1, 'purged_rejected_runs': 0,
+        'rate_limited_requests': 1, 'pending_limit_requests': 1, 'issue_rate_pct': 93.3,
+        'verification_rate_pct': 85.7, 'rejection_rate_pct': 3.6,
+        'first_run_at': '2026-09-24T08:05:00Z', 'last_run_at': '2026-09-24T21:50:00Z',
+    }]
+    day_hourly = []
+    for hour in range(24):
+        active = 5 if hour == 20 else (2 if 18 <= hour <= 22 else 0)
+        runs = 14 if hour == 20 else (6 if 18 <= hour <= 22 else 0)
+        day_hourly.append({
+            'activity_hour': f'2026-09-24T{hour:02d}:00:00Z', 'hour_index': hour,
+            'active_players': active, 'new_players': 1 if hour == 19 else 0, 'verified_runs': runs,
+            'play_ticks': runs * 900, 'score_sum': runs * 6, 'best_score': 36 if hour == 20 else (12 if runs else 0),
+            'average_score': 6 if runs else None, 'deaths_pipe_top': 3 if hour == 20 else 0,
+            'deaths_pipe_bottom': 5 if hour == 20 else 0, 'deaths_ground': 6 if hour == 20 else 0,
+            'run_start_requests': 18 if hour == 20 else runs + 1, 'issued_runs': 16 if hour == 20 else runs,
+            'rejected_runs': 1 if hour == 20 else 0, 'expired_issued_runs': 0, 'purged_rejected_runs': 0,
+            'rate_limited_requests': 1 if hour == 20 else 0, 'pending_limit_requests': 0,
+        })
+    day_recent = [{
+        'run_id': 'run-day', 'player_id': user['id'], 'username': 'admin', 'display_name': 'Admin',
+        'avatar_url': None, 'score': 36, 'collision': 'ground', 'terminal_tick': 700,
+        'resolved_at': '2026-09-24T20:32:00Z', 'visual_theme': 'original', 'visual_variant': 'day',
+    }]
 
     scripts = []
     for name in MODULE_ORDER:
@@ -111,6 +175,10 @@ def build_page(site: Path) -> tuple[str, str]:
   const __daily = {json.dumps(daily)};
   const __players = {json.dumps(players)};
   const __retention = {json.dumps(retention)};
+  const __playerDetail = {json.dumps(player_detail)};
+  const __dayOverview = {json.dumps(day_overview)};
+  const __dayHourly = {json.dumps(day_hourly)};
+  const __dayRecent = {json.dumps(day_recent)};
   const __store = new Map();
   __store.set('flappy13-auth-v1', JSON.stringify({{
     session: {{accessToken:'test-token', refreshToken:'test-refresh', expiresAt: Date.now() + 3600000}},
@@ -136,6 +204,10 @@ def build_page(site: Path) -> tuple[str, str]:
     else if (url.pathname.endsWith('/rpc/admin_analytics_daily_range')) body = __daily;
     else if (url.pathname.endsWith('/rpc/admin_analytics_players_range')) body = __players;
     else if (url.pathname.endsWith('/rpc/admin_analytics_retention_range')) body = __retention;
+    else if (url.pathname.endsWith('/rpc/admin_analytics_player_detail')) body = __playerDetail;
+    else if (url.pathname.endsWith('/rpc/admin_analytics_day_overview')) body = __dayOverview;
+    else if (url.pathname.endsWith('/rpc/admin_analytics_day_hourly')) body = __dayHourly;
+    else if (url.pathname.endsWith('/rpc/admin_analytics_day_recent_runs')) body = __dayRecent;
     else return new Response(JSON.stringify({{message:'Not mocked'}}), {{status:404, headers:{{'Content-Type':'application/json'}}}});
     return new Response(JSON.stringify(body), {{status:200, headers:{{'Content-Type':'application/json'}}}});
   }};
@@ -191,6 +263,29 @@ def main() -> None:
         page.click('[data-section="players"]')
         assert page.locator('#players-body tr').count() == 1
         assert 'Admin' in page.locator('#players-body tr').inner_text()
+        page.click('#players-body tr')
+        page.wait_for_selector('#player-detail-dialog[open]')
+        page.wait_for_selector('#player-detail-content:not([hidden])')
+        assert page.locator('#pd-identities .identity-item').count() == 2
+        assert 'Discord' in page.locator('#pd-identities').inner_text()
+        assert 'Google' in page.locator('#pd-identities').inner_text()
+        assert page.locator('#pd-lifetime-runs').inner_text() == '420'
+        assert '1m' in page.locator('#pd-lifetime-run-time').inner_text() or '12s' in page.locator('#pd-lifetime-run-time').inner_text()
+        assert page.locator('#pd-activity-chart svg').count() == 1
+        page.screenshot(path=str(output / 'player-detail.png'), full_page=True)
+        page.click('#player-detail-close')
+
+        page.click('[data-section="day"]')
+        page.wait_for_timeout(30)
+        assert page.locator('#period-form').is_hidden() or page.locator('.period-card').is_hidden()
+        assert page.locator('#day-active').inner_text() == '5'
+        assert page.locator('#day-runs').inner_text() == '48'
+        assert page.locator('#day-active-chart svg').count() == 1
+        assert page.locator('#day-runs-chart svg').count() == 1
+        assert '20 h' in page.locator('#day-peak-active').inner_text()
+        assert page.locator('#day-players-body tr').count() == 1
+        assert page.locator('#day-runs-body tr').count() == 1
+        page.screenshot(path=str(output / 'day.png'), full_page=True)
 
         page.click('[data-section="retention"]')
         assert page.locator('#retention-body tr').count() == 1
@@ -209,6 +304,8 @@ def main() -> None:
         'environment': 'Isolated Chromium DOM + mocked Supabase Auth/RPCs',
         'errors': errors,
         'overview': 'OK',
+        'playerDetail': 'OK',
+        'day': 'OK',
         'players': 'OK',
         'retention': 'OK',
         'system': 'OK',

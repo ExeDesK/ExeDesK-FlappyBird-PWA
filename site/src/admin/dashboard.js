@@ -3,8 +3,10 @@ import { applyGeneratedAvatarFallback } from '../ui/avatar-fallback.js';
 import { AuthClient } from '../auth.js';
 import { AnalyticsClient } from './analytics-client.js';
 import { renderBarChart, renderLineChart } from './charts.js';
+import { DayInsightsView } from './day-view.js';
+import { PlayerDetailPanel } from './player-detail.js';
 
-const VERSION = '0.2.7.8b';
+const VERSION = '0.2.7.9b';
 const TICKS_PER_SECOND = 60;
 const DAY_MS = 86400000;
 const MAX_RANGE_DAYS = 3650;
@@ -45,6 +47,7 @@ const ui = {
   refresh: document.querySelector('#refresh'),
   tabs: [...document.querySelectorAll('.tab[data-section]')],
   sections: new Map([...document.querySelectorAll('.dashboard-section')].map(node => [node.id.replace('section-', ''), node])),
+  periodCard: document.querySelector('.period-card'),
   periodForm: document.querySelector('#period-form'),
   periodFrom: document.querySelector('#period-from'),
   periodTo: document.querySelector('#period-to'),
@@ -63,6 +66,8 @@ const ui = {
 let authorized = false;
 let loadSerial = 0;
 let selectedRange = defaultRange();
+let activeSectionName = 'overview';
+let lastPlayerRows = [];
 
 function number(value) {
   const numeric = Number(value);
@@ -381,6 +386,31 @@ function renderOverview(overview, daily) {
   });
 }
 
+const playerDetail = new PlayerDetailPanel({
+  analytics,
+  formatters: {
+    number: formatNumber,
+    decimal: formatDecimal,
+    durationTicks: formatDurationTicks,
+    date: formatDate,
+    dateTime: formatDateTime,
+  },
+});
+
+const dayView = new DayInsightsView({
+  analytics,
+  setStatus,
+  formatters: {
+    number: formatNumber,
+    decimal: formatDecimal,
+    percent: formatPercent,
+    durationTicks: formatDurationTicks,
+    date: formatDate,
+    dateTime: formatDateTime,
+  },
+  onPlayer: (playerId, date) => playerDetail.open({ player_id: playerId }, { from: date, to: date }),
+});
+
 function playerLabel(row) {
   return row.display_name || row.username || String(row.player_id).slice(0, 8);
 }
@@ -425,11 +455,15 @@ function td(value, className = '') {
 }
 
 function renderPlayers(rows) {
+  lastPlayerRows = rows;
   ui.playersBody.replaceChildren();
   ui.playersEmpty.hidden = rows.length > 0;
 
   for (const row of rows) {
     const tr = document.createElement('tr');
+    tr.className = 'player-row';
+    tr.dataset.playerId = row.player_id;
+    tr.tabIndex = 0;
     const pending = number(row.pending_issued);
     tr.append(
       createPlayerCell(row),
@@ -527,12 +561,15 @@ async function loadDashboard({ includeTables = true } = {}) {
 }
 
 function activateSection(name) {
+  activeSectionName = name;
   for (const [sectionName, node] of ui.sections) {
     node.hidden = sectionName !== name;
   }
   for (const tab of ui.tabs) {
     tab.classList.toggle('active', tab.dataset.section === name);
   }
+  if (ui.periodCard) ui.periodCard.hidden = name === 'day';
+  if (name === 'day' && authorized) dayView.ensureLoaded();
 }
 
 async function authorizeAndLoad() {
@@ -608,7 +645,10 @@ ui.signOut.addEventListener('click', async () => {
   showGate('Connexion requise', 'Session fermée. Connecte-toi avec Discord ou Google pour accéder aux Analytics.');
 });
 
-ui.refresh.addEventListener('click', () => loadDashboard());
+ui.refresh.addEventListener('click', () => {
+  if (activeSectionName === 'day') dayView.load(dayView.currentDate);
+  else loadDashboard();
+});
 ui.periodForm.addEventListener('submit', async event => {
   event.preventDefault();
   try {
@@ -641,6 +681,21 @@ ui.playerFilter.addEventListener('submit', async event => {
     setStatus(error?.message || String(error), true);
   }
 });
+ui.playersBody.addEventListener('click', event => {
+  const rowNode = event.target.closest('tr[data-player-id]');
+  if (!rowNode) return;
+  const row = lastPlayerRows.find(item => item.player_id === rowNode.dataset.playerId);
+  if (row) playerDetail.open(row, selectedRange);
+});
+ui.playersBody.addEventListener('keydown', event => {
+  if (event.key !== 'Enter' && event.key !== ' ') return;
+  const rowNode = event.target.closest('tr[data-player-id]');
+  if (!rowNode) return;
+  event.preventDefault();
+  const row = lastPlayerRows.find(item => item.player_id === rowNode.dataset.playerId);
+  if (row) playerDetail.open(row, selectedRange);
+});
+
 for (const tab of ui.tabs) {
   tab.addEventListener('click', () => activateSection(tab.dataset.section));
 }

@@ -8,7 +8,7 @@ L'objectif n'est pas de produire un simple clone « inspiré de » Flappy Bird, 
 
 Le gameplay fonctionne entièrement côté client, sans framework, et peut être installé comme une application sur Windows, iPhone/iPad et Android. Les fonctions communautaires utilisent un backend Supabase facultatif : aucun compte n'est nécessaire pour jouer.
 
-> **État du projet : bêta — v0.2.7.8b**
+> **État du projet : bêta — v0.2.7.9b**
 
 - Statistiques joueur : carrière + fenêtres 10 / 25 / 50 calculées uniquement depuis les runs vérifiées.
 > Sur iPhone/iPad ProMotion, un statut dynamique dans les options Performance mesure la cadence rAF sur iOS : il confirme la haute fréquence lorsqu’elle est active, sinon il propose le réglage Safari et un tutoriel au timecode utile.
@@ -50,8 +50,8 @@ Le gameplay fonctionne entièrement côté client, sans framework, et peut être
 - Les outils de diagnostic sont organisés en sections repliables, disposent d'une fermeture interne et utilisent les contrôles natifs sombres du navigateur pour les sélecteurs.
 - Atlas complémentaire versionné par `assets/customatlas.json`, séparé de l’atlas original pour préserver la parité graphique et comportementale de référence. Les boutons Home / Options / Profil utilisent les sprites de cet atlas en **x1,75** avec une hitbox compacte **60 × 60** ; les fermetures des modales utilisateur utilisent `button_close` en **x1**. Les contrôles replay utilisent eux aussi les sprites atlas en x1 et le même press-state pixel-stable ; Play/Pause restent issus de l’atlas original et l'oiseau rouge original sert de handle animé de timeline. Toute l’authentification utilisateur (connexion, état de session et déconnexion) vit désormais dans la modale Profil, jamais dans Options.
 - Frontend découpé en modules ES par domaine : `main.js` orchestre le jeu, tandis que l’authentification, les clients Supabase, le leaderboard, les Verified Runs, les replays, la file locale, les transitions UI, les toasts, la synchronisation du score et les mises à jour PWA vivent dans des modules ciblés et testables séparément.
-- Dashboard privé **Admin Analytics** sous `site/admin/` : plages UTC explicites **du → au**, raccourcis Aujourd'hui / Hier / 7 j / 30 j / 90 j / 1 an / Tout, joueurs actifs et revenants, DAU/WAU/MAU à la date de fin, runs, temps de jeu, score moyen / record de période, acquisition, rétention D0/D1/D7/D30, statistiques joueurs filtrées par période et métriques de lifecycle des tickets. L’accès accepte une session Discord ou Google puis applique la même allow-list PostgreSQL par `auth.users.id`; aucune clé serveur n’est exposée.
-- Les Analytics quotidiennes démarrent à l’application de `010_admin_analytics.sql` : les compteurs lifetime déjà stockés restent exacts, mais aucun faux historique de temps de jeu/rétention n’est reconstruit à partir des runs déjà supprimées par la politique 50 + record.
+- Dashboard privé **Admin Analytics** sous `site/admin/` : plages UTC explicites **du → au**, raccourcis Aujourd'hui / Hier / 7 j / 30 j / 90 j / 1 an / Tout, joueurs actifs et revenants, DAU/WAU/MAU, runs, temps de jeu, scores, acquisition, rétention et lifecycle des tickets. `v0.2.7.9b` ajoute une **fiche joueur cliquable** (providers OAuth liés, statistiques lifetime/période, temps suivi, activité, rétention, runs retenues) et une page **Journée** avec détail horaire, pics d'utilisation, top joueurs et inspection des runs. L’accès accepte une session Discord ou Google puis applique la même allow-list PostgreSQL par `auth.users.id`; aucune clé serveur n’est exposée.
+- Les Analytics quotidiennes démarrent à l’application de `010_admin_analytics.sql`. Le détail **horaire** de la page Journée démarre à `018_admin_player_daily_insights.sql` : les totaux journaliers/lifetime déjà présents restent exacts, mais aucun faux historique horaire n’est reconstruit depuis les runs supprimées par la politique 50 + record.
 
 ---
 
@@ -454,4 +454,4 @@ Depuis la v0.2.6b, chaque push et chaque pull request compare automatiquement le
 
 > Replay leaderboard : après `supabase/014_replay_viewing.sql` et le redéploiement de `run-submit`, exécuter `supabase/015_replay_rpc_perf.sql`, puis `supabase/016_authenticated_replay_rate_limits.sql` avant de publier le frontend. `run-start` ne change pas.
 
-> Admin Analytics II : après `010_admin_analytics.sql`, exécuter `supabase/017_admin_analytics_ranges.sql` pour activer les plages UTC Du→Au et les nouvelles RPC privées utilisées par le dashboard. Aucune Edge Function n'est à redéployer.
+> Admin Analytics : après `010_admin_analytics.sql`, appliquer `017_admin_analytics_ranges.sql` puis `018_admin_player_daily_insights.sql` pour activer les plages Du→Au, la fiche joueur et la page Journée horaire. Aucune Edge Function n'est à redéployer.

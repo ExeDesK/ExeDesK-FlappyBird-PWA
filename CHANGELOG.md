@@ -1,3 +1,15 @@
+## v0.2.7.9b - Player Insights & Daily Operations
+
+- Rend les lignes de la table **Joueurs** cliquables et ajoute une fiche détaillée admin : profil public, UUID, dates de création/connexion, providers OAuth liés, rang, record, runs, score moyen, temps de jeu suivi, durée moyenne par run, jours actifs, rétention D0/D1/D7/D30, causes de mort et activité sur la période.
+- La fiche joueur lit les identités liées depuis `auth.identities` via une RPC `SECURITY DEFINER` réservée aux admins ; seuls provider, libellé public et dates sont renvoyés. Aucun token OAuth, seed ou liste de taps n'est exposé.
+- Ajoute une page **Journée** indépendante de la plage globale, avec Aujourd'hui / Hier / date précise / navigation jour précédent-suivant, KPI du jour, top joueurs, dernières runs encore retenues et détails backend.
+- Ajoute un suivi **horaire UTC** à partir de cette migration : joueurs actifs uniques, runs, temps de jeu, scores, collisions, run-start, tickets émis/rejetés, expirations, purges et protections. Les courbes permettent d'identifier les pics d'utilisation par heure.
+- Les totaux journaliers historiques continuent d'utiliser les agrégats `010` et restent disponibles avant l'activation du suivi horaire ; aucun faux backfill horaire n'est reconstruit depuis les runs retenues.
+- Ajoute `supabase/018_admin_player_daily_insights.sql`, `admin/day-view.js` et `admin/player-detail.js`, ainsi que les RPC privées `admin_analytics_player_detail`, `admin_analytics_day_overview`, `admin_analytics_day_hourly` et `admin_analytics_day_recent_runs`.
+- Aucune Edge Function, physique, Verified Runs ou API publique n'est modifiée ; seule la migration SQL `018` est requise après `017`.
+
+- Validation : `npm test` **219/219**, smoke Chromium gameplay **OK / 0 erreur**, smoke Admin **OK** avec drill-down joueur + vue Journée, et `git diff --check` **OK**.
+
 ## v0.2.7.8b - Admin Analytics II
 
 - Remplace la sélection Analytics basée uniquement sur un nombre de jours par une **plage UTC inclusive du → au**, avec raccourcis **Aujourd'hui / Hier / 7 j / 30 j / 90 j / 1 an / Tout** et conservation de la plage dans l'URL (`?from=...&to=...`).

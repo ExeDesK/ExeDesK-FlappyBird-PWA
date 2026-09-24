@@ -206,3 +206,85 @@ test('richer admin overview exposes engagement, score, acquisition and system ch
   assert.match(css, /\.period-presets/i);
   assert.match(css, /\.kpi-grid-wide/i);
 });
+
+const insightsSql = read('supabase/018_admin_player_daily_insights.sql');
+const dayView = read('site/src/admin/day-view.js');
+const playerDetail = read('site/src/admin/player-detail.js');
+
+function insightsFunctionBlock(name, nextName = null) {
+  const start = insightsSql.indexOf(`function public.${name}`);
+  assert.ok(start >= 0, `missing insights function ${name}`);
+  const end = nextName ? insightsSql.indexOf(`function public.${nextName}`, start + 1) : insightsSql.length;
+  return insightsSql.slice(start, end >= 0 ? end : insightsSql.length);
+}
+
+test('hourly analytics starts explicitly at migration 018 without inventing historical buckets', () => {
+  assert.match(insightsSql, /add column if not exists hourly_tracking_started_at timestamptz/i);
+  assert.match(insightsSql, /create table if not exists public\.player_activity_hourly/i);
+  assert.match(insightsSql, /create table if not exists public\.run_metrics_hourly/i);
+  assert.match(insightsSql, /revoke all on table public\.player_activity_hourly from public, anon, authenticated/i);
+  assert.match(insightsSql, /revoke all on table public\.run_metrics_hourly from public, anon, authenticated/i);
+  assert.doesNotMatch(insightsSql, /insert into public\.player_activity_hourly\s*\([^;]*\)\s*select/i);
+});
+
+test('authoritative verified transitions feed both daily and hourly gameplay aggregates', () => {
+  const block = insightsFunctionBlock('capture_verified_run_player_stats', 'admin_analytics_player_detail');
+  assert.match(block, /insert into public\.player_activity_daily/i);
+  assert.match(block, /insert into public\.player_activity_hourly/i);
+  assert.match(block, /activity_hour := date_trunc\('hour', new\.resolved_at at time zone 'UTC'\)/i);
+  assert.match(block, /deaths_pipe_top = pah\.deaths_pipe_top \+ excluded\.deaths_pipe_top/i);
+  assert.match(block, /perform public\.bump_run_metrics/i);
+});
+
+test('player drill-down is admin-only and exposes linked provider metadata without tokens or replay material', () => {
+  const block = insightsFunctionBlock('admin_analytics_player_detail', 'admin_analytics_day_overview');
+  assert.match(block, /perform public\.require_analytics_admin\(\)/i);
+  assert.match(block, /from auth\.identities as i/i);
+  assert.match(block, /'provider'[\s\S]*'linked_at'[\s\S]*'last_sign_in_at'/i);
+  assert.match(block, /tracked_play_ticks/i);
+  assert.match(block, /recent_runs/i);
+  assert.doesNotMatch(block, /access_token|refresh_token/i);
+  assert.doesNotMatch(block, /'seed'|'tap_ticks'|'taps'/i);
+  assert.match(insightsSql, /revoke all on function public\.admin_analytics_player_detail\(uuid, date, date\) from public, anon/i);
+});
+
+test('dedicated day analytics exposes exact daily totals plus 24 UTC hourly buckets and operational peaks', () => {
+  for (const name of ['admin_analytics_day_overview', 'admin_analytics_day_hourly', 'admin_analytics_day_recent_runs']) {
+    const block = insightsFunctionBlock(name);
+    assert.match(block, /perform public\.require_analytics_admin\(\)/i, `${name} must require admin`);
+  }
+  const hourly = insightsFunctionBlock('admin_analytics_day_hourly', 'admin_analytics_day_recent_runs');
+  assert.match(hourly, /generate_series\(day_start, day_end - interval '1 hour', interval '1 hour'\)/i);
+  assert.match(hourly, /active_players bigint/i);
+  assert.match(hourly, /run_start_requests bigint/i);
+  assert.match(hourly, /deaths_pipe_top bigint/i);
+  assert.match(insightsSql, /grant execute on function public\.admin_analytics_day_hourly\(date\) to authenticated, service_role/i);
+  assert.doesNotMatch(insightsSql, /grant execute[^;]*admin_analytics_day_(?:overview|hourly|recent_runs)[^;]*to anon/i);
+});
+
+test('admin UI offers clickable player drill-down with linked accounts and detailed play-time statistics', () => {
+  assert.match(html, /id="player-detail-dialog"/i);
+  assert.match(html, /IDENTITÉS LIÉES/i);
+  assert.match(html, /Durée moyenne \/ run suivie/i);
+  assert.match(html, /id="pd-activity-chart"/i);
+  assert.match(dashboard, /new PlayerDetailPanel/i);
+  assert.match(playerDetail, /fetchPlayerDetail/i);
+  assert.match(playerDetail, /detail\.identities/i);
+  assert.match(client, /admin_analytics_player_detail/i);
+  assert.match(css, /\.player-detail-dialog/i);
+});
+
+test('admin UI includes a dedicated day page with hourly peaks, top players and retained-run inspection', () => {
+  assert.match(html, /data-section="day"[^>]*>Journée</i);
+  assert.match(html, /id="day-active-chart"/i);
+  assert.match(html, /id="day-peak-active"/i);
+  assert.match(html, /id="day-players-body"/i);
+  assert.match(html, /id="day-runs-body"/i);
+  assert.match(dayView, /fetchDayOverview/i);
+  assert.match(dayView, /fetchDayHourly/i);
+  assert.match(dayView, /fetchDayRecentRuns/i);
+  assert.match(dayView, /hourLabel/i);
+  assert.match(client, /admin_analytics_day_overview/i);
+  assert.match(client, /admin_analytics_day_hourly/i);
+  assert.match(client, /admin_analytics_day_recent_runs/i);
+});

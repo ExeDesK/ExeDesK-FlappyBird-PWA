@@ -180,7 +180,7 @@ Depuis `v0.2.7.3b-dev6.3.6`, `run-start` ne possède plus la décision d'inserti
 
 La maintenance globale reste en base avec `cleanup_stale_verified_run_tickets()` : `issued` > 7 jours et `rejected` > 30 jours sont purgés par un job Supabase Cron horaire. Les runs `verified` restent exclusivement régies par la rétention 50 + record de `006_verified_run_retention.sql`.
 
-## Admin Analytics — v0.2.7.8b
+## Admin Analytics — v0.2.7.9b
 
 Le dashboard d'administration est une application légère séparée sous `site/admin/`. Il réutilise `AuthClient` pour la session OAuth Supabase, puis appelle uniquement des RPC Analytics authentifiées via un client dédié :
 
@@ -192,16 +192,18 @@ site/admin/
 site/src/admin/
 ├── analytics-client.js   # transport RPC + JWT utilisateur
 ├── charts.js             # graphiques SVG natifs
+├── day-view.js           # vue Journée / pics horaires / top du jour
+├── player-detail.js      # drill-down joueur / providers / stats détaillées
 └── dashboard.js          # composition / rendu des vues admin
 ```
 
-Le navigateur n'accède jamais directement aux tables privées `analytics_admins`, `analytics_meta`, `player_activity_daily` ou `run_metrics_daily`. L'autorisation est vérifiée côté PostgreSQL par `is_analytics_admin()` / `require_analytics_admin()` avant chaque RPC `admin_analytics_*`. Aucune clé `service_role` n'est embarquée dans le site.
+Le navigateur n'accède jamais directement aux tables privées `analytics_admins`, `analytics_meta`, `player_activity_daily`, `run_metrics_daily`, `player_activity_hourly` ou `run_metrics_hourly`. L'autorisation est vérifiée côté PostgreSQL par `is_analytics_admin()` / `require_analytics_admin()` avant chaque RPC `admin_analytics_*`. Aucune clé `service_role` n'est embarquée dans le site.
 
-Côté serveur, `010_admin_analytics.sql` étend les triggers autoritaires existants afin d'agréger le temps de jeu, l'activité quotidienne et le lifecycle des tickets avant que les politiques de rétention ne suppriment les détails. Les signatures de `issue_verified_run()` et `cleanup_stale_verified_run_tickets()` restent compatibles avec la `6.3.6`.
+Côté serveur, `010_admin_analytics.sql` étend les triggers autoritaires existants afin d'agréger le temps de jeu, l'activité quotidienne et le lifecycle des tickets avant que les politiques de rétention ne suppriment les détails. `017_admin_analytics_ranges.sql` ajoute les plages explicites `Du → Au`. `018_admin_player_daily_insights.sql` ajoute les agrégats horaires et les RPC de drill-down : la fiche joueur peut lire des métadonnées sûres dans `auth.identities`, mais ne renvoie ni token OAuth ni matériau de replay ; la vue Journée utilise les totaux quotidiens existants et les buckets horaires uniquement à partir du début réel du suivi `018`. Les signatures de `issue_verified_run()` et `cleanup_stale_verified_run_tickets()` restent compatibles avec la `6.3.6`.
 
 ## Hors ligne
 
-Les **57 ressources runtime du jeu** sont précachées par `site/sw.js` en `v0.2.7.8b`, dont le lecteur de replay et ses contrôles. Le dashboard `site/admin/` et ses modules restent volontairement **online-only** et ne sont pas ajoutés au précache : une indisponibilité de l'administration ne peut donc pas empêcher l'installation ou le fonctionnement hors ligne du gameplay.
+Les **57 ressources runtime du jeu** sont précachées par `site/sw.js` en `v0.2.7.9b`, dont le lecteur de replay et ses contrôles. Le dashboard `site/admin/` et ses modules restent volontairement **online-only** et ne sont pas ajoutés au précache : une indisponibilité de l'administration ne peut donc pas empêcher l'installation ou le fonctionnement hors ligne du gameplay.
 
 ## Évolution future
 

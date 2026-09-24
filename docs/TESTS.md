@@ -1,10 +1,11 @@
-## v0.2.7.8b — Admin Analytics II
+## v0.2.7.9b — Player Insights & Daily Operations
 
-- `tests/admin-analytics.test.mjs` verrouille les quatre RPC privées de plage ajoutées par `017_admin_analytics_ranges.sql`, l'allow-list admin, la limite de **3650 jours** et le calcul `DAU / WAU / MAU` relativement à la date de fin sélectionnée.
-- Le même fichier vérifie les KPI enrichis (nouveaux actifs / revenants, record période, runs et temps par joueur actif, taux émission/vérification/rejet), ainsi que l'agrégation joueurs strictement limitée au `date_from → date_to`.
-- Le frontend Admin est testé pour les raccourcis **Aujourd'hui / Hier / 7 j / 30 j / 90 j / 1 an / Tout**, les champs `Du` / `Au`, la validation de plage et les nouvelles RPC `*_range`.
-- `tests/admin_browser_isolated.py` manipule réellement les presets et une plage personnalisée dans Chromium, puis valide les quatre graphiques, la table Joueurs période, la rétention et l'onglet Système.
-- Suite complète : `npm test` **213/213** + `python tests/browser_isolated.py` **OK / 0 erreur** + `python tests/admin_browser_isolated.py` **OK / 0 erreur** + `git diff --check` **OK**.
+- `tests/admin-analytics.test.mjs` verrouille les tables horaires privées de `018_admin_player_daily_insights.sql`, leur alimentation par les chemins serveur autoritaires et l'absence volontaire de faux backfill depuis les runs déjà purgées.
+- La RPC `admin_analytics_player_detail(...)` est testée comme **admin-only** : lecture des providers liés depuis `auth.identities`, statistiques lifetime / période, activité, rétention et runs retenues, tout en interdisant explicitement tokens OAuth, seed et taps.
+- Les RPC Journée sont testées pour retourner les totaux quotidiens autoritaires, **24 buckets UTC**, le début du suivi horaire et les runs du jour encore retenues sans prétendre fournir un historique exhaustif.
+- `tests/admin_browser_isolated.py` ouvre réellement une ligne Joueur, vérifie Discord + Google, le temps de jeu / activité / rétention, puis navigue vers **Journée** et valide KPI, courbes horaires, pic d'utilisation, Top joueurs et runs récentes.
+- Les tests historiques des plages `Aujourd'hui / Hier / Du → Au`, des joueurs période, cohortes et métriques Système restent actifs.
+- Suite complète : `npm test` **219/219** + `python tests/browser_isolated.py` **OK / 0 erreur** + `python tests/admin_browser_isolated.py` **OK / 0 erreur** + `git diff --check` **OK**.
 
 ## v0.2.7.7b-hotfix2 — Replay Controls visual polish
 
@@ -98,14 +99,14 @@
 - Le cache PWA reste à **51 ressources runtime** : le changement backend n'ajoute aucun asset client, mais le build Service Worker est incrémenté pour publier la nouvelle version.
 - Suite complète : `npm test` (**152/152**) + `python tests/browser_isolated.py` (**OK, 0 erreur page**).
 
-# Rapport de tests - v0.2.7.8b
+# Rapport de tests - v0.2.7.9b
 
 ## Résultat
 
-- **213/213 tests Node passent** avec `npm test`.
+- **219/219 tests Node passent** avec `npm test`.
 - Le bundle concaténé utilisé par le smoke test passe le contrôle de syntaxe JavaScript.
 - Le smoke test Chromium isolé passe sans erreur page et couvre aussi le lecteur de replay réel sur une run déterministe connue (seed/taps, France nuit, score terminal et événement audio `hit`), la composition des modules ES, le catalogue dynamique, le thème Vietnam jour/nuit, le panneau diagnostic repliable, la modale Profil, les boutons utilitaires x1,75 et le module d’abandon de ticket Verified Run.
-- Le smoke test Admin Analytics dédié passe également sans erreur page avec Auth/RPC Supabase mockés, manipule les presets Aujourd’hui/Hier et une plage Du→Au, puis couvre les vues Overview, Joueurs, Rétention et Système.
+- Le smoke test Admin Analytics dédié passe également sans erreur page avec Auth/RPC Supabase mockés : plages Aujourd’hui/Hier/Du→Au, ouverture d’une fiche joueur Discord+Google avec statistiques détaillées, vue Journée avec KPI/courbes/pic horaire/Top joueurs, puis Rétention et Système.
 - Le cache PWA contient **57 ressources** et refuse de se déclarer complet si une ressource de précache manque.
 - `version.json` reste volontairement hors du cache du Service Worker afin de servir de sonde réseau réelle pour la mise à jour.
 - Les liens et ressources du site utilisent des chemins relatifs compatibles avec un projet GitHub Pages publié sous `/<repository>/`.

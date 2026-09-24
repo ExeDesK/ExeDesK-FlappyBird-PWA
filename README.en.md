@@ -8,7 +8,7 @@ The goal is not to create another Flappy Bird-inspired clone, but to **reproduce
 
 Gameplay runs entirely client-side without a framework and can be installed as an application on Windows, iPhone/iPad and Android. Optional community features use Supabase; no account is required to play.
 
-> **Project status: beta — v0.2.7.8b**
+> **Project status: beta — v0.2.7.9b**
 
 - Player statistics: career + 10 / 25 / 50-run windows derived only from verified runs.
 > On ProMotion iPhone/iPad devices, the Performance options include guidance for the Safari setting that can remove the near-60 Hz page-rendering preference.
@@ -50,8 +50,8 @@ Gameplay runs entirely client-side without a framework and can be installed as a
 - Diagnostic tools are split into collapsible sections, include an internal close control and keep browser-native dark selectors.
 - Complementary atlas versioned through `assets/customatlas.json`, kept separate from the original atlas to preserve the 1:1 reference assets and gameplay behaviour. Home / Options / Profile use atlas sprites rendered at **1.75x** with a compact **60 × 60** hit area; user-facing modal close buttons use `button_close` at **1x**. Replay controls also use atlas sprites at 1x with the same pixel-stable press state; Play/Pause still come from the original atlas and the original red bird is reused as the animated timeline handle. All user authentication (sign-in, session status and sign-out) now lives in Profile, never in Options.
 - Frontend split into domain-focused ES modules: `main.js` orchestrates the game while authentication, Supabase clients, leaderboard UI, Verified Play, replay recording, the local run queue, UI transitions, toasts, score synchronisation and PWA updates live in focused modules that can be tested independently.
-- Private **Admin Analytics** dashboard under `site/admin/`: explicit UTC **from → to** ranges, Today / Yesterday / 7d / 30d / 90d / 1y / All shortcuts, active/new/returning players, DAU/WAU/MAU as of the selected end date, runs, verified play time, period average/best score, acquisition, D0/D1/D7/D30 retention, period-filtered player stats and verified-run lifecycle metrics. Access accepts Discord or Google Auth and then applies the same PostgreSQL allow-list by `auth.users.id`; no server secret is exposed.
-- Daily Analytics tracking starts when `010_admin_analytics.sql` is applied: existing lifetime counters stay authoritative, but no fake historical play-time/retention is reconstructed from runs already pruned by 50 + record retention.
+- Private **Admin Analytics** dashboard under `site/admin/`: explicit UTC **from → to** ranges, Today / Yesterday / 7d / 30d / 90d / 1y / All shortcuts, audience, runs, verified play time, scores, acquisition, retention and ticket lifecycle metrics. `v0.2.7.9b` adds a **clickable player drill-down** (linked OAuth providers, lifetime/period stats, tracked play time, activity, retention and retained runs) plus a dedicated **Day** page with hourly usage peaks, top players and retained-run inspection. Access accepts Discord or Google Auth and then applies the same PostgreSQL allow-list by `auth.users.id`; no server secret is exposed.
+- Daily Analytics tracking starts when `010_admin_analytics.sql` is applied. **Hourly** Day-view tracking starts with `018_admin_player_daily_insights.sql`: existing daily/lifetime totals remain authoritative, but no fake hourly history is reconstructed from runs already pruned by 50 + record retention.
 
 ---
 
@@ -453,4 +453,4 @@ Since v0.2.6b, every push and pull request automatically compares the PWA engine
 
 > Leaderboard replay: after `supabase/014_replay_viewing.sql` and redeploying `run-submit`, run `supabase/015_replay_rpc_perf.sql` and then `supabase/016_authenticated_replay_rate_limits.sql` before publishing the frontend. `run-start` is unchanged.
 
-> Admin Analytics II: after `010_admin_analytics.sql`, run `supabase/017_admin_analytics_ranges.sql` to enable explicit UTC from→to ranges and the new private dashboard RPCs. No Edge Function redeploy is required.
+> Admin Analytics: after `010_admin_analytics.sql`, apply `017_admin_analytics_ranges.sql` and then `018_admin_player_daily_insights.sql` to enable explicit ranges, player drill-down and the hourly Day view. No Edge Function redeploy is required.

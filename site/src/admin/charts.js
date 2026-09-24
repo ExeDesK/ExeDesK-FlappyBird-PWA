@@ -25,7 +25,7 @@ function emptyState(container, message = 'Pas encore de données sur cette péri
   container.append(node);
 }
 
-function formatShortDate(value) {
+export function formatShortDate(value) {
   const date = new Date(`${value}T00:00:00Z`);
   return new Intl.DateTimeFormat('fr-FR', {
     day: '2-digit',
@@ -40,6 +40,8 @@ export function renderLineChart(container, rows, {
   label = 'Série',
   secondaryLabel = '',
   valueFormatter = value => String(Math.round(value)),
+  xKey = 'activity_date',
+  xFormatter = formatShortDate,
 } = {}) {
   const values = rows.map(row => finite(row[valueKey]));
   const secondary = secondaryKey ? rows.map(row => finite(row[secondaryKey])) : [];
@@ -105,7 +107,7 @@ export function renderLineChart(container, rows, {
         class: `${className} chart-point`,
       });
       const title = svg('title');
-      title.textContent = `${formatShortDate(rows[index].activity_date)} · ${valueFormatter(series[index])}`;
+      title.textContent = `${xFormatter(rows[index][xKey], rows[index], index)} · ${valueFormatter(series[index])}`;
       circle.append(title);
       root.append(circle);
     }
@@ -123,7 +125,7 @@ export function renderLineChart(container, rows, {
       'text-anchor': index === 0 ? 'start' : index === rows.length - 1 ? 'end' : 'middle',
       class: 'chart-axis-label',
     });
-    text.textContent = formatShortDate(rows[index].activity_date);
+    text.textContent = xFormatter(rows[index][xKey], rows[index], index);
     root.append(text);
   }
 
@@ -134,6 +136,8 @@ export function renderBarChart(container, rows, {
   valueKey,
   label = 'Série',
   valueFormatter = value => String(Math.round(value)),
+  xKey = 'activity_date',
+  xFormatter = formatShortDate,
 } = {}) {
   const values = rows.map(row => finite(row[valueKey]));
   const max = Math.max(1, ...values);
@@ -180,7 +184,7 @@ export function renderBarChart(container, rows, {
       class: 'chart-bar',
     });
     const title = svg('title');
-    title.textContent = `${formatShortDate(row.activity_date)} · ${valueFormatter(value)}`;
+    title.textContent = `${xFormatter(row[xKey], row, index)} · ${valueFormatter(value)}`;
     rect.append(title);
     root.append(rect);
   });
@@ -193,7 +197,7 @@ export function renderBarChart(container, rows, {
       'text-anchor': index === 0 ? 'start' : index === rows.length - 1 ? 'end' : 'middle',
       class: 'chart-axis-label',
     });
-    text.textContent = formatShortDate(rows[index].activity_date);
+    text.textContent = xFormatter(rows[index][xKey], rows[index], index);
     root.append(text);
   }
 

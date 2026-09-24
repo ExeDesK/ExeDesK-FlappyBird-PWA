@@ -100,4 +100,35 @@ export class AnalyticsClient {
     const rows = await this.#rpc('admin_analytics_retention_range', rangeBody(range));
     return Array.isArray(rows) ? rows : [];
   }
+
+  async fetchPlayerDetail({ playerId, from, to } = {}) {
+    const value = await this.#rpc('admin_analytics_player_detail', {
+      target_player_id: String(playerId || ''),
+      ...rangeBody({ from, to }),
+    });
+    if (Array.isArray(value)) return value[0] || null;
+    return value || null;
+  }
+
+  async fetchDayOverview(date) {
+    const rows = await this.#rpc('admin_analytics_day_overview', {
+      target_date: normalizeDate(date),
+    });
+    return Array.isArray(rows) ? (rows[0] || null) : rows;
+  }
+
+  async fetchDayHourly(date) {
+    const rows = await this.#rpc('admin_analytics_day_hourly', {
+      target_date: normalizeDate(date),
+    });
+    return Array.isArray(rows) ? rows : [];
+  }
+
+  async fetchDayRecentRuns(date, limit = 30) {
+    const rows = await this.#rpc('admin_analytics_day_recent_runs', {
+      target_date: normalizeDate(date),
+      limit_count: Math.min(Math.max(Number(limit) || 30, 1), 100),
+    });
+    return Array.isArray(rows) ? rows : [];
+  }
 }
