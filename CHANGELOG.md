@@ -1,3 +1,15 @@
+## v0.2.7.8b - Admin Analytics II
+
+- Remplace la sélection Analytics basée uniquement sur un nombre de jours par une **plage UTC inclusive du → au**, avec raccourcis **Aujourd'hui / Hier / 7 j / 30 j / 90 j / 1 an / Tout** et conservation de la plage dans l'URL (`?from=...&to=...`).
+- Ajoute `supabase/017_admin_analytics_ranges.sql` avec quatre RPC privées range-based : `admin_analytics_overview_range`, `admin_analytics_daily_range`, `admin_analytics_players_range` et `admin_analytics_retention_range`. Les anciennes RPC `window_days` restent disponibles pour compatibilité.
+- Les `DAU / WAU / MAU` sont désormais calculés **à la date de fin sélectionnée** : consulter « Hier » montre donc l'audience telle qu'elle était hier, et non les valeurs du jour courant.
+- Enrichit la vue d'ensemble : actifs nouveaux / revenants, runs et temps moyen par joueur actif, score moyen + record de période, acquisition, taux d'émission / vérification / rejet, jours actifs et pics de période.
+- Ajoute quatre graphiques de synthèse : runs vérifiées / tickets émis, actifs / nouveaux comptes, temps de jeu vérifié / jour, score moyen / meilleur score.
+- La table Joueurs devient réellement **filtrée par période** : runs, record, moyenne, temps de jeu, jours actifs et dernière run sur la plage ; le rang et le record global restent disponibles comme contexte lifetime.
+- La période globale pilote également les cohortes de rétention et les métriques Système. Le dashboard reste online-only, sans CDN, sans secret serveur et protégé par `analytics_admins`.
+- La plage est validée côté frontend et PostgreSQL, interdite dans le futur et limitée à **3650 jours**. Les périodes antérieures au début de collecte Analytics restent affichables sans inventer de données historiques.
+- Aucune modification des Edge Functions, de la physique, du protocole Verified Runs ou du leaderboard public ; seule la migration SQL `017` est requise pour cette release.
+
 ## v0.2.7.7b-hotfix4 - Authenticated replays & read rate limits
 
 - Réserve désormais `get_leaderboard_replay(target_run_id)` aux joueurs **authentifiés** : `anon` n'a plus le droit `EXECUTE`, et le frontend envoie obligatoirement le JWT Supabase avant de demander `seed` / `tap_ticks`.

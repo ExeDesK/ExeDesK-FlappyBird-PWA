@@ -61,28 +61,32 @@ def build_page(site: Path) -> tuple[str, str]:
         'updated_at': '2026-09-23T08:00:00Z',
     }
     overview = [{
-        'tracking_started_at': '2026-09-23T12:00:00Z', 'selected_days': 30,
+        'tracking_started_at': '2026-09-20T12:00:00Z', 'selected_from': '2026-08-26',
+        'selected_to': '2026-09-24', 'selected_days': 30,
         'total_players': 12, 'players_with_verified_runs': 8, 'active_players': 6,
-        'dau': 4, 'wau': 6, 'mau': 8, 'new_players': 3, 'lifetime_verified_runs': 420, 'window_verified_runs': 123,
+        'new_players': 3, 'new_active_players': 2, 'returning_active_players': 4,
+        'dau': 4, 'wau': 6, 'mau': 8, 'lifetime_verified_runs': 420, 'window_verified_runs': 123,
         'tracked_play_ticks_total': 216000, 'window_play_ticks': 108000,
-        'global_best_score': 42, 'lifetime_average_score': 5.4, 'window_average_score': 6.1,
+        'global_best_score': 42, 'period_best_score': 42, 'lifetime_average_score': 5.4,
+        'window_average_score': 6.1, 'runs_per_active_player': 20.5, 'play_ticks_per_active_player': 18000,
         'pending_issued': 2, 'retained_rejected': 4, 'run_start_requests': 150,
         'issued_runs': 140, 'rejected_runs': 5, 'expired_issued_runs': 7,
         'purged_rejected_runs': 1, 'rate_limited_requests': 2, 'pending_limit_requests': 1,
-        'verification_rate_pct': 87.8, 'deaths_pipe_top': 120,
-        'deaths_pipe_bottom': 160, 'deaths_ground': 140,
+        'issue_rate_pct': 93.3, 'verification_rate_pct': 87.8, 'rejection_rate_pct': 3.6,
+        'deaths_pipe_top': 120, 'deaths_pipe_bottom': 160, 'deaths_ground': 140,
     }]
     daily = [
-        {'activity_date': '2026-09-21', 'active_players': 2, 'new_players': 1, 'verified_runs': 20, 'play_ticks': 18000, 'score_sum': 100, 'best_score': 20, 'average_score': 5, 'run_start_requests': 25, 'issued_runs': 23, 'rejected_runs': 1, 'expired_issued_runs': 1, 'purged_rejected_runs': 0, 'rate_limited_requests': 0, 'pending_limit_requests': 0},
-        {'activity_date': '2026-09-22', 'active_players': 4, 'new_players': 1, 'verified_runs': 42, 'play_ticks': 36000, 'score_sum': 252, 'best_score': 31, 'average_score': 6, 'run_start_requests': 50, 'issued_runs': 47, 'rejected_runs': 2, 'expired_issued_runs': 2, 'purged_rejected_runs': 0, 'rate_limited_requests': 1, 'pending_limit_requests': 0},
-        {'activity_date': '2026-09-23', 'active_players': 6, 'new_players': 1, 'verified_runs': 61, 'play_ticks': 54000, 'score_sum': 372, 'best_score': 42, 'average_score': 6.1, 'run_start_requests': 75, 'issued_runs': 70, 'rejected_runs': 2, 'expired_issued_runs': 4, 'purged_rejected_runs': 1, 'rate_limited_requests': 1, 'pending_limit_requests': 1},
+        {'activity_date': '2026-09-21', 'active_players': 2, 'new_active_players': 1, 'returning_players': 1, 'dau': 2, 'wau': 2, 'mau': 2, 'new_players': 1, 'verified_runs': 20, 'play_ticks': 18000, 'score_sum': 100, 'best_score': 20, 'average_score': 5, 'run_start_requests': 25, 'issued_runs': 23, 'rejected_runs': 1, 'expired_issued_runs': 1, 'purged_rejected_runs': 0, 'rate_limited_requests': 0, 'pending_limit_requests': 0},
+        {'activity_date': '2026-09-22', 'active_players': 4, 'new_active_players': 1, 'returning_players': 3, 'dau': 4, 'wau': 4, 'mau': 4, 'new_players': 1, 'verified_runs': 42, 'play_ticks': 36000, 'score_sum': 252, 'best_score': 31, 'average_score': 6, 'run_start_requests': 50, 'issued_runs': 47, 'rejected_runs': 2, 'expired_issued_runs': 2, 'purged_rejected_runs': 0, 'rate_limited_requests': 1, 'pending_limit_requests': 0},
+        {'activity_date': '2026-09-23', 'active_players': 6, 'new_active_players': 0, 'returning_players': 6, 'dau': 6, 'wau': 6, 'mau': 6, 'new_players': 1, 'verified_runs': 61, 'play_ticks': 54000, 'score_sum': 372, 'best_score': 42, 'average_score': 6.1, 'run_start_requests': 75, 'issued_runs': 70, 'rejected_runs': 2, 'expired_issued_runs': 4, 'purged_rejected_runs': 1, 'rate_limited_requests': 1, 'pending_limit_requests': 1},
     ]
     players = [{
         'global_rank': 1, 'player_id': user['id'], 'username': 'admin', 'display_name': 'Admin',
-        'avatar_url': None, 'verified_runs_count': 123, 'total_score': 750, 'average_score': 6.1,
-        'best_score': 42, 'best_score_at': '2026-09-23T11:00:00Z', 'tracked_play_ticks': 108000,
-        'first_verified_run_at': '2026-09-20T11:00:00Z', 'last_verified_run_at': '2026-09-23T11:00:00Z',
-        'deaths_pipe_top': 40, 'deaths_pipe_bottom': 43, 'deaths_ground': 40, 'pending_issued': 2,
+        'avatar_url': None, 'period_verified_runs': 123, 'period_total_score': 750,
+        'period_average_score': 6.1, 'period_best_score': 42, 'period_play_ticks': 108000,
+        'period_active_days': 3, 'period_first_run_at': '2026-09-21T11:00:00Z',
+        'period_last_run_at': '2026-09-23T11:00:00Z', 'lifetime_verified_runs': 420,
+        'lifetime_best_score': 42, 'tracked_play_ticks': 216000, 'pending_issued': 2,
     }]
     retention = [{
         'cohort_date': '2026-09-23', 'cohort_size': 3, 'd0_active': 2, 'd1_active': 0,
@@ -128,10 +132,10 @@ def build_page(site: Path) -> tuple[str, str]:
     if (url.pathname === '/auth/v1/user') body = __user;
     else if (url.pathname === '/rest/v1/profiles') body = [__profile];
     else if (url.pathname.endsWith('/rpc/is_analytics_admin')) body = true;
-    else if (url.pathname.endsWith('/rpc/admin_analytics_overview')) body = __overview;
-    else if (url.pathname.endsWith('/rpc/admin_analytics_daily')) body = __daily;
-    else if (url.pathname.endsWith('/rpc/admin_analytics_players')) body = __players;
-    else if (url.pathname.endsWith('/rpc/admin_analytics_retention')) body = __retention;
+    else if (url.pathname.endsWith('/rpc/admin_analytics_overview_range')) body = __overview;
+    else if (url.pathname.endsWith('/rpc/admin_analytics_daily_range')) body = __daily;
+    else if (url.pathname.endsWith('/rpc/admin_analytics_players_range')) body = __players;
+    else if (url.pathname.endsWith('/rpc/admin_analytics_retention_range')) body = __retention;
     else return new Response(JSON.stringify({{message:'Not mocked'}}), {{status:404, headers:{{'Content-Type':'application/json'}}}});
     return new Response(JSON.stringify(body), {{status:200, headers:{{'Content-Type':'application/json'}}}});
   }};
@@ -166,9 +170,23 @@ def main() -> None:
 
         assert page.locator('#kpi-players').inner_text() == '12'
         assert page.locator('#kpi-runs').inner_text() == '123'
-        assert page.locator('#kpi-record').inner_text() == '42'
+        assert page.locator('#kpi-period-average').inner_text() == '6,1'
+        assert 'global 42' in page.locator('#kpi-records').inner_text()
         assert page.locator('#runs-chart svg').count() == 1
         assert page.locator('#active-chart svg').count() == 1
+        assert page.locator('#playtime-chart svg').count() == 1
+        assert page.locator('#score-chart svg').count() == 1
+
+        # Quick presets and explicit from/to controls are wired in the browser.
+        page.click('[data-period="yesterday"]')
+        page.wait_for_timeout(20)
+        assert page.locator('#period-from').input_value() == page.locator('#period-to').input_value()
+        page.fill('#period-from', '2026-09-21')
+        page.fill('#period-to', '2026-09-23')
+        page.click('#period-form button[type="submit"]')
+        page.wait_for_timeout(20)
+        assert '21/09/2026' in page.locator('#period-summary').inner_text()
+        assert '23/09/2026' in page.locator('#period-summary').inner_text()
 
         page.click('[data-section="players"]')
         assert page.locator('#players-body tr').count() == 1

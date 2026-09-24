@@ -180,7 +180,7 @@ Depuis `v0.2.7.3b-dev6.3.6`, `run-start` ne possède plus la décision d'inserti
 
 La maintenance globale reste en base avec `cleanup_stale_verified_run_tickets()` : `issued` > 7 jours et `rejected` > 30 jours sont purgés par un job Supabase Cron horaire. Les runs `verified` restent exclusivement régies par la rétention 50 + record de `006_verified_run_retention.sql`.
 
-## Admin Analytics — v0.2.7.4b
+## Admin Analytics — v0.2.7.8b
 
 Le dashboard d'administration est une application légère séparée sous `site/admin/`. Il réutilise `AuthClient` pour la session OAuth Supabase, puis appelle uniquement des RPC Analytics authentifiées via un client dédié :
 
@@ -201,7 +201,7 @@ Côté serveur, `010_admin_analytics.sql` étend les triggers autoritaires exist
 
 ## Hors ligne
 
-Les **57 ressources runtime du jeu** sont précachées par `site/sw.js` en `v0.2.7.7b-hotfix4`, dont le lecteur de replay et ses contrôles. Le dashboard `site/admin/` et ses modules restent volontairement **online-only** et ne sont pas ajoutés au précache : une indisponibilité de l'administration ne peut donc pas empêcher l'installation ou le fonctionnement hors ligne du gameplay.
+Les **57 ressources runtime du jeu** sont précachées par `site/sw.js` en `v0.2.7.8b`, dont le lecteur de replay et ses contrôles. Le dashboard `site/admin/` et ses modules restent volontairement **online-only** et ne sont pas ajoutés au précache : une indisponibilité de l'administration ne peut donc pas empêcher l'installation ou le fonctionnement hors ligne du gameplay.
 
 ## Évolution future
 

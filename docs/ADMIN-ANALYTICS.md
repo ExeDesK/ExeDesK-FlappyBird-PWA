@@ -1,4 +1,4 @@
-# Admin Analytics — v0.2.7.4b
+# Admin Analytics — v0.2.7.8b
 
 Le projet possède un dashboard d'administration séparé du jeu, publié sous `site/admin/` et accessible sur GitHub Pages via le chemin `/admin/` du dépôt.
 
@@ -74,7 +74,7 @@ Une ligne par jour UTC avec les compteurs opérationnels :
 - tickets `issued` expirés ;
 - lignes `rejected` purgées ;
 - réponses rate-limit ;
-- événements de rotation lorsque le compte atteint le seuil de 100 tickets `issued` ;
+- événements de rotation lorsque le compte atteint le seuil de tickets `issued` ;
 - ticks de gameplay vérifié ;
 - score cumulé et meilleur score du jour.
 
@@ -82,7 +82,7 @@ Ces compteurs survivent à la purge des tickets détaillés.
 
 ### `player_stats.tracked_play_ticks`
 
-`player_stats` conserve déjà les compteurs lifetime autoritaires (runs, score cumulé, record, causes de mort). `010` ajoute `tracked_play_ticks`, alimenté à chaque nouvelle run vérifiée.
+`player_stats` conserve les compteurs lifetime autoritaires (runs, score cumulé, record, causes de mort). `010` ajoute `tracked_play_ticks`, alimenté à chaque nouvelle run vérifiée.
 
 Le temps de jeu est calculé à partir du `terminal_tick` autoritaire :
 
@@ -105,50 +105,105 @@ En revanche, les compteurs déjà présents dans `player_stats` restent valides 
 - causes de mort ;
 - première / dernière run vérifiée.
 
-Le dashboard affiche explicitement la date de début du suivi Analytics.
+Le dashboard affiche explicitement la date de début du suivi Analytics. Une plage qui commence avant cette date reste sélectionnable, mais les séries quotidiennes antérieures restent vides : aucune donnée historique n'est inventée.
+
+## Périodes — `v0.2.7.8b`
+
+Le dashboard ne dépend plus d'un simple nombre de jours. Toute l'interface utilise une **plage UTC inclusive** :
+
+```text
+Du YYYY-MM-DD
+Au YYYY-MM-DD
+```
+
+Raccourcis disponibles :
+
+- **Aujourd'hui** ;
+- **Hier** ;
+- **7 jours** ;
+- **30 jours** ;
+- **90 jours** ;
+- **1 an** ;
+- **Tout** (maximum 3650 jours).
+
+La plage sélectionnée est aussi inscrite dans l'URL via `?from=YYYY-MM-DD&to=YYYY-MM-DD`, afin qu'un rechargement conserve le contexte d'analyse.
+
+Le même intervalle pilote :
+
+- la vue d'ensemble ;
+- les graphiques ;
+- la table Joueurs ;
+- les cohortes de rétention ;
+- les métriques Système.
+
+`DAU`, `WAU` et `MAU` sont calculés **à la date `Au` sélectionnée**. Exemple : avec `Hier`, le dashboard affiche l'audience telle qu'elle était hier, et non l'audience courante.
 
 ## RPC privées
 
-### `is_analytics_admin()`
+Les anciennes RPC à fenêtre (`admin_analytics_overview(window_days)`, etc.) restent présentes pour compatibilité. Le dashboard `v0.2.7.8b` utilise les RPC explicites ajoutées par `017_admin_analytics_ranges.sql`.
 
-Retourne si `auth.uid()` est présent dans l'allow-list.
+### `admin_analytics_overview_range(date_from, date_to)`
 
-### `admin_analytics_overview(window_days)`
+Expose les KPI de la période :
 
-Expose les KPI agrégés :
+- joueurs inscrits à la date de fin ;
+- nouveaux comptes ;
+- joueurs actifs ;
+- nouveaux actifs / revenants ;
+- DAU / WAU / MAU à la date de fin ;
+- runs vérifiées ;
+- temps de jeu vérifié ;
+- score moyen et record de période ;
+- runs moyennes / joueur actif ;
+- temps moyen / joueur actif ;
+- run-start, tickets émis, rejets, expirations, purges, rate-limits ;
+- taux d'émission, de vérification et de rejet ;
+- états courants `issued` / `rejected` ;
+- contexte lifetime : runs, temps suivi, record global et causes de mort.
 
-- joueurs total / nouveaux / actifs ;
+### `admin_analytics_daily_range(date_from, date_to)`
+
+Série journalière UTC utilisée pour les graphiques :
+
+- joueurs actifs ;
+- nouveaux joueurs actifs ;
+- joueurs revenants ;
 - DAU / WAU / MAU ;
-- runs vérifiées période + lifetime ;
-- temps de jeu vérifié suivi ;
-- record global et score moyen ;
-- tickets pending/rejected encore présents ;
-- émissions, rejets, abandons, rate limits ;
-- causes de mort lifetime.
+- créations de profils ;
+- runs ;
+- temps de jeu ;
+- score moyen / record du jour ;
+- métriques du backend.
 
-### `admin_analytics_daily(window_days)`
+### `admin_analytics_players_range(...)`
 
-Série journalière UTC utilisée pour les graphiques : joueurs actifs, nouveaux comptes, runs, temps, scores et métriques du backend.
+La table Joueurs devient **spécifique à la période** :
 
-### `admin_analytics_players(...)`
-
-Table par joueur avec :
-
-- rang global ;
-- pseudo / display name / avatar ;
-- nombre lifetime de runs ;
-- record ;
-- score moyen ;
-- temps de jeu suivi ;
-- première / dernière activité ;
-- causes de mort ;
+- rang global lifetime ;
+- runs de la période ;
+- record de la période ;
+- score moyen de la période ;
+- temps de jeu de la période ;
+- nombre de jours actifs ;
+- première / dernière run de la période ;
+- record global lifetime ;
 - tickets `issued` actuellement ouverts.
 
-La table accepte recherche et tri (`runs`, `record`, `playtime`, `recent`).
+Recherche : pseudo, display name ou UUID.
 
-### `admin_analytics_retention(cohort_days)`
+Tri :
 
-Rétention par cohorte de création de profil, uniquement pour les cohortes postérieures au début du tracking Analytics :
+```text
+runs
+record
+playtime
+active_days
+recent
+```
+
+### `admin_analytics_retention_range(date_from, date_to)`
+
+La plage sélectionne les **dates de création des cohortes**. Le calcul conserve :
 
 - D0 ;
 - D1 ;
@@ -163,27 +218,53 @@ Les cohortes trop jeunes affichent D1/D7/D30 comme non mûrs plutôt que comme `
 
 Le dashboard est volontairement distinct du pixel-art du jeu : interface sombre d'administration, responsive, sans framework et sans CDN.
 
-Sections :
+### Vue d'ensemble
 
 ```text
-Vue d'ensemble
-├─ KPI
-├─ runs / jour
-├─ joueurs actifs / jour
-├─ causes de mort
-└─ résumé du pipeline
+KPI
+├─ joueurs inscrits / nouveaux comptes
+├─ actifs / nouveaux actifs / revenants
+├─ DAU / WAU / MAU à la fin de période
+├─ runs / joueur actif
+├─ temps de jeu / joueur actif
+├─ score moyen / records période + global
+├─ vérification
+└─ acquisition
 
-Joueurs
-└─ table recherchable / triable
+Graphiques
+├─ runs vérifiées / tickets émis
+├─ joueurs actifs / nouveaux comptes
+├─ temps de jeu vérifié
+└─ score moyen / meilleur score
 
-Rétention
-└─ cohortes D0 / D1 / D7 / D30
+Synthèse période
+├─ jours avec activité
+├─ pic de joueurs actifs
+├─ pic de runs
+├─ taux d'émission
+└─ taux de rejet
 
-Système
-├─ run-start
+Gameplay
+└─ causes de mort lifetime
+```
+
+### Joueurs
+
+Table filtrée par période avec recherche, tri, activité, score, temps de jeu et contexte lifetime.
+
+### Rétention
+
+Cohortes D0 / D1 / D7 / D30 dont la date de création tombe dans la plage sélectionnée.
+
+### Système
+
+```text
+run-start
 ├─ tickets émis
-├─ rejected
-├─ issued expirés
+├─ runs vérifiées
+├─ runs rejetées
+├─ issued expirés / abandonnés
+├─ rejected purgés
 ├─ rate-limit
 └─ rotation pending
 ```
@@ -192,20 +273,26 @@ Les graphiques sont rendus en SVG natif par `site/src/admin/charts.js`, sans Cha
 
 ## Online-only
 
-Le dashboard nécessite Supabase et reste volontairement **hors du précache PWA du jeu**. Le Service Worker continue de précacher uniquement les 51 ressources runtime du jeu ; une panne du dashboard ne peut donc pas compromettre l'installation ou le mode hors ligne du gameplay.
+Le dashboard nécessite Supabase et reste volontairement **hors du précache PWA du jeu**. Les **57 ressources runtime du jeu** continuent d'être précachées séparément ; une panne du dashboard ne peut donc pas compromettre l'installation ou le mode hors ligne du gameplay.
 
 ## Déploiement
 
-1. Exécuter `supabase/010_admin_analytics.sql` dans le SQL Editor Supabase.
-2. Ajouter au moins un UUID dans `public.analytics_admins`.
-3. Pousser le contenu `site/` sur GitHub Pages comme d'habitude.
-4. Ouvrir `https://<pages>/<repo>/admin/` et se connecter avec le compte autorisé.
+Pour une installation neuve :
 
-Aucune Edge Function n'a besoin d'être redéployée : la migration remplace les fonctions PostgreSQL `issue_verified_run()` et `cleanup_stale_verified_run_tickets()` **sans changer leur signature**, donc le `run-start` déjà déployé en `6.3.6` reste compatible.
+1. exécuter `supabase/010_admin_analytics.sql` ;
+2. appliquer les migrations suivantes dans l'ordre jusqu'à `017_admin_analytics_ranges.sql` ;
+3. ajouter au moins un UUID dans `public.analytics_admins` ;
+4. pousser `site/` sur GitHub Pages ;
+5. ouvrir `/admin/` et se connecter avec le compte autorisé.
 
+Pour une base déjà à jour en `v0.2.7.7b-hotfix4`, seule la migration suivante est nouvelle :
 
-Depuis `v0.2.7.4b-dev5`, `expired_issued_runs` agrège les tickets `issued` quittant le lifecycle sans soumission (TTL, annulation explicite depuis READY ou rotation serveur). `pending_limit_requests` devient un compteur historique/pression de seuil et est incrémenté lors d’une rotation à 100, plus lors d’un blocage utilisateur.
+```text
+supabase/017_admin_analytics_ranges.sql
+```
+
+Aucune Edge Function n'a besoin d'être redéployée.
 
 ## Identité affichée
 
-Les vues joueurs continuent d'utiliser `profiles.display_name` et `profiles.avatar_url`. En `v0.2.7.5b`, `admin_analytics_players()` joint directement `public.profiles` à chaque RPC : il n'existe aucun snapshot séparé de pseudo/avatar à synchroniser. Une modification de profil est donc visible dès le prochain rafraîchissement de l'Admin sans changer l'allow-list, qui reste basée exclusivement sur `auth.users.id`. Sans URL d'avatar, le dashboard utilise le même fallback généré déterministe que le jeu.
+Les vues joueurs utilisent `profiles.display_name` et `profiles.avatar_url` directement lors des RPC. Il n'existe aucun snapshot séparé de pseudo/avatar à synchroniser. Une modification de profil est donc visible dès le prochain rafraîchissement de l'Admin sans changer l'allow-list, qui reste basée exclusivement sur `auth.users.id`. Sans URL d'avatar, le dashboard utilise le même fallback généré déterministe que le jeu.

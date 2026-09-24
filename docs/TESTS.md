@@ -1,9 +1,10 @@
-## v0.2.7.7b-hotfix4 — Authenticated replays & rate limits
+## v0.2.7.8b — Admin Analytics II
 
-- `tests/leaderboard.test.mjs` vérifie que `get_leaderboard_replay()` exige désormais un JWT, que le client refuse de demander seed/taps sans token et que le rôle `anon` perd le droit `EXECUTE` dans `016_authenticated_replay_rate_limits.sql`.
-- Le même fichier verrouille `get_leaderboard_refresh()` authentifié, les plafonds **10 replay/min** et **6 refresh/min**, l'advisory lock atomique et la propagation `429` / `Retry-After`.
-- Le leaderboard public sans session reste couvert séparément : la lecture initiale continue via `get_leaderboard()`, tandis que l'UI réserve `ACTUALISER` et **VOIR** aux sessions authentifiées.
-- Suite complète : `npm test` **208/208** + `python tests/browser_isolated.py` **OK / 0 erreur** + `python tests/admin_browser_isolated.py` **OK / 0 erreur**.
+- `tests/admin-analytics.test.mjs` verrouille les quatre RPC privées de plage ajoutées par `017_admin_analytics_ranges.sql`, l'allow-list admin, la limite de **3650 jours** et le calcul `DAU / WAU / MAU` relativement à la date de fin sélectionnée.
+- Le même fichier vérifie les KPI enrichis (nouveaux actifs / revenants, record période, runs et temps par joueur actif, taux émission/vérification/rejet), ainsi que l'agrégation joueurs strictement limitée au `date_from → date_to`.
+- Le frontend Admin est testé pour les raccourcis **Aujourd'hui / Hier / 7 j / 30 j / 90 j / 1 an / Tout**, les champs `Du` / `Au`, la validation de plage et les nouvelles RPC `*_range`.
+- `tests/admin_browser_isolated.py` manipule réellement les presets et une plage personnalisée dans Chromium, puis valide les quatre graphiques, la table Joueurs période, la rétention et l'onglet Système.
+- Suite complète : `npm test` **213/213** + `python tests/browser_isolated.py` **OK / 0 erreur** + `python tests/admin_browser_isolated.py` **OK / 0 erreur** + `git diff --check` **OK**.
 
 ## v0.2.7.7b-hotfix2 — Replay Controls visual polish
 
@@ -97,14 +98,14 @@
 - Le cache PWA reste à **51 ressources runtime** : le changement backend n'ajoute aucun asset client, mais le build Service Worker est incrémenté pour publier la nouvelle version.
 - Suite complète : `npm test` (**152/152**) + `python tests/browser_isolated.py` (**OK, 0 erreur page**).
 
-# Rapport de tests - v0.2.7.7b-hotfix4
+# Rapport de tests - v0.2.7.8b
 
 ## Résultat
 
-- **208/208 tests Node passent** avec `npm test`.
+- **213/213 tests Node passent** avec `npm test`.
 - Le bundle concaténé utilisé par le smoke test passe le contrôle de syntaxe JavaScript.
 - Le smoke test Chromium isolé passe sans erreur page et couvre aussi le lecteur de replay réel sur une run déterministe connue (seed/taps, France nuit, score terminal et événement audio `hit`), la composition des modules ES, le catalogue dynamique, le thème Vietnam jour/nuit, le panneau diagnostic repliable, la modale Profil, les boutons utilitaires x1,75 et le module d’abandon de ticket Verified Run.
-- Le smoke test Admin Analytics dédié passe également sans erreur page avec Auth/RPC Supabase mockés et couvre les vues Overview, Joueurs, Rétention et Système.
+- Le smoke test Admin Analytics dédié passe également sans erreur page avec Auth/RPC Supabase mockés, manipule les presets Aujourd’hui/Hier et une plage Du→Au, puis couvre les vues Overview, Joueurs, Rétention et Système.
 - Le cache PWA contient **57 ressources** et refuse de se déclarer complet si une ressource de précache manque.
 - `version.json` reste volontairement hors du cache du Service Worker afin de servir de sonde réseau réelle pour la mise à jour.
 - Les liens et ressources du site utilisent des chemins relatifs compatibles avec un projet GitHub Pages publié sous `/<repository>/`.

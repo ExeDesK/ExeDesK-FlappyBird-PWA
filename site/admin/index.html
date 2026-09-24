@@ -46,64 +46,89 @@
           <button class="tab" data-section="retention" type="button">Rétention</button>
           <button class="tab" data-section="system" type="button">Système</button>
         </nav>
-        <div class="toolbar-controls">
-          <label>
-            Période
-            <select id="window-days">
-              <option value="7">7 jours</option>
-              <option value="30" selected>30 jours</option>
-              <option value="90">90 jours</option>
-              <option value="365">1 an</option>
-              <option value="3650">Tout</option>
-            </select>
-          </label>
-          <button id="refresh" class="button secondary" type="button">Actualiser</button>
-        </div>
+        <button id="refresh" class="button secondary toolbar-refresh" type="button">Actualiser</button>
       </div>
+
+      <section class="period-card card" aria-label="Période Analytics">
+        <div class="period-card-heading">
+          <div>
+            <p class="eyebrow">PÉRIODE · UTC</p>
+            <strong id="period-summary">30 derniers jours</strong>
+          </div>
+          <div id="period-presets" class="period-presets" aria-label="Périodes rapides">
+            <button class="period-preset" data-period="today" type="button">Aujourd'hui</button>
+            <button class="period-preset" data-period="yesterday" type="button">Hier</button>
+            <button class="period-preset" data-period="7" type="button">7 j</button>
+            <button class="period-preset active" data-period="30" type="button">30 j</button>
+            <button class="period-preset" data-period="90" type="button">90 j</button>
+            <button class="period-preset" data-period="365" type="button">1 an</button>
+            <button class="period-preset" data-period="all" type="button">Tout</button>
+          </div>
+        </div>
+        <form id="period-form" class="period-range-form">
+          <label>
+            Du
+            <input id="period-from" type="date" required>
+          </label>
+          <span class="range-arrow" aria-hidden="true">→</span>
+          <label>
+            Au
+            <input id="period-to" type="date" required>
+          </label>
+          <button class="button primary" type="submit">Appliquer</button>
+        </form>
+      </section>
 
       <p id="dashboard-status" class="status-line" role="status"></p>
 
       <section id="section-overview" class="dashboard-section">
-        <div class="kpi-grid">
+        <div class="kpi-grid kpi-grid-wide">
           <article class="kpi-card card">
-            <span>Joueurs</span>
+            <span>Joueurs inscrits</span>
             <strong id="kpi-players">—</strong>
-            <small id="kpi-new-players">— nouveaux</small>
+            <small id="kpi-new-players">— sur la période</small>
           </article>
           <article class="kpi-card card">
-            <span>Joueurs actifs</span>
+            <span>Actifs période</span>
             <strong id="kpi-active">—</strong>
-            <small id="kpi-audience">DAU — · WAU — · MAU —</small>
+            <small id="kpi-active-split">— nouveaux · — revenants</small>
+          </article>
+          <article class="kpi-card card">
+            <span>Audience à la fin</span>
+            <strong id="kpi-dau">—</strong>
+            <small id="kpi-audience">WAU — · MAU —</small>
           </article>
           <article class="kpi-card card">
             <span>Runs vérifiées</span>
             <strong id="kpi-runs">—</strong>
-            <small id="kpi-runs-lifetime">— lifetime</small>
+            <small id="kpi-runs-per-player">— / joueur actif</small>
           </article>
           <article class="kpi-card card">
             <span>Temps de jeu</span>
             <strong id="kpi-playtime">—</strong>
-            <small>vérifié · suivi Analytics</small>
+            <small id="kpi-playtime-per-player">— / joueur actif</small>
           </article>
           <article class="kpi-card card">
-            <span>Record global</span>
-            <strong id="kpi-record">—</strong>
-            <small id="kpi-average">moy. —</small>
+            <span>Score moyen</span>
+            <strong id="kpi-period-average">—</strong>
+            <small id="kpi-records">record période — · global —</small>
           </article>
           <article class="kpi-card card">
             <span>Vérification</span>
             <strong id="kpi-verification">—</strong>
-            <small>runs résolues / tickets émis*</small>
+            <small id="kpi-verification-detail">— émises · — rejetées</small>
+          </article>
+          <article class="kpi-card card">
+            <span>Acquisition</span>
+            <strong id="kpi-acquisition">—</strong>
+            <small id="kpi-acquisition-detail">— actifs parmi les nouveaux</small>
           </article>
         </div>
 
         <div class="chart-grid">
           <article class="card chart-card">
             <div class="card-heading">
-              <div>
-                <p class="eyebrow">ACTIVITÉ</p>
-                <h2>Runs par jour</h2>
-              </div>
+              <div><p class="eyebrow">ACTIVITÉ</p><h2>Runs / tickets par jour</h2></div>
               <div class="legend"><span class="dot primary"></span> Vérifiées <span class="dot secondary"></span> Émises</div>
             </div>
             <div id="runs-chart" class="chart"></div>
@@ -111,32 +136,48 @@
 
           <article class="card chart-card">
             <div class="card-heading">
-              <div>
-                <p class="eyebrow">AUDIENCE</p>
-                <h2>Joueurs actifs / jour</h2>
-              </div>
+              <div><p class="eyebrow">AUDIENCE</p><h2>Actifs / nouveaux comptes</h2></div>
+              <div class="legend"><span class="dot primary"></span> Actifs <span class="dot secondary"></span> Nouveaux</div>
             </div>
             <div id="active-chart" class="chart"></div>
+          </article>
+
+          <article class="card chart-card">
+            <div class="card-heading">
+              <div><p class="eyebrow">ENGAGEMENT</p><h2>Temps de jeu vérifié / jour</h2></div>
+            </div>
+            <div id="playtime-chart" class="chart"></div>
+          </article>
+
+          <article class="card chart-card">
+            <div class="card-heading">
+              <div><p class="eyebrow">PERFORMANCE</p><h2>Score moyen / meilleur score</h2></div>
+              <div class="legend"><span class="dot primary"></span> Moyenne <span class="dot secondary"></span> Record</div>
+            </div>
+            <div id="score-chart" class="chart"></div>
           </article>
         </div>
 
         <div class="split-grid">
           <article class="card">
+            <div class="card-heading"><div><p class="eyebrow">SYNTHÈSE</p><h2>Période sélectionnée</h2></div></div>
+            <dl class="metrics-list">
+              <div><dt>Plage</dt><dd id="period-range-label">—</dd></div>
+              <div><dt>Jours avec activité</dt><dd id="period-active-days">—</dd></div>
+              <div><dt>Pic joueurs actifs</dt><dd id="period-peak-active">—</dd></div>
+              <div><dt>Pic runs vérifiées</dt><dd id="period-peak-runs">—</dd></div>
+              <div><dt>Taux d'émission</dt><dd id="period-issue-rate">—</dd></div>
+              <div><dt>Taux de rejet</dt><dd id="period-rejection-rate">—</dd></div>
+            </dl>
+          </article>
+          <article class="card">
             <div class="card-heading"><div><p class="eyebrow">GAMEPLAY</p><h2>Causes de mort lifetime</h2></div></div>
+            <p class="muted compact">Cette ventilation reste lifetime : les détails anciens peuvent être purgés alors que ces compteurs autoritaires sont conservés.</p>
             <div class="distribution">
               <div><span>Pipe haut</span><strong id="death-top">—</strong><progress id="death-top-progress" max="100" value="0"></progress></div>
               <div><span>Pipe bas</span><strong id="death-bottom">—</strong><progress id="death-bottom-progress" max="100" value="0"></progress></div>
               <div><span>Sol</span><strong id="death-ground">—</strong><progress id="death-ground-progress" max="100" value="0"></progress></div>
             </div>
-          </article>
-          <article class="card">
-            <div class="card-heading"><div><p class="eyebrow">QUALITÉ</p><h2>Résumé du pipeline</h2></div></div>
-            <dl class="metrics-list">
-              <div><dt>Score moyen période</dt><dd id="period-average">—</dd></div>
-              <div><dt>Tickets en attente maintenant</dt><dd id="pending-now">—</dd></div>
-              <div><dt>Runs rejetées conservées</dt><dd id="rejected-now">—</dd></div>
-              <div><dt>Temps suivi total</dt><dd id="tracked-total">—</dd></div>
-            </dl>
           </article>
         </div>
       </section>
@@ -145,30 +186,34 @@
         <article class="card">
           <div class="card-heading players-heading">
             <div>
-              <p class="eyebrow">JOUEURS</p>
+              <p class="eyebrow">JOUEURS · PÉRIODE</p>
               <h2>Statistiques individuelles</h2>
+              <p class="muted compact">Runs, score, temps de jeu et activité sont filtrés sur la période globale. Rang et record global restent lifetime.</p>
             </div>
             <form id="player-filter" class="player-filter">
               <input id="player-search" type="search" placeholder="Pseudo, nom ou UUID" autocomplete="off">
               <select id="player-sort" aria-label="Trier les joueurs">
-                <option value="runs">Plus de runs</option>
-                <option value="record">Meilleur record</option>
-                <option value="playtime">Temps de jeu suivi</option>
+                <option value="runs">Plus de runs période</option>
+                <option value="record">Meilleur score période</option>
+                <option value="playtime">Temps de jeu période</option>
+                <option value="active_days">Jours actifs</option>
                 <option value="recent">Activité récente</option>
               </select>
               <button class="button secondary" type="submit">Filtrer</button>
             </form>
           </div>
           <div class="table-wrap">
-            <table>
+            <table class="players-table">
               <thead>
                 <tr>
                   <th>Joueur</th>
                   <th>Rang</th>
-                  <th>Runs</th>
-                  <th>Record</th>
+                  <th>Runs période</th>
+                  <th>Record période</th>
                   <th>Moy.</th>
-                  <th>Temps suivi</th>
+                  <th>Temps période</th>
+                  <th>Jours actifs</th>
+                  <th>Record global</th>
                   <th>Pending</th>
                   <th>Dernière run</th>
                 </tr>
@@ -176,7 +221,7 @@
               <tbody id="players-body"></tbody>
             </table>
           </div>
-          <p id="players-empty" class="empty" hidden>Aucun joueur trouvé.</p>
+          <p id="players-empty" class="empty" hidden>Aucun joueur actif sur cette période.</p>
         </article>
       </section>
 
@@ -184,19 +229,11 @@
         <article class="card">
           <div class="card-heading players-heading">
             <div>
-              <p class="eyebrow">COHORTES</p>
+              <p class="eyebrow">COHORTES · PÉRIODE</p>
               <h2>Rétention des nouveaux comptes</h2>
-              <p class="muted compact">Cohorte = date de création du profil. Actif = au moins une run autoritaire vérifiée le jour concerné.</p>
+              <p class="muted compact">La période globale sélectionne les dates de création des cohortes. Actif = au moins une run autoritaire vérifiée le jour concerné.</p>
             </div>
-            <label>
-              Cohortes
-              <select id="retention-days">
-                <option value="90" selected>90 jours</option>
-                <option value="180">180 jours</option>
-                <option value="365">1 an</option>
-                <option value="3650">Tout</option>
-              </select>
-            </label>
+            <span id="retention-range" class="range-badge">—</span>
           </div>
           <div class="table-wrap">
             <table>
@@ -213,18 +250,20 @@
               <tbody id="retention-body"></tbody>
             </table>
           </div>
-          <p id="retention-empty" class="empty" hidden>Pas encore de cohorte exploitable depuis l'activation des Analytics.</p>
+          <p id="retention-empty" class="empty" hidden>Pas de cohorte exploitable sur cette période depuis l'activation des Analytics.</p>
         </article>
       </section>
 
       <section id="section-system" class="dashboard-section" hidden>
-        <div class="kpi-grid system-grid">
-          <article class="kpi-card card"><span>run-start</span><strong id="sys-starts">—</strong><small>requêtes</small></article>
-          <article class="kpi-card card"><span>Tickets émis</span><strong id="sys-issued">—</strong><small>créés</small></article>
-          <article class="kpi-card card"><span>Rejetées</span><strong id="sys-rejected">—</strong><small>replay invalide</small></article>
+        <div class="kpi-grid kpi-grid-wide system-grid">
+          <article class="kpi-card card"><span>run-start</span><strong id="sys-starts">—</strong><small>requêtes période</small></article>
+          <article class="kpi-card card"><span>Tickets émis</span><strong id="sys-issued">—</strong><small id="sys-issue-rate">— des run-start</small></article>
+          <article class="kpi-card card"><span>Runs vérifiées</span><strong id="sys-verified">—</strong><small id="sys-verification-rate">— des tickets émis</small></article>
+          <article class="kpi-card card"><span>Rejetées</span><strong id="sys-rejected">—</strong><small id="sys-rejection-rate">— des tickets émis</small></article>
           <article class="kpi-card card"><span>Abandonnées</span><strong id="sys-expired">—</strong><small>annulés / expirés / rotation</small></article>
-          <article class="kpi-card card"><span>Rate limit</span><strong id="sys-rate">—</strong><small>30/min</small></article>
-          <article class="kpi-card card"><span>Rotation pending</span><strong id="sys-pending-cap">—</strong><small>seuil 100 issued</small></article>
+          <article class="kpi-card card"><span>Purge rejetées</span><strong id="sys-purged">—</strong><small>anciennes lignes supprimées</small></article>
+          <article class="kpi-card card"><span>Rate limit</span><strong id="sys-rate">—</strong><small>run-start bloqués</small></article>
+          <article class="kpi-card card"><span>Rotation pending</span><strong id="sys-pending-cap">—</strong><small>seuil pending atteint</small></article>
         </div>
 
         <article class="card chart-card">
@@ -235,12 +274,23 @@
           <div id="system-chart" class="chart"></div>
         </article>
 
-        <article class="card notice">
-          <h2>Lecture des métriques</h2>
-          <p>
-            Les compteurs journaliers sont conservés même lorsque les tickets détaillés sont purgés. Le taux de vérification d'une période compare les runs résolues pendant cette période aux tickets émis pendant cette même période : une soumission différée peut donc légèrement décaler le ratio entre deux fenêtres.
-          </p>
-        </article>
+        <div class="split-grid system-summary-grid">
+          <article class="card">
+            <div class="card-heading"><div><p class="eyebrow">ÉTAT ACTUEL</p><h2>Files conservées</h2></div></div>
+            <dl class="metrics-list">
+              <div><dt>Tickets issued actuellement</dt><dd id="pending-now">—</dd></div>
+              <div><dt>Runs rejetées conservées</dt><dd id="rejected-now">—</dd></div>
+              <div><dt>Temps suivi lifetime</dt><dd id="tracked-total">—</dd></div>
+              <div><dt>Runs vérifiées lifetime</dt><dd id="kpi-runs-lifetime">—</dd></div>
+            </dl>
+          </article>
+          <article class="card notice inline-notice">
+            <h2>Lecture des métriques</h2>
+            <p>
+              Les compteurs journaliers sont conservés même lorsque les tickets détaillés sont purgés. Le taux de vérification compare les runs résolues dans la période aux tickets émis dans cette même période : une soumission différée peut donc légèrement décaler le ratio entre deux plages.
+            </p>
+          </article>
+        </div>
       </section>
     </section>
   </main>

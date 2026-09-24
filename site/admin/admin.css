@@ -213,3 +213,85 @@ tbody tr:hover { background: rgba(255,255,255,.025); }
   .tabs { display: grid; grid-template-columns: repeat(2, 1fr); width: 100%; }
   .tab { width: 100%; }
 }
+
+/* v0.2.7.8b - explicit period selection and richer analytics ------------- */
+.toolbar-refresh { align-self: center; }
+
+.period-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 18px 26px;
+  align-items: end;
+  margin-bottom: 12px;
+  padding: 16px;
+}
+.period-card-heading { display: grid; gap: 12px; min-width: 0; }
+.period-card-heading strong { display: block; font-size: 1.05rem; }
+.period-presets { display: flex; flex-wrap: wrap; gap: 6px; }
+.period-preset {
+  min-height: 34px;
+  padding: 0 11px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: #0d1119;
+  color: var(--muted);
+  font-weight: 760;
+}
+.period-preset:hover { color: var(--text); border-color: #46536b; }
+.period-preset.active {
+  color: #211405;
+  background: var(--accent);
+  border-color: transparent;
+}
+.period-range-form {
+  display: flex;
+  align-items: end;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.period-range-form input { min-width: 152px; }
+.range-arrow { padding-bottom: 11px; color: var(--muted); font-weight: 800; }
+.range-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 0 11px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: #0d1119;
+  color: var(--muted);
+  font-size: .78rem;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.kpi-grid-wide { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.kpi-grid-wide .kpi-card > strong { font-size: clamp(1.45rem, 2.4vw, 2.15rem); }
+.players-table { min-width: 1200px; }
+.system-summary-grid { margin-top: 12px; }
+.inline-notice { margin-top: 0; }
+
+@media (max-width: 1120px) {
+  .period-card { grid-template-columns: 1fr; align-items: stretch; }
+  .period-range-form { justify-content: flex-start; }
+  .kpi-grid-wide { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 780px) {
+  .toolbar-refresh { align-self: stretch; }
+  .period-presets { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .period-preset { width: 100%; }
+  .period-range-form { display: grid; grid-template-columns: 1fr auto 1fr; align-items: end; }
+  .period-range-form label { min-width: 0; }
+  .period-range-form input { min-width: 0; width: 100%; }
+  .period-range-form .button { grid-column: 1 / -1; width: 100%; }
+  .range-arrow { padding-bottom: 11px; }
+}
+
+@media (max-width: 520px) {
+  .period-presets { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .kpi-grid-wide { grid-template-columns: 1fr; }
+  .period-range-form { grid-template-columns: 1fr; }
+  .range-arrow { display: none; }
+}

@@ -1,4 +1,4 @@
-# Replays leaderboard — v0.2.7.7b-hotfix4
+# Replays leaderboard — v0.2.7.8b
 
 ## Objectif
 

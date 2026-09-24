@@ -119,3 +119,90 @@ test('admin player rows read the live profile identity instead of a duplicated p
   assert.match(block, /p\.avatar_url/i);
   assert.doesNotMatch(block, /cached_display_name|cached_avatar_url/i);
 });
+
+const rangeSql = read('supabase/017_admin_analytics_ranges.sql');
+
+function rangeFunctionBlock(name, nextName = null) {
+  const start = rangeSql.indexOf(`function public.${name}`);
+  assert.ok(start >= 0, `missing range function ${name}`);
+  const end = nextName ? rangeSql.indexOf(`function public.${nextName}`, start + 1) : rangeSql.length;
+  return rangeSql.slice(start, end >= 0 ? end : rangeSql.length);
+}
+
+test('range analytics migration exposes admin-only inclusive UTC from/to RPCs', () => {
+  for (const name of [
+    'admin_analytics_overview_range',
+    'admin_analytics_daily_range',
+    'admin_analytics_players_range',
+    'admin_analytics_retention_range',
+  ]) {
+    const block = rangeFunctionBlock(name);
+    assert.match(block, /perform public\.require_analytics_admin\(\)/i, `${name} must require admin`);
+  }
+  assert.match(rangeSql, /date_from date default null[\s\S]*date_to date default null/i);
+  assert.match(rangeSql, /statement_timestamp\(\) at time zone 'UTC'/i);
+  assert.match(rangeSql, /analytics_invalid_date_range/i);
+  assert.match(rangeSql, /analytics_date_range_too_large/i);
+  assert.match(rangeSql, /days_count > 3650/i);
+  assert.doesNotMatch(rangeSql, /grant execute[^;]* to anon/i);
+});
+
+test('range overview computes historical audience as of selected end date and richer period KPIs', () => {
+  const block = rangeFunctionBlock('admin_analytics_overview_range', 'admin_analytics_daily_range');
+  assert.match(block, /selected_from date,[\s\S]*selected_to date,[\s\S]*selected_days integer/i);
+  assert.match(block, /new_active_players bigint,[\s\S]*returning_active_players bigint/i);
+  assert.match(block, /period_best_score integer/i);
+  assert.match(block, /runs_per_active_player numeric/i);
+  assert.match(block, /play_ticks_per_active_player numeric/i);
+  assert.match(block, /where pad\.activity_date = end_date/i);
+  assert.match(block, /between end_date - 6 and end_date/i);
+  assert.match(block, /between end_date - 29 and end_date/i);
+  assert.match(block, /issue_rate_pct numeric,[\s\S]*verification_rate_pct numeric,[\s\S]*rejection_rate_pct numeric/i);
+});
+
+test('range player analytics aggregate activity only inside the selected period while preserving lifetime context', () => {
+  const block = rangeFunctionBlock('admin_analytics_players_range', 'admin_analytics_retention_range');
+  assert.match(block, /where pad\.activity_date between start_date and end_date/i);
+  assert.match(block, /period_verified_runs bigint/i);
+  assert.match(block, /period_best_score integer/i);
+  assert.match(block, /period_play_ticks bigint/i);
+  assert.match(block, /period_active_days bigint/i);
+  assert.match(block, /lifetime_best_score integer/i);
+  assert.match(block, /when sort_key in \('record', 'playtime', 'recent', 'runs', 'active_days'\)/i);
+});
+
+test('admin dashboard supports today, yesterday, quick ranges and explicit from/to dates', () => {
+  assert.match(html, /data-period="today"[^>]*>Aujourd'hui</i);
+  assert.match(html, /data-period="yesterday"[^>]*>Hier</i);
+  assert.match(html, /id="period-from" type="date"/i);
+  assert.match(html, /id="period-to" type="date"/i);
+  assert.match(dashboard, /presetRange\('today'\)/i);
+  assert.match(dashboard, /presetRange\('yesterday'\)/i);
+  assert.match(dashboard, /validateRange/i);
+  assert.match(dashboard, /MAX_RANGE_DAYS = 3650/i);
+  assert.match(client, /admin_analytics_overview_range/i);
+  assert.match(client, /admin_analytics_daily_range/i);
+  assert.match(client, /admin_analytics_players_range/i);
+  assert.match(client, /admin_analytics_retention_range/i);
+});
+
+test('richer admin overview exposes engagement, score, acquisition and system charts', () => {
+  for (const id of [
+    'playtime-chart',
+    'score-chart',
+    'kpi-active-split',
+    'kpi-runs-per-player',
+    'kpi-playtime-per-player',
+    'kpi-acquisition',
+    'period-peak-active',
+    'period-peak-runs',
+    'sys-verified',
+    'sys-purged',
+  ]) {
+    assert.match(html, new RegExp(`id="${id}"`));
+  }
+  assert.match(dashboard, /period_verified_runs/i);
+  assert.match(dashboard, /period_active_days/i);
+  assert.match(css, /\.period-presets/i);
+  assert.match(css, /\.kpi-grid-wide/i);
+});

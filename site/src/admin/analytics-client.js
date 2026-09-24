@@ -11,6 +11,18 @@ async function asAccessToken(getAccessToken, message) {
   return token;
 }
 
+function normalizeDate(value) {
+  const text = String(value || '').trim();
+  return /^\d{4}-\d{2}-\d{2}$/.test(text) ? text : null;
+}
+
+function rangeBody({ from, to } = {}) {
+  return {
+    date_from: normalizeDate(from),
+    date_to: normalizeDate(to),
+  };
+}
+
 export class AnalyticsClient {
   constructor({ url, publishableKey, getAccessToken } = {}) {
     const config = normalizeSupabaseConfig({ url, publishableKey });
@@ -63,22 +75,19 @@ export class AnalyticsClient {
     return Boolean(value);
   }
 
-  async fetchOverview(days = 30) {
-    const rows = await this.#rpc('admin_analytics_overview', {
-      window_days: Number(days) || 30,
-    });
+  async fetchOverview(range) {
+    const rows = await this.#rpc('admin_analytics_overview_range', rangeBody(range));
     return Array.isArray(rows) ? (rows[0] || null) : rows;
   }
 
-  async fetchDaily(days = 30) {
-    const rows = await this.#rpc('admin_analytics_daily', {
-      window_days: Number(days) || 30,
-    });
+  async fetchDaily(range) {
+    const rows = await this.#rpc('admin_analytics_daily_range', rangeBody(range));
     return Array.isArray(rows) ? rows : [];
   }
 
-  async fetchPlayers({ limit = 100, offset = 0, search = '', sort = 'runs' } = {}) {
-    const rows = await this.#rpc('admin_analytics_players', {
+  async fetchPlayers({ from, to, limit = 100, offset = 0, search = '', sort = 'runs' } = {}) {
+    const rows = await this.#rpc('admin_analytics_players_range', {
+      ...rangeBody({ from, to }),
       limit_count: Number(limit) || 100,
       offset_count: Number(offset) || 0,
       search_query: String(search || ''),
@@ -87,10 +96,8 @@ export class AnalyticsClient {
     return Array.isArray(rows) ? rows : [];
   }
 
-  async fetchRetention(days = 90) {
-    const rows = await this.#rpc('admin_analytics_retention', {
-      cohort_days: Number(days) || 90,
-    });
+  async fetchRetention(range) {
+    const rows = await this.#rpc('admin_analytics_retention_range', rangeBody(range));
     return Array.isArray(rows) ? rows : [];
   }
 }
