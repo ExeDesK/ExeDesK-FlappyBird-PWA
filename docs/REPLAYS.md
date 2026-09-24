@@ -1,4 +1,4 @@
-# Replays leaderboard — v0.2.7.7b-hotfix1
+# Replays leaderboard — v0.2.7.7b-hotfix2
 
 ## Objectif
 
@@ -34,7 +34,7 @@ Ce contexte est **cosmétique uniquement**. Il ne modifie jamais `flappy13-physi
 
 Pour les runs historiques qui ne possèdent pas ces colonnes, le lecteur choisit volontairement un thème et une variante jour/nuit aléatoires à chaque ouverture/relecture.
 
-## Contrôles du lecteur (v0.2.7.7b-hotfix1)
+## Contrôles du lecteur (v0.2.7.7b-hotfix2)
 
 Le lecteur est contrôlable sans modifier le payload autoritaire :
 
@@ -63,7 +63,7 @@ Aucun `SELECT` direct sur `public.verified_runs` n'est accordé aux rôles navig
 
 ## Déploiement Supabase
 
-**`v0.2.7.7b-hotfix1` n'ajoute aucune migration ni modification d'Edge Function.** Si `v0.2.7.6b` est déjà déployée, aucune action Supabase n'est nécessaire pour les contrôles de replay.
+**`v0.2.7.7b-hotfix2` n'ajoute aucune migration ni modification d'Edge Function.** Si `v0.2.7.6b` est déjà déployée, aucune action Supabase n'est nécessaire pour les contrôles de replay.
 
 Pour une installation qui n'aurait pas encore appliqué le backend du visionnage introduit en `v0.2.7.6b`, l'ordre reste :
 

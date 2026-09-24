@@ -585,44 +585,47 @@ export class Renderer {
   drawDebug(debugState) {
     const context = this.ctx;
     const scale = this.renderScale;
-    const strokeWidth = 2 / scale;
-    const inset = strokeWidth / 2;
+    const halfPixel = 0.5 / scale;
+    const innerStep = 1 / scale;
+
+    const strokeRectInner = (x, y, width, height, passes = 2) => {
+      for (let pass = 0; pass < passes; pass += 1) {
+        const inset = pass * innerStep;
+        const insetWidth = width - (inset * 2);
+        const insetHeight = height - (inset * 2);
+        if (insetWidth <= 0 || insetHeight <= 0) break;
+        context.strokeRect(
+          x + inset + halfPixel,
+          y + inset + halfPixel,
+          insetWidth,
+          insetHeight,
+        );
+      }
+    };
 
     this.withGameClip(() => {
       this.gameIdentity();
-      context.lineWidth = strokeWidth;
+      context.lineWidth = 1 / scale;
       context.strokeStyle = '#ff286b';
-      context.strokeRect(
-        debugState.bird.x + inset,
-        debugState.bird.y + inset,
-        20 - (inset * 2),
-        20 - (inset * 2),
-      );
+      strokeRectInner(debugState.bird.x, debugState.bird.y, 20, 20);
 
       context.strokeStyle = '#00e5ff';
 
       if (debugState.hidden <= 0) {
         for (const pipe of debugState.pipes) {
-          context.strokeRect(
-            pipe.x + inset,
-            pipe.y + inset,
-            52 - (inset * 2),
-            320 - (inset * 2),
-          );
-          context.strokeRect(
-            pipe.x + inset,
-            pipe.y - 416 + inset,
-            52 - (inset * 2),
-            320 - (inset * 2),
-          );
+          strokeRectInner(pipe.x, pipe.y, 52, 320);
+          strokeRectInner(pipe.x, pipe.y - 416, 52, 320);
         }
       }
 
       context.strokeStyle = '#ffe600';
-      context.beginPath();
-      context.moveTo(0, 400 - inset);
-      context.lineTo(LOGICAL_WIDTH, 400 - inset);
-      context.stroke();
+      for (let pass = 0; pass < 2; pass += 1) {
+        const offset = (pass * innerStep) + halfPixel;
+        context.beginPath();
+        context.moveTo(0, 400 - offset);
+        context.lineTo(LOGICAL_WIDTH, 400 - offset);
+        context.stroke();
+      }
     });
 
     context.globalAlpha = 1;
