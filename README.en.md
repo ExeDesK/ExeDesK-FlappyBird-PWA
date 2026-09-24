@@ -8,7 +8,7 @@ The goal is not to create another Flappy Bird-inspired clone, but to **reproduce
 
 Gameplay runs entirely client-side without a framework and can be installed as an application on Windows, iPhone/iPad and Android. Optional community features use Supabase; no account is required to play.
 
-> **Project status: beta — v0.2.7.6b**
+> **Project status: beta — v0.2.7.7b**
 
 - Player statistics: career + 10 / 25 / 50-run windows derived only from verified runs.
 > On ProMotion iPhone/iPad devices, the Performance options include guidance for the Safari setting that can remove the near-60 Hz page-rendering preference.
@@ -31,7 +31,7 @@ Gameplay runs entirely client-side without a framework and can be installed as a
 - Cross-device best-score sync that always keeps the highest value.
 - Verified Runs: server-issued ticket/seed, deterministic capture, self-healing local queue, deferred submission, and authoritative replay before a score is accepted or rejected.
 - Public global leaderboard in a dedicated modal: readable without an account, built only from verified runs, with one best score per player.
-- Every leaderboard row now has a **VIEW** replay action: the player reconstructs the verified run from its authoritative seed/taps. New runs also replay with the **same theme and day/night variant**; legacy runs without stored visual context intentionally use a random visual context.
+- Every leaderboard row has a **VIEW** replay action: the player reconstructs the verified run from its authoritative seed/taps. New runs also replay with the **same theme and day/night variant**; legacy runs without stored visual context intentionally use a random visual context. The viewer provides play/pause, restart, **1x / 1.5x / 2x / 5x** speeds, hitboxes and a fixed 240 px draggable timeline whose handle is the original red bird animated from replay ticks.
 - Authenticated personal leaderboard context: true global rank, verified record, lifetime verified-run count and record date, even outside the Top 100.
 - Authoritative lifetime statistics in Supabase (`player_stats`): verified run count, cumulative score, historical record and death causes, with no player statistics sent by the client.
 - Verified replay retention: **50 most recently started runs + the historical best run** per player, bounding detailed storage while preserving the record and a useful recent window for short-term statistics.
@@ -47,7 +47,7 @@ Gameplay runs entirely client-side without a framework and can be installed as a
 - **France** and **Vietnam / Hanoi** country themes in the `country` pool: Eiffel Tower / baguettes / Paris sewers for France, railway Hanoi / bamboo scaffolding / dedicated bird for Vietnam. The country pool still has a global **1 in 30** Auto probability; with equal weights, each theme currently represents **1 in 60** runs.
 - Declarative `assets/themes.json` catalog: the base theme, Auto pools, each pool's global chance and each theme's relative `weight` are configured alongside backgrounds, pipes, bird frames, ground, adapted-fill colours and ground scroll mode. Adding more countries therefore does not increase the global `1/30` country-pool probability; the debug selector is fully generated from this catalog.
 - Diagnostic tools are split into collapsible sections, include an internal close control and keep browser-native dark selectors.
-- Complementary atlas versioned through `assets/customatlas.json`, kept separate from the original atlas to preserve the 1:1 reference assets and gameplay behaviour. Home / Options / Profile use atlas sprites rendered at **1.75x** with a compact **60 × 60** hit area; user-facing modal close buttons use `button_close` at **1x**. All user authentication (sign-in, session status and sign-out) now lives in Profile, never in Options.
+- Complementary atlas versioned through `assets/customatlas.json`, kept separate from the original atlas to preserve the 1:1 reference assets and gameplay behaviour. Home / Options / Profile use atlas sprites rendered at **1.75x** with a compact **60 × 60** hit area; user-facing modal close buttons use `button_close` at **1x**. Replay controls also use atlas sprites at 1x with the same pixel-stable press state; Play/Pause still come from the original atlas and the original red bird is reused as the animated timeline handle. All user authentication (sign-in, session status and sign-out) now lives in Profile, never in Options.
 - Frontend split into domain-focused ES modules: `main.js` orchestrates the game while authentication, Supabase clients, leaderboard UI, Verified Play, replay recording, the local run queue, UI transitions, toasts, score synchronisation and PWA updates live in focused modules that can be tested independently.
 - Private **Admin Analytics** dashboard under `site/admin/`: active players, DAU/WAU/MAU, runs per day/player, records, average score, verified play time, death causes, D0/D1/D7/D30 retention and verified-run lifecycle metrics. Access accepts Discord or Google Auth and then applies the same PostgreSQL allow-list by `auth.users.id`; no server secret is exposed.
 - Daily Analytics tracking starts when `010_admin_analytics.sql` is applied: existing lifetime counters stay authoritative, but no fake historical play-time/retention is reconstructed from runs already pruned by 50 + record retention.

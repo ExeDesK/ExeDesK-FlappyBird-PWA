@@ -271,6 +271,75 @@ def main() -> None:
           }
         """)
         page.wait_for_selector('#replay-dialog', state='visible')
+
+        # Advanced replay controls are atlas-backed. Pause first so the short
+        # deterministic fixture cannot finish while the controls are probed.
+        page.click('#replay-play-pause')
+        page.wait_for_timeout(100)
+        assert page.evaluate('window.__replayViewer.playing') is False
+        assert page.text_content('#replay-status').startswith('PAUSE')
+        assert page.evaluate("document.querySelector('#replay-play-pause-icon').dataset.sprite") == 'button_resume'
+
+        # Hitboxes toggle on without altering the deterministic simulation.
+        page.click('#replay-hitbox')
+        page.wait_for_timeout(100)
+        assert page.evaluate('window.__replayViewer.hitboxes') is True
+        assert page.evaluate("document.querySelector('#replay-hitbox-icon').dataset.sprite") == 'button_hitbox_on'
+
+        # The 240 px fixed timeline is user-seekable. Click its exact middle
+        # and verify the red bird handle is driven by replay time, not CSS animation.
+        progress_box = page.locator('#replay-progress').bounding_box()
+        assert progress_box is not None
+        assert abs(progress_box['width'] - 240) < 0.05
+        page.mouse.click(
+            progress_box['x'] + progress_box['width'] / 2,
+            progress_box['y'] + progress_box['height'] / 2,
+        )
+        page.wait_for_timeout(50)
+        assert page.evaluate('window.__replayViewer.tick') == 27
+        handle = page.evaluate("""
+          () => {
+            const node = document.querySelector('#replay-progress-handle');
+            return { left: node.style.left, sprite: node.dataset.sprite };
+          }
+        """)
+        assert handle['left'] == '120px'
+        assert handle['sprite'] in {'bird2_0', 'bird2_1', 'bird2_2'}
+
+        # Speed buttons use the custom atlas and the same persistent one-pixel
+        # press feedback as the Home/Profile controls.
+        replay_press = page.evaluate("""
+          () => {
+            const button = document.querySelector('#replay-speed-5');
+            const icon = document.querySelector('#replay-speed-5-icon');
+            const before = icon.getBoundingClientRect();
+            button.dispatchEvent(new PointerEvent('pointerdown', {
+              bubbles: true,
+              button: 0,
+              pointerType: 'touch',
+            }));
+            const after = icon.getBoundingClientRect();
+            const clipPath = getComputedStyle(icon).clipPath;
+            button.click();
+            return {
+              deltaX: after.x - before.x,
+              deltaY: after.y - before.y,
+              clipPath,
+              pressedAfterFastClick: button.classList.contains('atlas-pressed'),
+            };
+          }
+        """)
+        assert abs(replay_press['deltaX']) < 0.01
+        assert abs(replay_press['deltaY'] - 1) < 0.05
+        assert '1px' in replay_press['clipPath']
+        assert replay_press['pressedAfterFastClick']
+        page.wait_for_timeout(100)
+        assert page.evaluate('window.__replayViewer.playbackRate') == 5
+        assert page.get_attribute('#replay-speed-5', 'aria-pressed') == 'true'
+
+        page.click('#replay-play-pause')
+        page.wait_for_timeout(100)
+        assert page.evaluate('window.__replayViewer.playing') is True
         page.wait_for_function(
             "document.querySelector('#replay-status').textContent.startsWith('TERMINÉ')",
             timeout=5000,

@@ -172,6 +172,15 @@ test('Custom atlas manifest contains every runtime France/Vietnam/button sprite'
     'button_home',
     'button_options',
     'button_profile',
+    'button_restart',
+    'button_hitbox_off',
+    'button_hitbox_on',
+    'button_x1',
+    'button_x1_5',
+    'button_x2',
+    'button_x5',
+    'replay_progress_track',
+    'replay_progress_filled',
   ];
 
   for (const name of required) {
@@ -179,5 +188,5 @@ test('Custom atlas manifest contains every runtime France/Vietnam/button sprite'
   }
 
   assert.equal(manifest.meta.image, 'customatlas.png');
-  assert.deepEqual(manifest.meta.size, { w: 1854, h: 514 });
+  assert.deepEqual(manifest.meta.size, { w: 2038, h: 514 });
 });

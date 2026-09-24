@@ -12,6 +12,8 @@ Le système de thèmes est volontairement séparé du moteur de gameplay. Un th�
 
 Depuis `v0.2.7.4b-dev1`, le custom atlas 1854×514 contient également les sprites d'interface `button_home`, `button_options`, `button_profile` et `button_close`. Les trois utilitaires sont rendus en x1,75 ; `button_close` reste en x1. Ces sprites UI ne participent pas à la sélection des thèmes et ne modifient aucun état de gameplay. Depuis `v0.2.7.4b-dev6`, leur état pressé décale uniquement le sprite d'un pixel source vers le bas et masque la dernière ligne source via `clip-path`; aucun décalage horizontal ni redimensionnement de layout n'est appliqué.
 
+Depuis `v0.2.7.7b`, le custom atlas passe à 2038×514 et ajoute les contrôles graphiques du lecteur de replay (`restart`, hitboxes, vitesses x1/x1,5/x2/x5) ainsi que les sprites de la timeline fixe de 240 px. Les contrôles Play/Pause et l'oiseau rouge animé utilisé comme curseur restent issus de l'atlas original.
+
 ## Principe de sélection Auto
 
 La sélection Auto se fait en deux niveaux :

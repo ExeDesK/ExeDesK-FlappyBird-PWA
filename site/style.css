@@ -890,23 +890,149 @@ body {
   min-height: min(420px, 58dvh);
 }
 
+.replay-timeline {
+  display: grid;
+  place-items: center;
+  min-height: 32px;
+  margin-top: 8px;
+}
+
+.replay-progress {
+  position: relative;
+  width: 240px;
+  height: 28px;
+  max-width: none;
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.replay-progress[aria-disabled="true"] {
+  cursor: default;
+  opacity: 0.58;
+}
+
+.replay-progress:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 3px;
+}
+
+.replay-progress-track-sprite,
+.replay-progress-filled-sprite,
+.replay-progress-handle,
+.replay-atlas-icon {
+  display: block;
+  background-repeat: no-repeat;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  pointer-events: none;
+}
+
+.replay-progress-track-sprite {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  transform: translateY(-50%);
+}
+
+.replay-progress-fill-clip {
+  position: absolute;
+  top: 50%;
+  left: 0;
+  width: 0;
+  height: 14px;
+  overflow: hidden;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.replay-progress-filled-sprite {
+  position: absolute;
+  inset: 0 auto auto 0;
+}
+
+.replay-progress-handle {
+  position: absolute;
+  z-index: 2;
+  top: 50%;
+  left: 0;
+  transform: translate(-50%, -50%);
+  transform-origin: 50% 50%;
+}
+
+.replay-progress:hover .replay-progress-handle,
+.replay-progress:focus-visible .replay-progress-handle {
+  filter: brightness(1.08);
+}
+
+.replay-controls {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 240px;
+  margin: 2px auto 0;
+}
+
+#replay-dialog .replay-atlas-button {
+  position: relative;
+  flex: 0 0 26px;
+  width: 26px;
+  height: 30px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+#replay-dialog .replay-atlas-button:hover,
+#replay-dialog .replay-atlas-button:focus-visible,
+#replay-dialog .replay-atlas-button:active:not(:disabled) {
+  transform: none;
+  background: transparent;
+  box-shadow: none;
+}
+
+.replay-atlas-icon {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.replay-atlas-button:hover .replay-atlas-icon,
+.replay-atlas-button:focus-visible .replay-atlas-icon {
+  filter: brightness(1.08);
+}
+
+.replay-atlas-button.is-selected .replay-atlas-icon {
+  filter: brightness(1.18);
+}
+
+.replay-atlas-button:active .replay-atlas-icon,
+.replay-atlas-button.atlas-pressed .replay-atlas-icon {
+  top: calc(50% + var(--atlas-source-pixel, 1px));
+  clip-path: inset(0 0 var(--atlas-source-pixel, 1px) 0);
+}
+
+#replay-dialog .replay-atlas-button:disabled {
+  filter: saturate(0.35);
+  opacity: 0.58;
+}
+
 .replay-footer {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-top: 9px;
+  justify-content: center;
+  min-height: 18px;
+  margin-top: 5px;
 }
 
 .replay-footer .hint {
   margin: 0;
   font-size: 7px;
-}
-
-#replay-restart {
-  flex: 0 0 auto;
-  padding: 7px 9px !important;
-  font-size: 8px !important;
+  text-align: center;
 }
 
 .leaderboard-row.is-current-player {

@@ -240,6 +240,30 @@
         "y": 0.5
       }
     },
+    "replay_progress_filled": {
+      "frame": {
+        "x": 1161,
+        "y": 487,
+        "w": 240,
+        "h": 14
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 240,
+        "h": 14
+      },
+      "sourceSize": {
+        "w": 240,
+        "h": 14
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
     "bird_france_1": {
       "frame": {
         "x": 1211,
@@ -336,6 +360,30 @@
         "y": 0.5
       }
     },
+    "replay_progress_track": {
+      "frame": {
+        "x": 1403,
+        "y": 487,
+        "w": 240,
+        "h": 14
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 240,
+        "h": 14
+      },
+      "sourceSize": {
+        "w": 240,
+        "h": 14
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
     "bird_vietnam_2": {
       "frame": {
         "x": 1411,
@@ -384,31 +432,7 @@
         "y": 0.5
       }
     },
-    "button_home": {
-      "frame": {
-        "x": 1461,
-        "y": 467,
-        "w": 26,
-        "h": 28
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 26,
-        "h": 28
-      },
-      "sourceSize": {
-        "w": 26,
-        "h": 28
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
-    "button_options": {
+    "button_hitbox_off": {
       "frame": {
         "x": 1489,
         "y": 437,
@@ -432,33 +456,9 @@
         "y": 0.5
       }
     },
-    "button_profile": {
-      "frame": {
-        "x": 1489,
-        "y": 467,
-        "w": 26,
-        "h": 28
-      },
-      "rotated": false,
-      "trimmed": false,
-      "spriteSourceSize": {
-        "x": 0,
-        "y": 0,
-        "w": 26,
-        "h": 28
-      },
-      "sourceSize": {
-        "w": 26,
-        "h": 28
-      },
-      "pivot": {
-        "x": 0.5,
-        "y": 0.5
-      }
-    },
     "land_vietnam": {
       "frame": {
-        "x": 1517,
+        "x": 1645,
         "y": 1,
         "w": 336,
         "h": 112
@@ -479,6 +479,222 @@
         "x": 0.5,
         "y": 0.5
       }
+    },
+    "button_hitbox_on": {
+      "frame": {
+        "x": 1983,
+        "y": 1,
+        "w": 26,
+        "h": 28
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 26,
+        "h": 28
+      },
+      "sourceSize": {
+        "w": 26,
+        "h": 28
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "button_home": {
+      "frame": {
+        "x": 2011,
+        "y": 1,
+        "w": 26,
+        "h": 28
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 26,
+        "h": 28
+      },
+      "sourceSize": {
+        "w": 26,
+        "h": 28
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "button_options": {
+      "frame": {
+        "x": 1983,
+        "y": 31,
+        "w": 26,
+        "h": 28
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 26,
+        "h": 28
+      },
+      "sourceSize": {
+        "w": 26,
+        "h": 28
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "button_profile": {
+      "frame": {
+        "x": 2011,
+        "y": 31,
+        "w": 26,
+        "h": 28
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 26,
+        "h": 28
+      },
+      "sourceSize": {
+        "w": 26,
+        "h": 28
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "button_restart": {
+      "frame": {
+        "x": 1983,
+        "y": 61,
+        "w": 26,
+        "h": 28
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 26,
+        "h": 28
+      },
+      "sourceSize": {
+        "w": 26,
+        "h": 28
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "button_x1": {
+      "frame": {
+        "x": 2011,
+        "y": 61,
+        "w": 26,
+        "h": 28
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 26,
+        "h": 28
+      },
+      "sourceSize": {
+        "w": 26,
+        "h": 28
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "button_x1_5": {
+      "frame": {
+        "x": 1983,
+        "y": 91,
+        "w": 26,
+        "h": 28
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 26,
+        "h": 28
+      },
+      "sourceSize": {
+        "w": 26,
+        "h": 28
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "button_x2": {
+      "frame": {
+        "x": 2011,
+        "y": 91,
+        "w": 26,
+        "h": 28
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 26,
+        "h": 28
+      },
+      "sourceSize": {
+        "w": 26,
+        "h": 28
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
+    },
+    "button_x5": {
+      "frame": {
+        "x": 2011,
+        "y": 121,
+        "w": 26,
+        "h": 28
+      },
+      "rotated": false,
+      "trimmed": false,
+      "spriteSourceSize": {
+        "x": 0,
+        "y": 0,
+        "w": 26,
+        "h": 28
+      },
+      "sourceSize": {
+        "w": 26,
+        "h": 28
+      },
+      "pivot": {
+        "x": 0.5,
+        "y": 0.5
+      }
     }
   },
   "meta": {
@@ -487,7 +703,7 @@
     "image": "customatlas.png",
     "format": "RGBA8888",
     "size": {
-      "w": 1854,
+      "w": 2038,
       "h": 514
     },
     "scale": 1

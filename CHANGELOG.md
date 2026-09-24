@@ -1,3 +1,15 @@
+## v0.2.7.7b - Replay Controls
+
+- Ajoute les contrôles du lecteur de replay : **lecture/pause**, **recommencer**, vitesses **×1 / ×1,5 / ×2 / ×5**, et affichage/masquage des **hitbox**.
+- Ajoute une timeline fixe de **240 px** issue du custom atlas ; elle est cliquable, draggable au pointeur/tactile et pilotable au clavier (`←` / `→` par pas d'une seconde, `Home`, `End`).
+- Le seek reconstruit l'état déterministe depuis la seed et les taps sans jouer les sons intermédiaires. Un déplacement vers l'arrière repart du tick 0 ; un déplacement vers l'avant poursuit la simulation déjà reconstruite.
+- Le curseur de timeline est l'**oiseau rouge original** (`bird2_0..2`) rendu en ×0,5 ; ses ailes changent de frame avec le tick du replay, y compris après un seek.
+- Intègre le nouvel `customatlas.png/json` fourni : `button_restart`, `button_hitbox_off/on`, `button_x1`, `button_x1_5`, `button_x2`, `button_x5`, `replay_progress_track` et `replay_progress_filled`. Play/Pause réutilisent les sprites originaux `button_resume` / `button_pause`.
+- Tous les boutons replay reprennent le press-state atlas existant : survol éclairci, déplacement vertical d'un pixel source, clipping inférieur et persistance minimale de 70 ms sur les taps rapides.
+- Les hitbox utilisent le renderer de debug existant : oiseau 20×20, tuyaux 52×320 et ligne de sol y=400, sans modifier la physique ni le résultat du replay.
+- Aucun changement Supabase, Edge Function, schéma, Verified Runs ou `flappy13-physics-v1`.
+- Validation : `npm test` **202/202**, smoke Chromium gameplay **OK / 0 erreur** avec pause, hitbox, seek, vitesse ×5 et press-state atlas ; smoke Admin inchangé.
+
 ## v0.2.7.6b - Leaderboard Replay Viewing
 
 - Ajoute un bouton **VOIR** sur chaque ligne du leaderboard afin de visionner le meilleur run vérifié public du joueur.

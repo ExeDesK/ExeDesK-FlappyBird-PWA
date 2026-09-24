@@ -9,7 +9,13 @@ import {
   parseLeaderboardReplay,
   parseLeaderboardRows,
 } from '../site/src/leaderboard.js';
-import { resolveReplayVisualContext } from '../site/src/replay/replay-viewer.js';
+import {
+  REPLAY_SPEEDS,
+  replayHandleFrame,
+  replayProgressRatio,
+  replayStepFromRatio,
+  resolveReplayVisualContext,
+} from '../site/src/replay/replay-viewer.js';
 import { LeaderboardUI } from '../site/src/ui/leaderboard-ui.js';
 
 class MemoryStorage {
@@ -128,6 +134,20 @@ test('replay parser accepts legacy rows without visual context and rejects parti
   assert.throws(() => parseLeaderboardReplay([{ ...base, theme: 'france' }]), /incomplet/i);
 });
 
+test('replay controls expose deterministic speeds, seek math and the animated red-bird handle', () => {
+  const replay = { terminal_tick: 119 };
+  assert.deepEqual(REPLAY_SPEEDS, [1, 1.5, 2, 5]);
+  assert.equal(replayProgressRatio(0, replay), 0);
+  assert.equal(replayProgressRatio(60, replay), 0.5);
+  assert.equal(replayProgressRatio(120, replay), 1);
+  assert.equal(replayStepFromRatio(0.5, replay), 60);
+  assert.equal(replayStepFromRatio(1, replay), 120);
+  assert.equal(replayHandleFrame(0), 'bird2_0');
+  assert.equal(replayHandleFrame(5), 'bird2_1');
+  assert.equal(replayHandleFrame(10), 'bird2_2');
+  assert.equal(replayHandleFrame(15), 'bird2_0');
+});
+
 test('recorded replay theme wins while legacy visual context is randomized', () => {
   const catalog = {
     schemaVersion: 2,
@@ -235,6 +255,38 @@ test('leaderboard UI is public, dedicated, explains sign-in, and the original sc
   assert.match(leaderboardUi, /leaderboard-login-hint/);
   assert.match(css, /#leaderboard-dialog\[open\]/);
   assert.match(css, /#leaderboard-dialog::backdrop/);
+});
+
+test('replay modal exposes atlas controls, draggable timeline, hitboxes and speed scaling', async () => {
+  const html = await readFile(new URL('../site/index.html', import.meta.url), 'utf8');
+  const viewer = await readFile(new URL('../site/src/replay/replay-viewer.js', import.meta.url), 'utf8');
+  const css = await readFile(new URL('../site/style.css', import.meta.url), 'utf8');
+
+  for (const id of [
+    'replay-play-pause',
+    'replay-restart',
+    'replay-hitbox',
+    'replay-speed-1',
+    'replay-speed-1-5',
+    'replay-speed-2',
+    'replay-speed-5',
+    'replay-progress',
+    'replay-progress-handle',
+  ]) {
+    assert.match(html, new RegExp(`id="${id}"`));
+  }
+
+  assert.match(viewer, /delta \* this\.playbackRate/);
+  assert.match(viewer, /this\.hitboxes \? this\.game\.snapshot\(\) : null/);
+  assert.match(viewer, /seekToStep\(targetStep\)/);
+  assert.match(viewer, /button_pause/);
+  assert.match(viewer, /button_resume/);
+  assert.match(viewer, /bird2_0/);
+  assert.match(viewer, /replay_progress_track/);
+  assert.match(viewer, /replay_progress_filled/);
+  assert.match(css, /\.replay-progress[\s\S]*width: 240px/);
+  assert.match(css, /\.replay-atlas-button\.atlas-pressed \.replay-atlas-icon/);
+  assert.match(css, /clip-path: inset\(0 0 var\(--atlas-source-pixel, 1px\) 0\)/);
 });
 
 test('personal leaderboard payload validates ranked and unranked states', async () => {

@@ -199,7 +199,7 @@ Côté serveur, `010_admin_analytics.sql` étend les triggers autoritaires exist
 
 ## Hors ligne
 
-Les **57 ressources runtime du jeu** sont précachées par `site/sw.js` en `v0.2.7.6b`, dont le nouveau lecteur de replay. Le dashboard `site/admin/` et ses modules restent volontairement **online-only** et ne sont pas ajoutés au précache : une indisponibilité de l'administration ne peut donc pas empêcher l'installation ou le fonctionnement hors ligne du gameplay.
+Les **57 ressources runtime du jeu** sont précachées par `site/sw.js` en `v0.2.7.7b`, dont le lecteur de replay et ses contrôles. Le dashboard `site/admin/` et ses modules restent volontairement **online-only** et ne sont pas ajoutés au précache : une indisponibilité de l'administration ne peut donc pas empêcher l'installation ou le fonctionnement hors ligne du gameplay.
 
 ## Évolution future
 

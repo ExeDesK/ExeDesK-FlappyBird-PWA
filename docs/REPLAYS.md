@@ -1,4 +1,4 @@
-# Replays leaderboard — v0.2.7.6b
+# Replays leaderboard — v0.2.7.7b
 
 ## Objectif
 
@@ -34,6 +34,21 @@ Ce contexte est **cosmétique uniquement**. Il ne modifie jamais `flappy13-physi
 
 Pour les runs historiques qui ne possèdent pas ces colonnes, le lecteur choisit volontairement un thème et une variante jour/nuit aléatoires à chaque ouverture/relecture.
 
+## Contrôles du lecteur (v0.2.7.7b)
+
+Le lecteur est contrôlable sans modifier le payload autoritaire :
+
+- lecture / pause avec les sprites originaux `button_resume` / `button_pause` ;
+- restart avec `button_restart` ;
+- vitesses `×1`, `×1,5`, `×2`, `×5` ;
+- toggle hitbox via `button_hitbox_off` / `button_hitbox_on` ;
+- timeline fixe `240 × 14` utilisant `replay_progress_track` et `replay_progress_filled` ;
+- handle = oiseau rouge original `bird2_0`, `bird2_1`, `bird2_2` rendu à 50 %, avec frame déterminée par le tick courant.
+
+Le seek convertit la position de la timeline en nombre de ticks simulés. La reconstruction reste déterministe : un seek arrière recrée le moteur depuis la seed, puis rejoue les taps jusqu'au tick demandé ; un seek avant continue depuis l'état courant. Les événements audio traversés pendant le seek sont volontairement silencieux.
+
+Les hitbox sont un overlay de rendu seulement : 20×20 pour l'oiseau, 52×320 pour chaque demi-tuyau et ligne de sol à `y=400`. Elles ne participent pas à la simulation et ne modifient jamais le résultat vérifié.
+
 ## Exposition publique
 
 `get_leaderboard()` expose désormais le `run_id` correspondant au record affiché.
@@ -48,15 +63,15 @@ Aucun `SELECT` direct sur `public.verified_runs` n'est accordé aux rôles navig
 
 ## Déploiement Supabase
 
-Ordre recommandé :
+**`v0.2.7.7b` n'ajoute aucune migration ni modification d'Edge Function.** Si `v0.2.7.6b` est déjà déployée, aucune action Supabase n'est nécessaire pour les contrôles de replay.
+
+Pour une installation qui n'aurait pas encore appliqué le backend du visionnage introduit en `v0.2.7.6b`, l'ordre reste :
 
 1. exécuter `supabase/014_replay_viewing.sql` ;
 2. redéployer l'Edge Function `run-submit` ;
-3. déployer ensuite le frontend `v0.2.7.6b`.
+3. déployer ensuite le frontend.
 
-Cet ordre évite qu'une nouvelle `run-submit` tente d'écrire `visual_theme` / `visual_variant` avant la création des colonnes.
-
-`run-start` ne change pas et n'a pas besoin d'être redéployé pour cette release.
+Cet ordre évite qu'une nouvelle `run-submit` tente d'écrire `visual_theme` / `visual_variant` avant la création des colonnes. `run-start` reste inchangé.
 
 ## Hors ligne
 
