@@ -1,3 +1,10 @@
+## v0.2.8b-hotfix2 - Verified Run hourly analytics fix
+
+- Corrige le SQLSTATE `42702` `column reference "activity_hour" is ambiguous` dans `capture_verified_run_player_stats()` introduit par la migration `018`.
+- Renomme la variable PL/pgSQL locale en `activity_hour_utc`, ce qui laisse `ON CONFLICT (player_id, activity_hour)` désigner sans ambiguïté la colonne de `player_activity_hourly`.
+- Ajoute `supabase/021_hourly_activity_ambiguity.sql` pour réparer les bases déjà migrées, et corrige aussi `018_admin_player_daily_insights.sql` pour les installations fraîches.
+- Aucun changement de données, de physique, de contrat Verified Runs ou d'Edge Function ; les runs restées `issued` après le rollback peuvent être retentées.
+
 ## v0.2.8b-hotfix1 - Leaderboard Record Details
 
 - Corrige un faux diagnostic client : une erreur transitoire de `run-submit` (ex. HTTP 500) n'est plus affichée comme **« Pas d’internet »**. Le toast distingue désormais hors-ligne, session expirée, rate-limit et indisponibilité serveur tout en conservant la run dans la file locale.

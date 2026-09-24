@@ -1,4 +1,4 @@
-const BUILD = '0.2.8b-hotfix1';
+const BUILD = '0.2.8b-hotfix2';
 const PREFIX = `flappy13-${encodeURIComponent(self.registration.scope)}-`;
 const CACHE = `${PREFIX}${BUILD}`;
 const ASSETS = [

@@ -8,7 +8,7 @@ The goal is not to create another Flappy Bird-inspired clone, but to **reproduce
 
 Gameplay runs entirely client-side without a framework and can be installed as an application on Windows, iPhone/iPad and Android. Optional community features use Supabase; no account is required to play.
 
-> **Project status: beta — v0.2.8b-hotfix1**
+> **Project status: beta — v0.2.8b-hotfix2**
 
 - Player statistics: career + 10 / 25 / 50-run windows derived only from verified runs.
 > On ProMotion iPhone/iPad devices, the Performance options include guidance for the Safari setting that can remove the near-60 Hz page-rendering preference.
@@ -30,7 +30,7 @@ Gameplay runs entirely client-side without a framework and can be installed as a
 - Existing-account preservation and the future multi-provider flow are documented in [`docs/ACCOUNT-LINKING.md`](./docs/ACCOUNT-LINKING.md).
 - Cross-device best-score sync that always keeps the highest value.
 - Verified Runs: server-issued ticket/seed, deterministic capture, self-healing local queue, deferred submission, and authoritative replay before a score is accepted or rejected.
-- Public global leaderboard in a dedicated modal: available without an account, verified runs only, one best score per player. The Top 100 reads from the authoritative server-side `player_stats` aggregate, indexed so verified runs do not need to be deduplicated on every refresh. Since `v0.2.8b-hotfix1`, every row also shows the **record date and time**, while #1 additionally shows their **continuous world-record tenure**, tracked server-side without resetting when the same leader improves their own score.
+- Public global leaderboard in a dedicated modal: available without an account, verified runs only, one best score per player. The Top 100 reads from the authoritative server-side `player_stats` aggregate, indexed so verified runs do not need to be deduplicated on every refresh. Since `v0.2.8b`, every row also shows the **record date and time**, while #1 additionally shows their **continuous world-record tenure**, tracked server-side without resetting when the same leader improves their own score.
 - For **signed-in players**, every leaderboard row has a **VIEW** replay action: the player reconstructs the verified run from its authoritative seed/taps. New runs also replay with the **same theme and day/night variant**; legacy runs without stored visual context intentionally use a random visual context. The viewer provides play/pause, restart, **1x / 1.5x / 2x / 5x** speeds, hitboxes and a fixed 240 px draggable timeline whose handle is the original red bird animated from replay ticks. Replay payloads are limited to 10 requests/minute/player.
 - The leaderboard remains **publicly readable** without an account, while the `REFRESH` action and forced live refreshes use an authenticated RPC limited to 6 requests/minute/player, with a 10-second client cooldown for manual clicks.
 - Authenticated personal leaderboard context: true global rank, verified record, lifetime verified-run count and record date, even outside the Top 100.
@@ -456,3 +456,5 @@ Since v0.2.6b, every push and pull request automatically compares the PWA engine
 > Admin Analytics: after `010_admin_analytics.sql`, apply `017_admin_analytics_ranges.sql` and then `018_admin_player_daily_insights.sql` to enable explicit ranges, player drill-down and the hourly Day view. No Edge Function redeploy is required.
 
 > **`v0.2.8b-hotfix1` hotfix:** #1 tenure bookkeeping is now isolated from the Verified Runs critical path; a leaderboard bookkeeping error can no longer fail a submission. Temporary submission errors now distinguish offline, session, rate-limit and server failures.
+
+> **`v0.2.8b-hotfix2` hotfix:** fixes SQLSTATE `42702` in the hourly Analytics trigger (ambiguous `activity_hour`). Migration `021_hourly_activity_ambiguity.sql` replaces the faulty function without changing data or the Verified Runs contract.

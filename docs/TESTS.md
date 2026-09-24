@@ -1,4 +1,6 @@
-## v0.2.8b-hotfix1 — Leaderboard Record Details
+## v0.2.8b-hotfix2 — Leaderboard Record Details
+
+- Régression SQL : `capture_verified_run_player_stats()` ne déclare plus de variable locale `activity_hour` entrant en conflit avec la colonne du même nom ; `021_hourly_activity_ambiguity.sql` est contrôlée dans la suite Node.
 
 - Le parseur du leaderboard valide `record_held_since` uniquement pour le rang #1 et refuse une détention postérieure au timestamp du record courant.
 - Les helpers UI couvrent le format date+heure et les durées de détention en minutes, heures et jours.

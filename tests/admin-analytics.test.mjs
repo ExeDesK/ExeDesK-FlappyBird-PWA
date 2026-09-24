@@ -231,9 +231,22 @@ test('authoritative verified transitions feed both daily and hourly gameplay agg
   const block = insightsFunctionBlock('capture_verified_run_player_stats', 'admin_analytics_player_detail');
   assert.match(block, /insert into public\.player_activity_daily/i);
   assert.match(block, /insert into public\.player_activity_hourly/i);
-  assert.match(block, /activity_hour := date_trunc\('hour', new\.resolved_at at time zone 'UTC'\)/i);
+  assert.match(block, /activity_hour_utc := date_trunc\('hour', new\.resolved_at at time zone 'UTC'\)/i);
   assert.match(block, /deaths_pipe_top = pah\.deaths_pipe_top \+ excluded\.deaths_pipe_top/i);
   assert.match(block, /perform public\.bump_run_metrics/i);
+});
+
+test('hourly verified-run trigger avoids PL/pgSQL activity_hour ambiguity', () => {
+  const block = insightsFunctionBlock('capture_verified_run_player_stats', 'admin_analytics_player_detail');
+  assert.doesNotMatch(block, /declare[\s\S]*\n\s*activity_hour\s+timestamptz;/i);
+  assert.match(block, /activity_hour_utc timestamptz;/i);
+  assert.match(block, /on conflict \(player_id, activity_hour\) do update/i);
+  assert.match(block, /new\.player_id,\s*activity_hour_utc,/i);
+
+  const hotfix = read('supabase/021_hourly_activity_ambiguity.sql');
+  assert.match(hotfix, /SQLSTATE 42702/i);
+  assert.match(hotfix, /activity_hour_utc timestamptz;/i);
+  assert.doesNotMatch(hotfix, /\n\s*activity_hour timestamptz;/i);
 });
 
 test('player drill-down is admin-only and exposes linked provider metadata without tokens or replay material', () => {

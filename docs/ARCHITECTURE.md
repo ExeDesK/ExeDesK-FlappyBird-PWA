@@ -134,7 +134,7 @@ Maintient l'état de synchronisation du record et décide quand appeler `BestSco
 
 ### `ui/leaderboard-ui.js` — `LeaderboardUI`
 
-Possède l'état d'affichage du classement : cache court, chargement, contexte personnel, statistiques et rendu de la modale. Depuis `v0.2.8b-hotfix1`, chaque ligne affiche aussi `achieved_at` avec date+heure et le rang #1 affiche `record_held_since`, alimenté par l’état serveur privé `leaderboard_record_state`. Sans session, le Top 100 reste lisible mais **VOIR** / `ACTUALISER` sont désactivés. Avec session, les refresh forcés passent par le chemin authentifié/rate-limité. Les appels réseau restent dans `LeaderboardClient`.
+Possède l'état d'affichage du classement : cache court, chargement, contexte personnel, statistiques et rendu de la modale. Depuis `v0.2.8b`, chaque ligne affiche aussi `achieved_at` avec date+heure et le rang #1 affiche `record_held_since`, alimenté par l’état serveur privé `leaderboard_record_state`. Sans session, le Top 100 reste lisible mais **VOIR** / `ACTUALISER` sont désactivés. Avec session, les refresh forcés passent par le chemin authentifié/rate-limité. Les appels réseau restent dans `LeaderboardClient`.
 
 ### `ui/account.js` — `AccountUI`
 
@@ -203,7 +203,7 @@ Côté serveur, `010_admin_analytics.sql` étend les triggers autoritaires exist
 
 ## Hors ligne
 
-Les **57 ressources runtime du jeu** sont précachées par `site/sw.js` en `v0.2.8b-hotfix1`, dont le lecteur de replay et ses contrôles. Le dashboard `site/admin/` et ses modules restent volontairement **online-only** et ne sont pas ajoutés au précache : une indisponibilité de l'administration ne peut donc pas empêcher l'installation ou le fonctionnement hors ligne du gameplay.
+Les **57 ressources runtime du jeu** sont précachées par `site/sw.js` en `v0.2.8b-hotfix2`, dont le lecteur de replay et ses contrôles. Le dashboard `site/admin/` et ses modules restent volontairement **online-only** et ne sont pas ajoutés au précache : une indisponibilité de l'administration ne peut donc pas empêcher l'installation ou le fonctionnement hors ligne du gameplay.
 
 ## Évolution future
 

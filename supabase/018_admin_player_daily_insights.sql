@@ -264,7 +264,7 @@ set search_path = ''
 as $$
 declare
   activity_day date;
-  activity_hour timestamptz;
+  activity_hour_utc timestamptz;
   run_ticks bigint;
 begin
   if new.status <> 'verified' then
@@ -276,7 +276,7 @@ begin
   end if;
 
   activity_day := (new.resolved_at at time zone 'UTC')::date;
-  activity_hour := date_trunc('hour', new.resolved_at at time zone 'UTC') at time zone 'UTC';
+  activity_hour_utc := date_trunc('hour', new.resolved_at at time zone 'UTC') at time zone 'UTC';
   run_ticks := greatest(coalesce(new.terminal_tick, 0), 0)::bigint;
 
   insert into public.player_stats as ps (
@@ -404,7 +404,7 @@ begin
     last_run_at
   ) values (
     new.player_id,
-    activity_hour,
+    activity_hour_utc,
     1,
     run_ticks,
     new.verified_score,
